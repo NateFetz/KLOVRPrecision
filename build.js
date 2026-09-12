@@ -49,9 +49,53 @@ const ROUTES = [
     title: 'Contact, Hours & FFL Transfers — KLOVR Precision',
     desc : 'Shop hours, service pricing, and what to bring to an FFL transfer. Incoming transfers processed the day they land.',
     img  : 'web/feat-profile.jpg' },
+  { path: 'transfers',     view: 'transfers',
+    title: 'FFL Transfers — KLOVR Precision',
+    desc : 'How an incoming firearm transfer works at KLOVR Precision: what to send, what to bring, what the background check can do, and what we will not accept.',
+    img  : 'web/feat-profile.jpg', policy: true },
+  { path: 'shipping-returns', view: 'shipping',
+    title: 'Shipping & Returns — KLOVR Precision',
+    desc : 'Components ship to your door, firearms to a licensed dealer, ammunition ground only. Return windows, damaged shipments, and what cannot come back.',
+    img  : 'web/p-action-short.jpg', policy: true },
+  { path: 'warranty',      view: 'warranty',
+    title: 'Warranty — KLOVR Precision',
+    desc : 'What we cover on actions, chassis, barrels and complete rifles, what the sub-MOA guarantee means in practice, and how to make a claim.',
+    img  : 'web/hero-action.jpg', policy: true },
+  { path: 'terms',         view: 'terms',
+    title: 'Terms of Sale — KLOVR Precision',
+    desc : 'Who may buy, how orders are confirmed, how firearms are delivered, custom build terms, and the limits of our liability.',
+    img  : 'web/feat-profile.jpg', policy: true },
+  { path: 'privacy',       view: 'privacy',
+    title: 'Privacy — KLOVR Precision',
+    desc : 'Everything this site collects, where it goes, what stays in your own browser, and how federal firearms records are kept separate.',
+    img  : 'web/feat-profile.jpg', policy: true },
 ];
 
-const src   = fs.readFileSync(SRC, 'utf8');
+/* The policy pages carry [data-draft] notices and gold "tbd" markers for every
+   fact only the shop can supply. They stay out of the index until somebody
+   says they are finished; POLICIES_FINAL=1 strips the notices, lets them be
+   indexed, and refuses to build if any marker is still unresolved. */
+const POLICIES_FINAL = process.env.POLICIES_FINAL === '1';
+for (const r of ROUTES) if (r.policy && !POLICIES_FINAL) r.noindex = true;
+
+let src = fs.readFileSync(SRC, 'utf8');
+if (POLICIES_FINAL) {
+  const left = (src.match(/class="tbd"/g) || []).length;
+  if (left) throw new Error(
+    `POLICIES_FINAL=1 but ${left} unresolved marker(s) remain in the policy pages. ` +
+    'Search site/index.html for class="tbd" and settle each one first.');
+  const before = src.length;
+  src = src.replace(/\s*<div class="draftbox" data-draft>[\s\S]*?<\/div>/g, '');
+  if (src.length === before) throw new Error('POLICIES_FINAL=1 but no draft notices were found to remove');
+}
+
+/* The privacy page states that nothing third-party is tracking the visitor.
+   Switching Plausible on with PLAUSIBLE_DOMAIN makes that sentence false, so
+   the build stops rather than publishing a privacy policy that lies. */
+if (PLAUSIBLE && src.includes('no third&#8209;party analytics')) throw new Error(
+  'PLAUSIBLE_DOMAIN is set, but the privacy page still says the site runs no ' +
+  'third-party analytics. Rewrite that paragraph (search site/index.html for ' +
+  '"no advertising trackers") to name Plausible and what it collects, then build again.');
 
 /* The catalogue in the page is the fallback. When Supabase is configured we
    read it from there instead, so a price changed in /admin reaches the

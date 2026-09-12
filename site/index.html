@@ -470,6 +470,35 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .fflcard em{display:block;font-style:normal;font-size:var(--fs-sm);color:var(--ink-2);margin-top:4px}
 .fflcard i{display:block;font-style:normal;font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);margin-top:5px}
 
+/* ---- policy pages ---- */
+.policy{max-width:70ch}
+.policy .lede{font-size:1.06rem;line-height:1.65;color:var(--ink);margin-bottom:var(--s6)}
+.policy h3{font-size:var(--fs-h3);color:var(--ink);
+ margin:var(--s7) 0 var(--s3);padding-top:var(--s5);border-top:1px solid var(--rule);
+ /* so a jump from the contents list clears both sticky bars */
+ scroll-margin-top:calc(var(--head-h,0px) + var(--stick-h,0px) + 20px)}
+.policy h3:first-of-type{border-top:0;padding-top:0;margin-top:var(--s5)}
+.policy p,.policy li{color:var(--ink-2);line-height:1.72;margin:0 0 var(--s4)}
+.policy b{color:var(--ink);font-weight:500}
+.policy ul{margin:0 0 var(--s4);padding-left:20px}
+.policy li{margin-bottom:var(--s2)}
+.policy li::marker{color:var(--clover)}
+.policy a{color:var(--clover-2,var(--clover));text-decoration:underline;text-underline-offset:3px}
+.policy table th{width:38%;vertical-align:top}
+.policy .tablewrap{margin:0 0 var(--s4)}
+.updated{font-family:var(--mono);font-size:var(--fs-xs);text-transform:uppercase;
+ letter-spacing:.12em;color:var(--muted);margin-bottom:var(--s5)}
+/* An unresolved fact. Loud on purpose — these must not reach a customer. */
+.tbd{font-family:var(--mono);font-size:.88em;color:var(--gold);
+ background:rgba(210,168,95,.13);border-bottom:1px dashed var(--gold);padding:1px 5px}
+.tbd::before{content:"› "}
+.draftbox{padding:var(--s3) var(--s4);margin-bottom:var(--s6);font-size:var(--fs-sm);line-height:1.6;
+ border-left:2px solid var(--gold);background:rgba(210,168,95,.08);color:var(--ink-2);max-width:70ch}
+.draftbox b{display:block;font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;
+ text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-weight:500}
+.footlegal{display:flex;flex-wrap:wrap;gap:0 var(--s4);margin-top:var(--s5);padding:0;list-style:none}
+.footlegal a{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.footlegal a:hover{color:var(--ink-2)}
 .okbox,.blockbox{padding:var(--s3) var(--s4);font-size:var(--fs-sm);line-height:1.6}
 .okbox{border-left:2px solid var(--clover);background:var(--clover-soft);color:var(--ink-2)}
 .blockbox{border-left:2px solid var(--stop);background:var(--stop-soft);color:var(--ink-2)}
@@ -739,7 +768,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   /* interface that means nothing on paper */
   .skip,.util,header.head,.mainnav,.scrim,.promo,.carousel,.toast,.buybar,.mobtotal,
   .evpanel,.lbox,.suggest,.filters,.sharerow,.savedbuilds,.heart,.pdpthumbs,.zoomhint,
-  .related,.foot ul,.social,.conav,.coerr,.steps-co,.nf-links,.nf-search,.searchbox,
+  .related,.foot ul,.footlegal,.social,.conav,.coerr,.steps-co,.nf-links,.nf-search,.searchbox,
   .btn,.linkbtn,.cartqty,.panel,.opts,.swatches,.cal-grid,.calnav,#savedWrap{display:none!important}
   .printhead{display:flex!important}
   #buildForm,.sheet-ft .btn{display:none!important}
@@ -779,7 +808,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 <div class="printhead" aria-hidden="true"><b>KLOVR</b> Precision<span>klovrprecision.com</span></div>
 <div class="util"><div class="wrap">
   <a href="#" onclick="soon.dealer();return false">Dealer login</a>
-  <a href="#" onclick="soon.warranty();return false">Warranty</a>
+  <a href="#" onclick="go('warranty');return false">Warranty</a>
   <a href="#" onclick="soon.tracking();return false">Track an order</a>
   <span class="lab">Phone <span class="ph-num num">(000)&nbsp;000‑0000</span></span>
 </div></div>
@@ -864,7 +893,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   </div>
   <div class="navitem"><button data-v="gallery">Gallery</button></div>
   <div class="navitem"><button data-v="calendar">Calendar</button></div>
-  <div class="navitem"><button data-v="contact">Transfers</button></div>
+  <div class="navitem"><button data-v="transfers">Transfers</button></div>
   <div class="navitem"><button data-v="contact">Contact</button></div>
 </div></div>
 
@@ -949,8 +978,8 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   </section>
 
   <div class="compliance"><div class="wrap">
-    <div><h4>How a rifle purchase works</h4><p>You pay here. The rifle ships to a licensed dealer near you, never to your door. You complete ATF Form 4473 and the background check in person at that dealer.</p></div>
-    <div><h4>Where we can ship</h4><p>Checkout checks your destination state for magazine, feature, and roster restrictions before it will take payment. Some configurations cannot ship to CA, MA, NY, NJ, HI, WA, IL, CO.</p></div>
+    <div><h4>How a rifle purchase works</h4><p>You order here and we confirm it with you &mdash; no card is taken on the site yet. The rifle then ships to a licensed dealer near you, never to your door, and you complete ATF Form 4473 and the background check in person at that dealer.</p></div>
+    <div><h4>Where we can ship</h4><p>Checkout checks your destination state for magazine, feature, and roster restrictions before it will take the order. Some configurations cannot ship to CA, MA, NY, NJ, HI, WA, IL, CO.</p></div>
     <div><h4>Age requirements</h4><p>21 to purchase a handgun or handgun ammunition, 18 for long guns. Verified at checkout and again in person by the receiving dealer.</p></div>
     <div><h4>Suppressors and NFA</h4><p>Sold through an SOT and requiring ATF Form 4, fingerprints, and a $200 stamp. The can stays in our safe until your stamp clears.</p></div>
   </div></div>
@@ -1137,6 +1166,221 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   </div>
 </section></div>
 
+<!-- ===== POLICY PAGES =====
+     Drafts. Every fact only Shawn can supply is wrapped in <span class="tbd">,
+     and every page carries a [data-draft] notice. Setting POLICIES_FINAL=1
+     strips the notices, lets the pages be indexed, and fails the build if any
+     tbd marker is still in the file. -->
+
+<div id="transfers" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Support</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:12px">FFL transfers</h2>
+  <p class="updated">Draft &middot; last reviewed <span class="tbd">date</span></p>
+  <div class="draftbox" data-draft><b>Draft for review</b>
+   Anything in gold is a decision or a fact only you can supply. Nothing here has been read by a lawyer.</div>
+  <div class="policy">
+   <p class="lede">A firearm cannot be mailed to a house. Federal law routes it through a licensed dealer, who runs the background check and hands it over in person. That dealer can be us, or it can be a shop closer to you &mdash; either way the process below is what happens.</p>
+
+   <h3 id="tr-1">Using KLOVR as your receiving dealer</h3>
+   <p>Tell whoever is shipping to send the firearm to us, and tell us it is coming &mdash; name, what it is, and who it is from. We send the seller a signed copy of our licence; most sellers want that before they will ship. Do not have anything sent without telling us first. A firearm that arrives with no name attached to it is a log-book problem we then have to solve backwards.</p>
+   <p>Our licence and address are on the <a href="#" onclick="go('contact');return false">contact page</a>, along with hours and the transfer fee.</p>
+
+   <h3 id="tr-2">What it costs</h3>
+   <p>Current transfer and service pricing is on the <a href="#" onclick="go('contact');return false">contact page</a> so there is only one place to keep it correct. The fee is due at pickup, and it is charged per transfer rather than per firearm &mdash; several firearms on one Form 4473 on the same day cost less than one at a time.</p>
+
+   <h3 id="tr-3">Picking it up</h3>
+   <p>Bring a state&#8209;issued photo ID with your current address on it. If the address is out of date, bring a second document showing where you live now &mdash; <span class="tbd">list what you accept: utility bill, vehicle registration, hunting licence</span>. Allow twenty minutes for the Form 4473 and the background check. You have to fill the 4473 out yourself, in person, and it has to be you: buying a firearm on behalf of somebody else who is not present is a straw purchase and a federal felony, and we will refuse the sale and keep the paperwork.</p>
+   <p>Ages are set by federal law: 18 for a long gun, 21 for a handgun. <span class="tbd">Confirm Utah has no stricter age or waiting period you need to state here.</span></p>
+
+   <h3 id="tr-4">The background check</h3>
+   <p>We submit your information for a background check and get one of three answers. <b>Proceed</b> means you leave with it. <b>Delayed</b> means the check needs more time; federal law lets a dealer transfer after three business days have passed, and our policy is to <span class="tbd">transfer at day three / wait for a definite proceed &mdash; pick one and say so plainly</span>. <b>Denied</b> means we cannot hand it over, and we are not told why. The appeal does not go through us: it goes to <span class="tbd">FBI NICS or Utah BCI &mdash; confirm which agency runs checks for Utah dealers, since it differs by state and by firearm type</span>.</p>
+   <p>If you are denied, the firearm does not become ours. We will return it to the sender or ship it to another dealer you name, at your cost. The transfer fee is <span class="tbd">refundable / non&#8209;refundable</span>.</p>
+
+   <h3 id="tr-5">How long we hold it</h3>
+   <p>We will hold a firearm that has landed for <span class="tbd">number</span> days at no charge. After that there is a storage charge of <span class="tbd">amount</span> per <span class="tbd">day or week</span>. A firearm left more than <span class="tbd">number</span> days with no contact from you is treated as abandoned, and we will <span class="tbd">describe what you do &mdash; this has legal requirements, check it with counsel</span>.</p>
+
+   <h3 id="tr-6">What we will not accept</h3>
+   <ul>
+    <li>Anything without a serial number, or with a serial that has been altered.</li>
+    <li>NFA items without approved paperwork already in hand &mdash; see below.</li>
+    <li>A handgun for anyone who is not a Utah resident. Federal law lets us transfer a handgun only to a resident of our own state; long guns can go to an out&#8209;of&#8209;state resident when both states allow it. <span class="tbd">Confirm how you want to handle long guns for visitors.</span></li>
+    <li>Anything we believe is being bought for somebody else, or by anybody we have reason to think cannot legally own it. We do not need to explain a refusal and we do not charge for one.</li>
+    <li><span class="tbd">Add anything else you turn away &mdash; some shops refuse private out&#8209;of&#8209;state sales, online auction wins, or particular categories.</span></li>
+   </ul>
+
+   <h3 id="tr-7">NFA items</h3>
+   <p>Suppressors, short&#8209;barrelled rifles and anything else under the National Firearms Act are a different process with its own forms, tax stamp and wait. <span class="tbd">State whether you hold an SOT and can handle NFA transfers at all; if not, say so here and point people elsewhere.</span></p>
+
+   <h3 id="tr-8">Your own state and city</h3>
+   <p>What is legal here may not be legal where you live, and that is on you to know before you buy. Magazine capacity, barrel length, threaded muzzles, particular features and particular calibres are all restricted somewhere. If we know an item cannot lawfully go to your state we will block it at checkout, but our list is not a legal opinion and it is not a substitute for checking.</p>
+  </div>
+</section></div>
+
+<div id="shipping" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Support</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:12px">Shipping &amp; returns</h2>
+  <p class="updated">Draft &middot; last reviewed <span class="tbd">date</span></p>
+  <div class="draftbox" data-draft><b>Draft for review</b>
+   The return windows, fees and thresholds in gold are yours to set. A processor will read this page during underwriting, so the refund terms need to be real numbers before you apply.</div>
+  <div class="policy">
+   <p class="lede">Two things leave this shop by two different routes. Components, optics and gear go to your door. Anything that is a firearm goes to a licensed dealer, because that is the only way it can go.</p>
+
+   <h3 id="sh-1">Getting your order out</h3>
+   <p>In&#8209;stock orders leave within <span class="tbd">number</span> business days. We ship <span class="tbd">carriers</span> and the methods you can choose at checkout are <span class="tbd">list them</span>. Shipping is free over <span class="tbd">amount, or say you do not offer it</span>. Complete rifles and custom builds are not stock items &mdash; the lead time quoted on the build sheet is the honest one, and we will tell you if it moves.</p>
+   <p>We do not ship outside the United States, and we do not ship to freight forwarders. Firearms and their parts are export&#8209;controlled; sending one abroad is not a thing we can do as a favour.</p>
+
+   <h3 id="sh-2">Firearms</h3>
+   <p>A firearm ships to the dealer you pick at checkout, not to you, and we need their licence on file before it goes. Once it lands, the process is the same as any other transfer &mdash; see <a href="#" onclick="go('transfers');return false">FFL transfers</a>. You pay that dealer's transfer fee, not us, unless we are the receiving dealer.</p>
+   <p>Look it over at the counter <em>before</em> you sign the Form 4473. Refusing it there is easy. Once the transfer is complete you own it, federally, and it can no longer come back to us as a return &mdash; only as a warranty claim.</p>
+
+   <h3 id="sh-3">Ammunition</h3>
+   <p>Ammunition goes ground only, never by air, with an adult signature required. It cannot go to every state, and some states need a licence or a permit on file before we can send any at all. Restricted destinations are blocked in the cart. Ammunition is not returnable once it has shipped &mdash; we have no way to know how it has been stored, and we will not resell a round we cannot vouch for.</p>
+
+   <h3 id="sh-4">If it arrives damaged, or does not arrive</h3>
+   <p>Look at the box before you open it. If it is crushed, wet or opened, photograph it that way and tell us within <span class="tbd">number</span> days &mdash; a carrier claim without photographs of the packaging usually fails. If tracking says delivered and it is not there, tell us within <span class="tbd">number</span> days and we will open a claim. Once a firearm has been signed for by the receiving dealer, any shortage or damage has to be reported by that dealer, and quickly.</p>
+
+   <h3 id="sh-5">Returns</h3>
+   <p>Ask us for a return number first. We cannot match an unannounced box to an order, and a return that arrives without one sits in a corner while we work out whose it is.</p>
+   <div class="tablewrap"><table>
+    <tr><th>Components, chassis, gear</th><td><span class="tbd">number</span> days, unused, in the original packaging. Restocking fee <span class="tbd">percentage or none</span>.</td></tr>
+    <tr><th>Firearms, after transfer</th><td>Not returnable. Warranty only &mdash; see <a href="#" onclick="go('warranty');return false">warranty</a>.</td></tr>
+    <tr><th>Firearms, before transfer</th><td>Refuse it at the dealer's counter and it comes back to us. <span class="tbd">State what you refund and what you keep &mdash; you are out the shipping both ways.</span></td></tr>
+    <tr><th>Custom builds</th><td>Built to your spec, so not returnable. Deposit terms are on the build sheet.</td></tr>
+    <tr><th>Ammunition, primers, powder</th><td>Not returnable.</td></tr>
+    <tr><th>Barrels that have been fired</th><td>Not returnable. A chambered barrel is fitted to one action.</td></tr>
+    <tr><th>Optics</th><td><span class="tbd">number</span> days if unmounted. Once rings have marked the tube it is a warranty matter for the maker.</td></tr>
+   </table></div>
+   <p>Refunds go back the way the money came, within <span class="tbd">number</span> business days of the return landing and passing inspection. Original shipping is <span class="tbd">refunded / not refunded</span>. Return shipping is yours unless we sent the wrong thing, in which case it is ours and we will send the label.</p>
+
+   <h3 id="sh-6">Cancelling</h3>
+   <p>Catch us before it ships and we will cancel it, no charge. After a firearm has gone to your dealer, cancelling becomes a return. A custom build can be cancelled up to the point we <span class="tbd">order the barrel / start cutting &mdash; define the point of no return</span>; after that, <span class="tbd">state what happens to the deposit</span>.</p>
+  </div>
+</section></div>
+
+<div id="warranty" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Support</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:12px">Warranty</h2>
+  <p class="updated">Draft &middot; last reviewed <span class="tbd">date</span></p>
+  <div class="draftbox" data-draft><b>Draft for review</b>
+   The sub&#8209;MOA guarantee is already advertised on the front page and in the promo bar. It needs a definition before someone tests it &mdash; shot count, distance, ammunition, and who is behind the rifle. That is the most important gold marker on this page.</div>
+  <div class="policy">
+   <p class="lede">We machine these parts, so we stand behind them. What follows is what that means in practice, and where it stops.</p>
+
+   <h3 id="wa-1">Actions and chassis</h3>
+   <p>Covered against defects in material and workmanship for <span class="tbd">term &mdash; lifetime to the original owner is common at this price; say which</span>. If a receiver, a bolt or a chassis fails because of how it was made or what it was made from, we repair it or replace it, our choice, at no charge. This covers the part, not the rifle it was in and not the trip it ruined.</p>
+
+   <h3 id="wa-2">The sub&#8209;MOA guarantee</h3>
+   <p>Every complete rifle we build is proofed before it ships and the target comes in the case. The guarantee is that it will hold <span class="tbd">group size</span> for a <span class="tbd">3 or 5</span>&#8209;shot group at <span class="tbd">100 yards</span>, fired with <span class="tbd">the ammunition it was proofed with, or a named factory match load &mdash; this matters, a rifle that shoots half an inch with one load will not with another</span>, from <span class="tbd">a bench with a rear bag / a bipod and rear bag</span>.</p>
+   <p>If it will not do that with the load it was proofed with, send it back and we will make it. What we cannot guarantee is a group with handloads, with hunting ammunition, off a pack, in a wind, or after somebody else has been inside it.</p>
+
+   <h3 id="wa-3">Barrels</h3>
+   <p>A barrel is a wear part. It is covered against defects &mdash; a bore that is not what it should be, a chamber cut wrong, a thread that is off &mdash; but not against being used. Throat erosion, fire cracking and the slow walk of accuracy over a barrel's life are not defects, they are the barrel doing its job until it is finished. Expect <span class="tbd">round count</span> from a <span class="tbd">chambering</span> before accuracy starts to go.</p>
+
+   <h3 id="wa-4">What is not covered</h3>
+   <ul>
+    <li>Normal wear, and cosmetic finish wear. Bronze will mark where a sling rubs and where a rifle rides in a truck.</li>
+    <li>Rust and pitting from not drying it off. Nitride is not a licence to leave it wet.</li>
+    <li>Handloads, reloads, remanufactured ammunition, or anything loaded outside SAAMI pressure. An overpressure round can wreck an action that had nothing wrong with it, and the evidence of it is usually obvious.</li>
+    <li>Obstructions. A squib, a bore full of snow, a cleaning rod left in it.</li>
+    <li>Work done by somebody else &mdash; rebarrelling, re&#8209;chambering, lapping lugs, refinishing, drilling anything, or a trigger set by hand below what it was made to do.</li>
+    <li>Parts we did not make. Optics, rings, triggers, muzzle devices and bipods are covered by whoever made them, usually better than we could; we will tell you who to call.</li>
+    <li>A firearm that has been dropped, submerged, dismantled and reassembled wrong, or fired in a way it was never meant to be.</li>
+   </ul>
+
+   <h3 id="wa-5">Who the warranty is for</h3>
+   <p>It <span class="tbd">covers the original purchaser only / transfers with the rifle</span>. Keep your invoice; if there is a serial number, that is enough for us to find it.</p>
+
+   <h3 id="wa-6">Making a claim</h3>
+   <p>Call or write first, and tell us what it is doing. Photographs of the problem and of the target save a round trip. <b>Do not ship a firearm to us before we have told you how.</b> There is a lawful way for you to send your own firearm to a licensee for repair and an unlawful way to put one in the mail, and the difference matters &mdash; we will walk you through it.</p>
+   <p>Turnaround on a warranty repair runs <span class="tbd">number</span> weeks once it is here. We pay the freight back to you on anything that turns out to be our fault. If it turns out not to be, we will tell you what it needs and what that costs before we touch it.</p>
+  </div>
+</section></div>
+
+<div id="terms" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Legal</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:12px">Terms of sale</h2>
+  <p class="updated">Draft &middot; last reviewed <span class="tbd">date</span></p>
+  <div class="draftbox" data-draft><b>Draft for review &mdash; needs a lawyer</b>
+   This is a starting point, not advice. The liability, arbitration and governing&#8209;law sections in particular should be read by a Utah attorney who knows the firearms trade before this page goes live.</div>
+  <div class="policy">
+   <p class="lede">These terms cover buying from KLOVR Precision, online or at the counter. Placing an order means you accept them.</p>
+
+   <h3 id="te-1">Who can buy</h3>
+   <p>By ordering you are telling us that you are of legal age for what you are buying &mdash; 18 for a long gun, 21 for a handgun &mdash; that you may lawfully own it where you live, and that you are not prohibited from possessing a firearm under 18 U.S.C. &sect;922(g) or under Utah law. You are also telling us it is for you, and not for somebody else who is paying for it or waiting for it.</p>
+   <p>We can refuse or cancel any order, before or after it is confirmed, and we do not have to say why. If we cancel one you have paid for, you get all of it back.</p>
+
+   <h3 id="te-2">Orders, prices and stock</h3>
+   <p>An order placed here is an offer to buy, not a completed sale. The sale happens when we confirm it. Until then, prices and availability can be wrong: we build this catalogue by hand, and if something is priced at a number we never meant we will tell you before we take a cent, and you can walk.</p>
+   <p><span class="tbd">While no card processing is connected, keep this paragraph:</span> we take no payment on this website. Sending an order puts it in front of us; we confirm stock, tell you what it comes to, and arrange payment with you directly. Nothing is charged automatically and no card details pass through this site.</p>
+
+   <h3 id="te-3">How firearms are delivered</h3>
+   <p>Firearms go to a licensed dealer, never to a residence. You choose the dealer at checkout and you are responsible for their fee and for turning up. If a transfer cannot be completed &mdash; a denied check, a dealer who will not take it, a state that will not allow it &mdash; see <a href="#" onclick="go('shipping');return false">shipping and returns</a> for what happens to the money.</p>
+
+   <h3 id="te-4">Your local law is your responsibility</h3>
+   <p>We block what we know we cannot lawfully send, and that blocking is a convenience, not a legal opinion and not a warranty that your purchase is legal where you are. Capacity limits, feature bans, barrel lengths, threaded muzzles, particular calibres and outright prohibitions vary by state, by county and sometimes by city. Check before you buy. An order we cancel because your jurisdiction forbids it is refunded, less <span class="tbd">shipping / nothing</span>.</p>
+
+   <h3 id="te-5">Custom builds</h3>
+   <p>A build sheet is a quote, good for <span class="tbd">number</span> days. Work starts when we have a deposit of <span class="tbd">amount or percentage</span>, of which <span class="tbd">how much</span> is non&#8209;refundable once we <span class="tbd">order components</span>. Lead times are estimates made in good faith on a one&#8209;man shop's calendar; steel, barrels and finishers all run late sometimes, and we will tell you when they do. Changes after work starts are a new quote. The balance is due before it ships.</p>
+
+   <h3 id="te-6">Safety, and what we are not liable for</h3>
+   <p>Firearms are dangerous and you take them on knowing that. You are responsible for safe handling, safe storage, keeping them away from anybody who should not have one, and for every round that leaves the muzzle. Read the manual, use the right ammunition, and have anything you are unsure about looked at by a gunsmith.</p>
+   <p>Except for the <a href="#" onclick="go('warranty');return false">warranty</a>, everything is sold as it is, with no other warranty, and no implied warranty of merchantability or fitness for a particular purpose beyond what Utah law will not let us disclaim. We are not liable for injury, death, loss or damage arising out of the use, misuse, modification or unlawful possession of anything bought here, and our liability on any claim is capped at what you paid for the item. <span class="tbd">This cap is exactly the kind of clause that needs a lawyer's eye.</span></p>
+
+   <h3 id="te-7">Disputes</h3>
+   <p>These terms are governed by the law of the State of Utah, and any dispute belongs in the state or federal courts sitting in <span class="tbd">county</span> County, Utah. <span class="tbd">Decide with counsel whether you want binding arbitration and a class&#8209;action waiver here instead; there are real trade&#8209;offs either way.</span></p>
+
+   <h3 id="te-8">Changes</h3>
+   <p>We can change these terms. The version that governs your order is the one that was on this page the day you placed it, so the date at the top is the one that counts.</p>
+  </div>
+</section></div>
+
+<div id="privacy" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Legal</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:12px">Privacy</h2>
+  <p class="updated">Draft &middot; last reviewed <span class="tbd">date</span></p>
+  <div class="draftbox" data-draft><b>Draft for review</b>
+   Written to describe what the site actually does today. If analytics, a payment processor or an email list get added, this page has to change the same day &mdash; it is the one page that becomes a lie by omission.</div>
+  <div class="policy">
+   <p class="lede">Firearms customers have a particular reason to care who holds a list with their name on it. Here is everything this site collects and everywhere it goes.</p>
+
+   <h3 id="pr-1">What we collect</h3>
+   <p>When you send an order request or a message: your name, email, phone number, the shipping address if it is going to your door, the dealer you chose if it is not, and whatever you type in the box. When you use the dealer finder, your ZIP code goes to our server to look up licensees near it. Our web host records the ordinary request log every web server keeps &mdash; IP address, time, page, browser.</p>
+   <p>We take no card numbers on this site. There is no payment processing connected to it at all, so there is nothing of that kind for us to hold or lose.</p>
+
+   <h3 id="pr-2">What stays in your browser</h3>
+   <p>Your cart, your wishlist and any build you saved are kept in your own browser's storage, on your own device. They are not sent to us and we cannot see them. Clearing your browser data clears them, and they do not follow you to another device. A shared build link carries the specification in the link itself &mdash; there is no record of it on our side.</p>
+   <p>We run no advertising trackers, no third&#8209;party analytics, no pixels and no cookie banner, because there is nothing to consent to. <span class="tbd">If analytics is ever added, this paragraph has to change and the choice of tool matters: a server&#8209;side one keeps this page short.</span></p>
+
+   <h3 id="pr-3">Federal firearms records</h3>
+   <p>A completed transfer means a Form 4473, and that form is not ours to be relaxed about. Federal law says what goes on it, says we keep it, and says how long &mdash; and it says who may inspect it. Those records are kept as the ATF requires and are separate from anything else here. They are never used for marketing, never sold, and never merged with your order history. We do not keep a registry, and we could not hand one over because there is nothing to hand over beyond what the law already prescribes.</p>
+
+   <h3 id="pr-4">Who else sees your information</h3>
+   <ul>
+    <li><b>Your receiving dealer.</b> Your name and contact details, so they know whose firearm has landed. They need this; the transfer cannot happen without it.</li>
+    <li><b>Carriers.</b> Name, address and phone on the label.</li>
+    <li><b>Our host and database.</b> The site runs on Netlify and its records live in Supabase, both of which hold the data on our behalf under their own terms.</li>
+    <li><b>A payment processor,</b> once one is connected. <span class="tbd">Name them here when the merchant account is approved, and say plainly that card details go to them and not to us.</span></li>
+    <li><b>Law enforcement,</b> where a subpoena, a court order or the ATF's inspection authority requires it. We comply with what the law compels and not a word more.</li>
+   </ul>
+   <p>We do not sell customer information, we do not rent it, and we do not trade it to anybody for anything. There is no mailing list you have been added to without asking.</p>
+
+   <h3 id="pr-5">How long we keep it</h3>
+   <p>Order and message records are kept for <span class="tbd">number</span> years, for accounting and for warranty claims. Firearms records are kept for the period federal law prescribes, which is longer and is not our choice.</p>
+
+   <h3 id="pr-6">Your choices</h3>
+   <p>Write to <span class="tbd">privacy contact address</span> and we will tell you what we hold on you, correct it if it is wrong, or delete it &mdash; except for anything we are legally required to retain, which we will identify rather than quietly keep. <span class="tbd">Residents of California, Colorado, Virginia and a growing list of other states have statutory rights here; whether they apply to a shop this size depends on thresholds. Check before promising more or less than the law requires.</span></p>
+
+   <h3 id="pr-7">Children</h3>
+   <p>This site is not for anyone under 18, and we do not knowingly collect anything from a child. If you believe we have, tell us and it will be deleted.</p>
+
+   <h3 id="pr-8">Security, honestly stated</h3>
+   <p>The site is served over HTTPS, staff access to order records requires a login, and the database refuses to hand anything to the public key beyond the products you can already see in the shop. No one can promise a system cannot be broken into. What we can promise is that the smallest amount of information sits here for the shortest time it usefully can.</p>
+
+   <h3 id="pr-9">Asking us about any of this</h3>
+   <p>Use the <a href="#" onclick="go('contact');return false">contact page</a>, or write to <span class="tbd">privacy contact address</span>.</p>
+  </div>
+</section></div>
+
 </div>
 
 <form name="order-request" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
@@ -1164,11 +1408,18 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
       <li><a href="#" onclick="go('calendar');return false">Calendar</a></li>
       <li><a href="#" onclick="go('build');return false">Lead times</a></li></ul></div>
     <div><h4>Support</h4><ul>
-      <li><a href="#" onclick="go('contact');return false">FFL transfers</a></li>
+      <li><a href="#" onclick="go('transfers');return false">FFL transfers</a></li>
       <li><a href="#" onclick="go('contact');return false">Contact</a></li>
-      <li><a href="#" onclick="soon.warranty();return false">Warranty</a></li>
-      <li><a href="#" onclick="soon.returns();return false">Shipping &amp; returns</a></li></ul></div>
+      <li><a href="#" onclick="go('warranty');return false">Warranty</a></li>
+      <li><a href="#" onclick="go('shipping');return false">Shipping &amp; returns</a></li></ul></div>
   </div>
+  <ul class="footlegal">
+    <li><a href="#" onclick="go('terms');return false">Terms of sale</a></li>
+    <li><a href="#" onclick="go('privacy');return false">Privacy</a></li>
+    <li><a href="#" onclick="go('shipping');return false">Shipping &amp; returns</a></li>
+    <li><a href="#" onclick="go('warranty');return false">Warranty</a></li>
+    <li><a href="#" onclick="go('transfers');return false">FFL transfers</a></li>
+  </ul>
   <p class="legal">Federal Firearms Licensee. All sales comply with federal, state, and local law. Firearms ship to a licensed dealer for transfer &mdash; never direct to a residence. Must be 18 to purchase a long gun, 21 for a handgun. We reserve the right to refuse any sale.</p>
 </div></footer>
 
@@ -1185,8 +1436,6 @@ const soon={
  account:()=>notYet('Accounts are not open yet. Orders are confirmed by email, and you do not need one to buy.'),
  dealer:()=>notYet('Dealer accounts are not open yet. Get in touch and we will set you up directly.',ASK),
  tracking:()=>notYet('Order tracking is not live yet. Your tracking number comes by email when it ships.',ASK),
- warranty:()=>notYet('The warranty page is still being written. Ask us and we will tell you exactly where you stand.',ASK),
- returns:()=>notYet('The shipping and returns page is still being written. Ask us in the meantime.',ASK),
  social:(where)=>notYet('Our '+where+' is not linked yet.')
 };
 
@@ -2331,6 +2580,11 @@ const TITLES={
  wishlist:'Your Wishlist — KLOVR Precision',
  checkout:'Checkout — KLOVR Precision',
  search:'Search — KLOVR Precision',
+ transfers:'FFL Transfers — KLOVR Precision',
+ shipping:'Shipping & Returns — KLOVR Precision',
+ warranty:'Warranty — KLOVR Precision',
+ terms:'Terms of Sale — KLOVR Precision',
+ privacy:'Privacy — KLOVR Precision',
  notfound:'Page not found — KLOVR Precision'
 };
 function setTitle(v){
@@ -2376,7 +2630,7 @@ function releaseFocus(){
 }
 
 /* ---------------- routing ---------------- */
-const ROUTE={home:'/',notfound:'/404',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact',calendar:'/calendar',search:'/search',cart:'/cart',wishlist:'/wishlist',checkout:'/checkout'};
+const ROUTE={home:'/',notfound:'/404',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact',calendar:'/calendar',search:'/search',cart:'/cart',wishlist:'/wishlist',checkout:'/checkout',transfers:'/transfers',shipping:'/shipping-returns',warranty:'/warranty',terms:'/terms',privacy:'/privacy'};
 const VIEW=Object.fromEntries(Object.entries(ROUTE).map(([v,u])=>[u,v]));
 function pathView(){
  const u=location.pathname.replace(/\/+$/,'')||'/';

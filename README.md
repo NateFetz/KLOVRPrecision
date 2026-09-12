@@ -217,6 +217,8 @@ runs via the History API, so links are instant, but crawlers and no-JS visitors
 get a complete page.
 
 `/` · `/shop` · `/custom-rifles` · `/gallery` · `/calendar` · `/contact`
+`/transfers` · `/shipping-returns` · `/warranty` · `/terms` · `/privacy` — see
+Policy pages below; noindex until approved
 `/cart` · `/wishlist` · `/checkout` — noindex, kept out of the sitemap
 `/product/<id>` — one per catalogue item, pre-rendered with Product schema
 
@@ -227,6 +229,37 @@ add it to `SHOP`; the page, sitemap entry, and schema follow automatically.
 Built pages carry `<base href="/">` so relative asset paths resolve at any
 route depth — without it, `web/x.jpg` on `/product/foo` looks for
 `/product/web/x.jpg`.
+
+## Policy pages
+
+Five of them: `/transfers`, `/shipping-returns`, `/warranty`, `/terms`,
+`/privacy`. They are **drafts**, and they are written to be finished rather
+than admired:
+
+- Every fact only the shop can supply is wrapped in `<span class="tbd">`, which
+  renders as a gold marker. There are 57 of them. Return windows, the warranty
+  term, the definition of the sub-MOA guarantee, the arbitration decision, how
+  long a held firearm is stored.
+- Each page carries a `[data-draft]` notice saying so, visible to anyone who
+  opens it.
+- All five are `noindex` and stay out of the sitemap.
+
+When they are settled, set `POLICIES_FINAL=1`. That strips the draft notices,
+drops the `noindex`, adds them to the sitemap — and **fails the build if any
+`tbd` marker is left**, so a blank cannot reach a customer by accident.
+
+```bash
+POLICIES_FINAL=1 node build.js
+```
+
+`/terms` and `/privacy` in particular are a starting point, not legal advice.
+The liability cap, the governing-law clause and the state-privacy-rights
+paragraph need a Utah attorney before that flag gets set.
+
+Two consistency guards run on every build. `POLICIES_FINAL=1` with an
+unresolved marker fails, as above. Setting `PLAUSIBLE_DOMAIN` while the privacy
+page still claims the site runs no third-party analytics also fails — turning
+tracking on has to come with rewriting the paragraph that says it is off.
 
 ## Cart, wishlist, checkout
 
