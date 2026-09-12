@@ -42,6 +42,17 @@ browser.
 `node tests/build-from-supabase.test.js` proves the loop against a fake
 PostgREST — no real project needed.
 
+## Keyboard and motion
+
+- **Focus is trapped** in the nav drawer and the event panel, and the rest of
+  the page is `aria-hidden` while either is open. Tab wraps at both ends and
+  focus returns to wherever it came from on close. Without this, Tab walked out
+  of the drawer into the page behind it, invisibly.
+- **A skip link** is the first thing in the document.
+- **The carousel can be stopped.** It auto-advances every 7 seconds, and the
+  control bottom-right pauses it. It starts paused, and refuses to start, where
+  the visitor has asked for reduced motion.
+
 ## Calendar
 
 Classes, range days, matches, shop hours, trade shows, and build slots, in
@@ -218,6 +229,26 @@ One 4px scale, exposed as tokens. Use these rather than inventing values:
 | `--gut` | clamp(20, 4vw, 40) | page gutter |
 | `--sec` | clamp(40, 6vw, 88) | vertical rhythm between sections |
 | `--pad-box` | clamp(16, 2.2vw, 24) | inner padding for panels and cards |
+
+### Colour and contrast
+
+Measured, not eyeballed. Every pair below clears WCAG AA on the darkest surface
+it appears on:
+
+| | Ratio | Needs |
+|---|---|---|
+| `--muted` on panels | 5.05 | 4.5 (small text) |
+| `--line` on panels | 3.14 | 3 (controls) |
+
+Two border tokens, and the distinction matters:
+
+- **`--rule`** — decorative dividers, card edges, table rows. 1.35:1 and that is
+  fine; a separator is not an interface component.
+- **`--line`** — anything a person operates: inputs, chips, ghost buttons,
+  quantity steppers, swatches, thumbnails, dots. Clears 3:1 so the boundary is
+  actually visible.
+
+If you add a control, give it `--line`. If you add a divider, `--rule`.
 
 ### Safe areas
 

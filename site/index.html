@@ -9,7 +9,10 @@
    dark green #003513 · sage #769F76 · gold #D2A85F · ivory #EDECED       */
 :root{
   --ground:#0D0D0D; --surface:#151515; --raised:#1C1C1C; --stage:#1A1A1A; --code:#070707;
-  --ink:#EDECED; --ink-2:#B2B2B0; --muted:#7C7C7A; --rule:#2A2A2A; --rule-2:#1E1E1E;
+  --ink:#EDECED; --ink-2:#B2B2B0; --muted:#8C8C89; --rule:#2A2A2A; --rule-2:#1E1E1E;
+  /* --rule is a decorative divider at 1.35:1 and stays that way. Anything a
+     person operates needs a visible edge, so controls use --line (3:1+). */
+  --line:#6A6A67;
   --clover:#769F76; --clover-2:#8FB88F; --clover-soft:rgba(118,159,118,.13);
   --gold:#D2A85F; --gold-2:#E4BE79; --gold-soft:rgba(210,168,95,.12);
   --stop:#C9776A; --stop-soft:rgba(201,119,106,.13); --warn:#D2A85F;
@@ -39,6 +42,11 @@ h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em
 p{margin:0} a{color:inherit} img{display:block;max-width:100%}
 :focus-visible{outline:2px solid var(--clover-2);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gut),var(--safe-l));padding-right:max(var(--gut),var(--safe-r))}
+.skip{position:absolute;left:-9999px;top:0;z-index:300;background:var(--clover);color:#0D0D0D;
+ padding:12px 18px;font-family:var(--disp);text-transform:uppercase;letter-spacing:.12em;
+ font-size:.78rem;text-decoration:none}
+.skip:focus{left:var(--s3);top:var(--s3)}
+#main:focus{outline:none}
 .lab{font-family:var(--mono);font-size:var(--fs-label);text-transform:uppercase;letter-spacing:.17em;color:var(--muted);font-weight:500}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .prose{color:var(--ink-2);max-width:62ch}
@@ -63,7 +71,7 @@ nav button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--clove
 
 .btn{font-family:var(--disp);text-transform:uppercase;letter-spacing:.15em;font-weight:500;font-size:.74rem;padding:13px 21px;border:1px solid var(--clover);background:var(--clover);color:#0D0D0D;cursor:pointer;text-decoration:none;display:inline-block;transition:filter .15s}
 .btn:hover{filter:brightness(1.1)}
-.btn.ghost{background:none;color:var(--ink);border-color:var(--rule)}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--line)}
 .btn.ghost:hover{background:var(--clover-soft);border-color:var(--clover);filter:none}
 .btn.sm{padding:10px 16px;font-size:.7rem}
 
@@ -157,12 +165,20 @@ body:not([data-view="home"]) .carousel{display:none}
 .car-btn:hover{color:var(--gold)}
 .car-btn.prev{left:4px} .car-btn.next{right:4px}
 .dots{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:5}
-.dots button{width:11px;height:11px;border:1px solid var(--muted);background:none;padding:0;cursor:pointer}
+.dots button{width:11px;height:11px;border:1px solid var(--line);background:none;padding:0;cursor:pointer}
 .dots button[aria-current="true"]{background:var(--gold);border-color:var(--gold)}
+.car-pause{position:absolute;bottom:12px;right:14px;z-index:6;width:34px;height:34px;display:grid;
+ place-items:center;background:color-mix(in srgb,var(--ground) 64%,transparent);border:1px solid var(--line);
+ color:var(--ink-2);cursor:pointer;backdrop-filter:blur(4px)}
+.car-pause:hover{color:var(--ink);border-color:var(--clover)}
+.car-pause svg{width:14px;height:14px;fill:currentColor}
+.car-pause svg.play{display:none}
+.car-pause[aria-pressed="true"] svg{display:none}
+.car-pause[aria-pressed="true"] svg.play{display:block}
 
 /* product grid */
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;align-items:center}
-.chip{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;padding:7px 12px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.chip{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;padding:7px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--clover);color:#0D0D0D;border-color:var(--clover)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:22px}
 .card{background:var(--surface);border:1px solid var(--rule);display:flex;flex-direction:column}
@@ -190,14 +206,14 @@ body:not([data-view="home"]) .carousel{display:none}
 .step-head h3{font-size:.96rem;letter-spacing:.11em}
 .step-head .picked{margin-left:auto;font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);text-align:right}
 .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(166px,1fr));gap:8px}
-.opt{text-align:left;background:var(--surface);border:1px solid var(--rule);padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font-family:var(--body);color:var(--ink)}
+.opt{text-align:left;background:var(--surface);border:1px solid var(--line);padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font-family:var(--body);color:var(--ink)}
 .opt:hover{border-color:var(--ink-2)}
 .opt[aria-pressed="true"]{border-color:var(--clover);background:var(--clover-soft);box-shadow:inset 2px 0 0 var(--clover)}
 .opt .nm{font-size:.88rem;line-height:1.3}
 .opt .dt{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
 .sw{width:58px;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;font-family:var(--mono);font-size:.57rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.sw i{display:block;width:46px;height:46px;border:1px solid var(--rule);border-radius:50%}
+.sw i{display:block;width:46px;height:46px;border:1px solid var(--line);border-radius:50%}
 .sw[aria-pressed="true"] i{outline:2px solid var(--gold);outline-offset:2px}
 .sw[aria-pressed="true"]{color:var(--ink)}
 
@@ -237,8 +253,9 @@ th{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;text-t
 td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 form{display:flex;flex-direction:column;gap:13px}
 label{display:flex;flex-direction:column;gap:5px}
-input,textarea,select{font-family:var(--body);font-size:.93rem;padding:11px 13px;background:var(--surface);border:1px solid var(--rule);color:var(--ink);width:100%}
+input,textarea,select{font-family:var(--body);font-size:.93rem;padding:11px 13px;background:var(--surface);border:1px solid var(--line);color:var(--ink);width:100%}
 input:hover,textarea:hover,select:hover{border-color:var(--ink-2)}
+input:focus,textarea:focus,select:focus{border-color:var(--clover-2)}
 
 .compliance{background:var(--surface);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
 .compliance .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(214px,1fr));gap:var(--s6);padding-top:var(--s7);padding-bottom:var(--s7)}
@@ -251,7 +268,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .foot ul a{color:var(--ink-2);text-decoration:none}
 .foot ul a:hover{color:var(--ink)}
 .social{display:flex;gap:var(--s2);margin-top:var(--s4)}
-.social a{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--rule);
+.social a{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);
  color:var(--ink-2);transition:color .15s,border-color .15s}
 .social a svg{width:19px;height:19px}
 .social a:hover{color:var(--clover-2);border-color:var(--clover)}
@@ -263,7 +280,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 /* ---------------- cart, wishlist, checkout ---------------- */
 .platewrap{position:relative}
 .heart{position:absolute;top:9px;right:9px;width:36px;height:36px;display:grid;place-items:center;
- background:color-mix(in srgb,var(--ground) 72%,transparent);border:1px solid var(--rule);
+ background:color-mix(in srgb,var(--ground) 72%,transparent);border:1px solid var(--line);
  color:var(--ink-2);cursor:pointer;backdrop-filter:blur(4px);transition:color .15s,border-color .15s}
 .heart svg{width:18px;height:18px}
 .heart:hover{color:var(--ink);border-color:var(--ink-2)}
@@ -290,11 +307,11 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .cartthumb img{width:100%;height:100%;object-fit:cover}
 .cartinfo h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.07em;font-size:.9rem;font-weight:500;line-height:1.3}
 .cartinfo .meta{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);margin-top:5px;line-height:1.5}
-.cartqty{display:flex;align-items:center;border:1px solid var(--rule)}
+.cartqty{display:flex;align-items:center;border:1px solid var(--line)}
 .cartqty button{width:34px;height:38px;background:none;border:0;color:var(--ink-2);cursor:pointer;font-size:1.05rem}
 .cartqty button:hover{color:var(--ink);background:var(--raised)}
-.cartqty input{width:42px;height:38px;text-align:center;border:0;border-left:1px solid var(--rule);
- border-right:1px solid var(--rule);background:none;padding:0;font-size:.9rem}
+.cartqty input{width:42px;height:38px;text-align:center;border:0;border-left:1px solid var(--line);
+ border-right:1px solid var(--line);background:none;padding:0;font-size:.9rem}
 .cartprice{display:flex;flex-direction:column;align-items:flex-end;gap:4px;white-space:nowrap}
 .cartprice .num{font-size:1.02rem;font-weight:600;color:var(--gold)}
 
@@ -326,7 +343,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .fflsearch{display:flex;gap:9px;margin-bottom:15px}
 .fflsearch input{max-width:220px}
 .ffllist{display:flex;flex-direction:column;gap:9px}
-.fflcard{display:flex;gap:var(--s3);align-items:flex-start;border:1px solid var(--rule);padding:var(--s3) var(--pad-box);cursor:pointer;background:var(--raised)}
+.fflcard{display:flex;gap:var(--s3);align-items:flex-start;border:1px solid var(--line);padding:var(--s3) var(--pad-box);cursor:pointer;background:var(--raised)}
 .fflcard:hover{border-color:var(--ink-2)}
 .fflcard.on{border-color:var(--clover);background:var(--clover-soft);box-shadow:inset 2px 0 0 var(--clover)}
 .fflcard input{width:auto;flex:0 0 auto;margin-top:3px}
@@ -360,7 +377,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .pdphero{background:var(--stage);border:1px solid var(--rule);aspect-ratio:3/2;display:grid;place-items:center;overflow:hidden}
 .pdphero img{width:100%;height:100%;object-fit:cover}
 .pdpthumbs{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap}
-.pdpthumbs button{width:78px;aspect-ratio:3/2;padding:0;border:1px solid var(--rule);background:var(--stage);
+.pdpthumbs button{width:78px;aspect-ratio:3/2;padding:0;border:1px solid var(--line);background:var(--stage);
  cursor:pointer;overflow:hidden}
 .pdpthumbs button img{width:100%;height:100%;object-fit:cover;display:block}
 .pdpthumbs button.on{border-color:var(--clover);box-shadow:0 0 0 1px var(--clover)}
@@ -398,7 +415,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .calnav{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;margin-bottom:var(--s4)}
 .calmove{display:flex;align-items:center;gap:var(--s3)}
 .calmove b{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em;font-size:1.02rem;font-weight:500;min-width:11ch}
-.calmove>button:not(.btn){background:none;border:1px solid var(--rule);color:var(--ink-2);cursor:pointer;
+.calmove>button:not(.btn){background:none;border:1px solid var(--line);color:var(--ink-2);cursor:pointer;
  width:38px;height:38px;font-size:1.2rem;line-height:1}
 .calmove>button:not(.btn):hover{color:var(--ink);border-color:var(--clover)}
 .calviews{display:flex;gap:6px}
@@ -593,6 +610,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 }
 </style>
 
+<a class="skip" href="#main">Skip to content</a>
 <div class="util"><div class="wrap">
   <a href="#" onclick="return false">Dealer login</a>
   <a href="#" onclick="return false">Warranty</a>
@@ -673,6 +691,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 
 <div class="promo">Sub‑MOA guarantee on every complete rifle &mdash; <b>proof target ships in the case</b></div>
 
+<div id="main" tabindex="-1">
 <div class="carousel">
   <div class="slides" id="slides">
     <div class="slide on"><div class="inner">
@@ -707,6 +726,10 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   <button class="car-btn prev" onclick="slide(-1)" aria-label="Previous slide">&#8249;</button>
   <button class="car-btn next" onclick="slide(1)"  aria-label="Next slide">&#8250;</button>
   <div class="dots" id="dots"></div>
+  <button class="car-pause" id="carToggle" onclick="toggleCarousel()" aria-pressed="false" aria-label="Pause slideshow">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3" width="3" height="10"/><rect x="9" y="3" width="3" height="10"/></svg>
+    <svg viewBox="0 0 16 16" aria-hidden="true" class="play"><path d="M5 3l8 5-8 5z"/></svg>
+  </button>
 </div>
 
 <!-- ===== HOME ===== -->
@@ -903,6 +926,8 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
     </div>
   </div>
 </section></div>
+
+</div>
 
 <form name="order-request" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
   <input type="hidden" name="form-name" value="order-request">
@@ -1382,12 +1407,15 @@ function openEvent(id){
   </div>`;
  el.hidden=false; document.getElementById('evScrim').hidden=false;
  document.body.classList.add('nav-open');
- el.querySelector('.evpanel-x').focus();
+ trapFocus(el);
 }
 function closeEv(){
- document.getElementById('evPanel').hidden=true;
+ const el=document.getElementById('evPanel');
+ if(el.hidden)return;
+ el.hidden=true;
  document.getElementById('evScrim').hidden=true;
  document.body.classList.remove('nav-open');
+ releaseFocus();
 }
 
 /* Downloads a .ics the phone or desktop calendar understands. */
@@ -1683,6 +1711,42 @@ async function placeOrder(btn){
  }
 }
 
+/* ---------------- focus management ----------------
+   Without this, Tab walks straight out of an open drawer or panel into the page
+   behind it, invisibly. */
+const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+let trapEl=null, trapReturn=null;
+const inTrap=()=>[...trapEl.querySelectorAll(FOCUSABLE)].filter(e=>e.offsetParent!==null);
+function onTrapKey(e){
+ if(e.key!=='Tab'||!trapEl)return;
+ const f=inTrap(); if(!f.length){e.preventDefault();return}
+ const first=f[0], last=f[f.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+}
+/* Hide the rest of the page from assistive tech while something modal is open. */
+function outsideHidden(keep,on){
+ [...document.body.children].forEach(el=>{
+  if(el===keep||el.classList.contains('scrim')||el.classList.contains('skip'))return;
+  on?el.setAttribute('aria-hidden','true'):el.removeAttribute('aria-hidden');
+ });
+}
+function trapFocus(el){
+ if(trapEl)releaseFocus();
+ trapEl=el; trapReturn=document.activeElement;
+ outsideHidden(el,true);
+ document.addEventListener('keydown',onTrapKey,true);
+ const f=inTrap(); (f[0]||el).focus();
+}
+function releaseFocus(){
+ if(!trapEl)return;
+ document.removeEventListener('keydown',onTrapKey,true);
+ outsideHidden(trapEl,false);
+ trapEl=null;
+ if(trapReturn&&trapReturn.focus)trapReturn.focus();
+ trapReturn=null;
+}
+
 /* ---------------- routing ---------------- */
 const ROUTE={home:'/',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact',calendar:'/calendar',cart:'/cart',wishlist:'/wishlist',checkout:'/checkout'};
 const VIEW=Object.fromEntries(Object.entries(ROUTE).map(([v,u])=>[u,v]));
@@ -1701,6 +1765,7 @@ function drawer(open){
  burger.setAttribute('aria-expanded',open);
  burger.setAttribute('aria-label',open?'Close menu':'Open menu');
  document.body.classList.toggle('nav-open',open);
+ open?trapFocus(navEl):releaseFocus();
 }
 burger.addEventListener('click',()=>drawer(!navEl.classList.contains('open')));
 scrim.addEventListener('click',()=>drawer(false));
@@ -1749,17 +1814,34 @@ function slide(n,abs){
  cur=abs?n:(cur+n+sl.length)%sl.length;
  sl.forEach((s,i)=>s.classList.toggle('on',i===cur));
  dots.forEach((d,i)=>d.setAttribute('aria-current',i===cur));
- if(timer){clearInterval(timer);start();}
+ if(!carPaused){clearInterval(timer);start();}
 }
 (()=>{const el=document.getElementById('slides');let x0=0,y0=0;
  el.addEventListener('touchstart',e=>{x0=e.changedTouches[0].clientX;y0=e.changedTouches[0].clientY;},{passive:true});
  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;
   if(Math.abs(dx)>46&&Math.abs(dx)>Math.abs(dy)*1.4)slide(dx<0?1:-1);},{passive:true});})();
-function start(){ if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
- timer=setInterval(()=>slide(1),7000);}
+/* Moving content needs a way to stop it. Starts paused where the visitor has
+   asked for reduced motion, and Play respects that too. */
+let carPaused=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function start(){
+ if(carPaused||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ clearInterval(timer);
+ timer=setInterval(()=>slide(1),7000);
+}
+function toggleCarousel(){
+ carPaused=!carPaused;
+ const b=document.getElementById('carToggle');
+ b.setAttribute('aria-pressed',carPaused);
+ b.setAttribute('aria-label',carPaused?'Resume slideshow':'Pause slideshow');
+ if(carPaused){clearInterval(timer);timer=null} else start();
+}
 
 /* ---------------- init ---------------- */
 sync();
 go(pathView(),null,false);
-render(); shop(); start();
+render(); shop();
+/* reflect a reduced-motion start on the control before anything moves */
+if(carPaused){const b=document.getElementById('carToggle');
+ if(b){b.setAttribute('aria-pressed','true');b.setAttribute('aria-label','Resume slideshow')}}
+start();
 </script>
