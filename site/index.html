@@ -853,6 +853,9 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 </div></footer>
 
 <script>
+/* Set by build.js when Supabase is configured. Until then checkout posts a
+   Netlify Form and we confirm by hand. */
+const ORDERS_API='__ORDERS_API__'==='1';
 const mock=()=>alert('This part of the site is not live yet.');
 
 function fillSpec(){
@@ -1291,8 +1294,9 @@ const STEPS_CO=['Contact','Delivery','Compliance','Review'];
 function renderCheckout(){
  const el=document.getElementById('checkoutBody');
  if(!lines().length&&!CO.sent){el.innerHTML=empty('Nothing to check out','Your cart is empty.','Browse the shop',"go('shop')");return;}
- if(CO.sent){el.innerHTML=`<div class="emptystate"><h3>Request received</h3>
-   <p>Thanks — we have your order request and the dealer you picked. We will confirm stock and come back to you with payment before anything ships. Nothing has been charged.</p>
+ if(CO.sent){el.innerHTML=`<div class="emptystate"><h3>Order received</h3>
+   ${CO.ref?`<p class="lab" style="letter-spacing:.2em">Reference <b class="num" style="color:var(--gold);font-size:1.1rem">${CO.ref}</b></p>`:''}
+   <p>Thanks — we have your order${CO.ffl?' and the dealer you picked':''}. We will confirm stock and come back to you with payment before anything ships. Nothing has been charged.</p>
    <button class="btn" onclick="go('shop')">Keep looking</button></div>`;return;}
  el.innerHTML=`<ol class="steps-co">${STEPS_CO.map((s,n)=>
    `<li class="${n+1===CO.step?'now':n+1<CO.step?'done':''}"><span class="num">${n+1}</span>${s}</li>`).join('')}</ol>
@@ -1373,26 +1377,45 @@ function step4(){
   </dl>
   <div class="okbox" style="margin-top:20px"><b>No payment is taken here</b>
    Card processing is not live yet. Sending this gives us your order and your dealer; we confirm stock and arrange payment with you directly.</div>
+  <p class="blockbox" id="coErr" hidden style="margin-top:16px"></p>
   ${nav(true,"placeOrder(this)","Send order request")}</div>`;
 }
 
 async function placeOrder(btn){
  btn.disabled=true;btn.textContent='Sending…';
- const body=new URLSearchParams({
-  'form-name':'order-request',
-  name:CO.name,email:CO.email,phone:CO.phone,
-  'ship-to':needDoor()?[CO.addr,CO.city,CO.st,CO.zip].filter(Boolean).join(', '):'n/a',
-  'receiving-ffl':CO.ffl?`${CO.ffl.n}, ${CO.ffl.a}, ${CO.ffl.c}, ${CO.ffl.s} ${CO.ffl.z} (FFL ${CO.ffl.l})`:'n/a',
-  order:lines().map(l=>`${l.qty}× ${l.i.n} — ${usd(l.i.price*l.qty)}`).join('\n'),
-  total:usd(subtotal())
- }).toString();
+ const fail=m=>{btn.disabled=false;btn.textContent='Try again';
+   const box=document.getElementById('coErr');
+   if(box){box.textContent=m;box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'center'})}else alert(m)};
  try{
-  const r=await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-  if(!r.ok)throw new Error(r.status);
+  if(ORDERS_API){
+   /* Send what we want, never what it costs. The server prices it. */
+   const res=await fetch('/.netlify/functions/create-order',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     customer_name:CO.name, customer_email:CO.email, customer_phone:CO.phone,
+     destination:needFFL()?'ffl':'door',
+     ship_address:needDoor()?{line1:CO.addr,city:CO.city,state:CO.st,zip:CO.zip}:null,
+     ffl:CO.ffl?{licence:CO.ffl.l,business_name:CO.ffl.n,address1:CO.ffl.a,city:CO.ffl.c,state:CO.ffl.s,zip:CO.ffl.z}:null,
+     lines:lines().map(l=>({sku:l.id,qty:l.qty}))
+    })});
+   const data=await res.json().catch(()=>({}));
+   if(!res.ok)return fail(data.error||'We could not place that order. Nothing has been charged.');
+   CO.ref=data.reference;
+  }else{
+   const r=await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({
+     'form-name':'order-request',
+     name:CO.name,email:CO.email,phone:CO.phone,
+     'ship-to':needDoor()?[CO.addr,CO.city,CO.st,CO.zip].filter(Boolean).join(', '):'n/a',
+     'receiving-ffl':CO.ffl?`${CO.ffl.n}, ${CO.ffl.a}, ${CO.ffl.c}, ${CO.ffl.s} ${CO.ffl.z} (FFL ${CO.ffl.l})`:'n/a',
+     order:lines().map(l=>`${l.qty}× ${l.i.n} — ${usd(l.i.price*l.qty)}`).join('\n'),
+     total:usd(subtotal())
+    }).toString()});
+   if(!r.ok)throw new Error(r.status);
+  }
   CART=[];saveCart();CO.sent=true;renderCheckout();
  }catch(e){
-  btn.disabled=false;btn.textContent='Try again';
-  alert('That did not send. Email shop@klovrprecision.com with your build and we will pick it up there.');
+  fail('That did not send. Email shop@klovrprecision.com with your order and we will pick it up there.');
  }
 }
 

@@ -20,6 +20,7 @@ Dashboard → **SQL Editor** → paste and run each file in order:
 1. `supabase/migrations/0001_schema.sql` — tables
 2. `supabase/migrations/0002_rls.sql` — **security. Do not skip.**
 3. `supabase/migrations/0003_seed.sql` — the current catalogue
+4. `supabase/migrations/0004_create_order.sql` — order creation
 
 Or, with the CLI: `supabase db push`.
 
@@ -81,10 +82,6 @@ browser cannot read it even when signed in as staff. Only the functions can.
 
 ## What is still to build
 
-- **Order creation.** Checkout currently posts a Netlify Form. Orders should be
-  written by a function using the service key, so the browser cannot forge
-  prices or bypass the destination rules. The `orders` table has no anon insert
-  policy on purpose.
 - **FFL lookup.** Checkout lists three example dealers. Replace with a query
   against ATF FFL eZ Check, cached into `ffl_dealers` with `verified_at`.
 - **Product reads at build time.** `build.js` still uses the catalogue in

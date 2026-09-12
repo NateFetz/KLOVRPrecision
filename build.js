@@ -116,6 +116,8 @@ for (const r of ROUTES) {
   const url = SITE + '/' + r.path;
   // mark this route's view as the visible one in the delivered HTML
   let b = body.replace('id="home" class="view on"', 'id="home" class="view"');
+  // checkout talks to the order function only once Supabase is configured
+  b = b.replace("'__ORDERS_API__'", process.env.SUPABASE_URL ? "'1'" : "'0'");
   b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
   if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
   if (r.inject) b = b.replace('<div id="productBody"></div>', '<div id="productBody">' + r.inject + '</div>');

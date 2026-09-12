@@ -17,7 +17,26 @@ Static site. One HTML source, a small Node build that emits a real page per rout
 
 ```sh
 node build.js && node serve.js     # http://localhost:8787
+node tests/create-order.test.js    # order function, no database needed
 ```
+
+## Ordering
+
+Checkout posts SKUs, quantities, and a destination to
+`netlify/functions/create-order.js`. **It never sends prices, and any price it
+sends is ignored.** The function strips the request down to `{sku, qty}` and
+hands it to `create_order()` in Postgres, which prices the order from the live
+catalogue and re-checks the rules in one transaction:
+
+- an item that may only go to a dealer cannot be on a door order
+- nothing may go to a state on its own no-ship list
+- nothing that is not live, or not in stock, can be ordered
+
+Those checks exist in the browser too, for a decent experience — but the
+browser's copy is a courtesy. This one is the rule.
+
+Until `SUPABASE_URL` is set the checkout falls back to posting a Netlify Form
+and the shop confirms by hand. No code change is needed to switch.
 
 ## Routes
 
