@@ -123,6 +123,23 @@ shows example dealers and says so.
 Confirming a licence is current is a manual eZ Check lookup. `/admin` links
 straight to it and records who checked and when.
 
+## Stock and confirmations
+
+Adding to the cart raises a confirmation in an `aria-live` region with a link
+straight to the cart. It clears itself after four seconds, five for a warning,
+and pauses while the pointer is over it.
+
+Stock is capped where the mistake happens rather than at checkout:
+
+- `maxQty()` is the ceiling — what is on the shelf, or 99 for built-to-order
+- adding past it refuses and says how many there are
+- typing a quantity into the cart clamps to the ceiling
+- the stepper's `+` disables at the cap and the line says "All 6 of our stock"
+- a product with no stock shows **Out of stock** and its button is disabled
+
+`create_order()` re-checks all of this server-side. The browser copy is for the
+person; the database copy is the rule.
+
 ## Ordering
 
 Checkout posts SKUs, quantities, and a destination to
