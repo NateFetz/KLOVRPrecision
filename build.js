@@ -87,7 +87,10 @@ for (const r of ROUTES) if (r.policy && !POLICIES_FINAL) r.noindex = true;
 
 let src = fs.readFileSync(SRC, 'utf8');
 if (POLICIES_FINAL) {
-  const left = (src.match(/class="tbd"/g) || []).length;
+  /* Count the markers themselves. Matching the bare class name also caught the
+     comment that explains what a marker is, which made this flag impossible to
+     satisfy and sent you hunting for a blank that was not there. */
+  const left = (src.match(/<span class="tbd">[\s\S]*?<\/span>/g) || []).length;
   if (left) throw new Error(
     `POLICIES_FINAL=1 but ${left} unresolved marker(s) remain in the policy pages. ` +
     'Search site/index.html for class="tbd" and settle each one first.');

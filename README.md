@@ -13,6 +13,40 @@ Static site. One HTML source, a small Node build that emits a real page per rout
 | `photos/` | Original camera files (2048 px). Source for `site/web/` — not deployed. |
 | `docs/` | Internal notes. Not deployed. |
 
+## Tests and CI
+
+```bash
+node tests/all.js
+```
+
+Seven suites, 149 assertions, about a second. No dependencies, nothing to
+install — plain Node, a fake PostgREST where a database is needed, and
+throwaway builds into temp directories where the build itself is under test.
+
+| suite | what it holds down |
+|---|---|
+| `checkout-rules` | where a thing may go — every restricted item against every state it may not reach, both step gates, dealer-state vs ship-to-state |
+| `create-order` | the server refusing the same orders independently |
+| `guards` | the build's refusals: policy drafts, measurement, addresses, photos |
+| `business-schema` | how much the site claims about the shop, and when |
+| `avif` | a rendition for every photo and markup that pairs them |
+| `collect` | what measurement will and will not write down |
+| `build-from-supabase` | a price changed in `/admin` reaching the built pages |
+
+`.github/workflows/ci.yml` runs all of it on every push and pull request.
+Netlify already fails a deploy when the build throws; what it cannot catch is a
+build that succeeds and is wrong — a checkout gate that stopped blocking a
+restricted state, a photo whose AVIF was never encoded, a draft policy that
+shipped as final. That is what CI is for here.
+
+The checkout suite is worth understanding before editing it. It re-implements
+nothing: the predicates and **both step gates are read verbatim out of
+`site/index.html`** and evaluated, so changing a gate changes what is tested,
+and moving one past the anchors fails the run rather than leaving a stale copy
+passing. It also compares the no-ship lists in the page against the ones in
+`0003_seed.sql`, because the storefront and the database enforcing different
+rules is the failure nobody would notice until a customer hit it.
+
 ## Local
 
 ```sh

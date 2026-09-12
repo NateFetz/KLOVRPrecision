@@ -1,0 +1,59 @@
+# Netlify already fails a deploy when the build throws. What it cannot catch is
+# a build that succeeds and is wrong — a checkout gate that stopped blocking a
+# restricted state, a photo whose AVIF was never encoded, an event that started
+# collecting something the privacy page says it does not. That is what runs here.
+#
+# No dependencies to install: everything is plain Node with no packages, which
+# is why this takes seconds.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build
+        run: node build.js
+
+      - name: Checkout rules
+        run: node tests/checkout-rules.test.js
+
+      - name: Order creation
+        run: node tests/create-order.test.js
+
+      - name: Catalogue from the database
+        run: node tests/build-from-supabase.test.js
+
+      - name: Business facts and structured data
+        run: node tests/business-schema.test.js
+
+      - name: Images
+        run: node tests/avif.test.js
+
+      - name: Event collection
+        run: node tests/collect.test.js
+
+      - name: Guards
+        run: node tests/guards.test.js
+
+      - name: Nothing uncommitted after a build
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::the build modified tracked files"
+            git status --short
+            exit 1
+          fi

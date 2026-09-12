@@ -48,13 +48,18 @@ const bigger = jpegs.filter(j => {
 });
 ok('none of them is larger than its JPEG', !bigger.length, bigger.join(', '));
 
-/* Same pixels, or the <picture> would swap dimensions under the reader. */
+/* Same pixels, or the <picture> would swap dimensions under the reader. This
+   one needs sips, so on a Linux CI runner it says so rather than failing. */
 const sample = ['hero-rifle.jpg', 'hero-rifle-sm.jpg', 'hero-rifle-xl.jpg',
                 'p-action-short.jpg', 'gal-1-xl.jpg', 'cfg-stage-sm.jpg'].filter(f => jpegs.includes(f));
-const dims = f => execFileSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', path.join(SRCDIR, f)],
-  { encoding: 'utf8' }).match(/\d+/g).slice(-2).join('x');
-const mismatched = sample.filter(j => dims(j) !== dims(j.replace(/\.jpg$/, '.avif')));
-ok(`${sample.length} sampled pairs have identical dimensions`, !mismatched.length, mismatched.join(', '));
+if (process.platform === 'darwin') {
+  const dims = f => execFileSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', path.join(SRCDIR, f)],
+    { encoding: 'utf8' }).match(/\d+/g).slice(-2).join('x');
+  const mismatched = sample.filter(j => dims(j) !== dims(j.replace(/\.jpg$/, '.avif')));
+  ok(`${sample.length} sampled pairs have identical dimensions`, !mismatched.length, mismatched.join(', '));
+} else {
+  console.log('  – dimension check skipped (needs macOS sips)');
+}
 
 /* ---------- the markup ---------- */
 console.log('\nbuilt markup');
