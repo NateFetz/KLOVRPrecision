@@ -88,6 +88,30 @@ sips -Z  820 -s formatOptions 68 site/web/hero-rifle.jpg --out site/web/hero-rif
 
 Widths in use: hero 1800/820 · gallery 1400/700 · cards 900/520 · portraits 1100/620.
 
+## Spacing
+
+One 4px scale, exposed as tokens. Use these rather than inventing values:
+
+| Token | | Used for |
+|---|---|---|
+| `--s1`–`--s8` | 4 · 8 · 12 · 16 · 20 · 28 · 40 · 56 px | component-level spacing |
+| `--gut` | clamp(20, 4vw, 40) | page gutter |
+| `--sec` | clamp(40, 6vw, 88) | vertical rhythm between sections |
+| `--pad-box` | clamp(16, 2.2vw, 24) | inner padding for panels and cards |
+
+### Safe areas
+
+The viewport is `viewport-fit=cover`, so the page paints under the notch and the
+home indicator. Anything touching an edge must account for it:
+
+- `.wrap` gutters use `max(var(--gut), var(--safe-l/r))`
+- the fixed build-total bar adds `var(--safe-b)` to its bottom padding
+- the drawer adds `var(--safe-l)` padding and widens to match
+- the footer adds `var(--safe-b)`
+
+`--safe-*` resolve to `0px` on everything that is not an iPhone, so these are
+safe to use anywhere.
+
 ## Brand
 
 Colours come from the supplied vector files and should not be sampled by eye:
