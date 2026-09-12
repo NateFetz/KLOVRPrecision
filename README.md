@@ -22,6 +22,26 @@ node tests/build-from-supabase.test.js # publish loop
 # neither needs a real database
 ```
 
+## Search
+
+Searches products, the pages people actually look for, and upcoming calendar
+events. Type-ahead in the header; full results at `/search?q=…` (noindex).
+
+Ranking is weighted by where a term appears — name and SKU beat category, which
+beats summary, which beats description and specs — and a match at a word start
+outscores one buried mid-word, so "bolt" puts the bolt assembly above the
+actions that merely mention a fluted bolt. Every term must appear somewhere, so
+adding words narrows rather than widens.
+
+Specs are indexed, which means "20 moa" finds the action.
+
+**The query comes from the URL, so it is escaped before it is rendered, every
+time.** `mark()` escapes first and highlights second — never the other way
+round. There is a test case for this: a query of `<img src=x onerror=…>`
+renders as literal text and injects nothing.
+
+To add a page to the index, add it to `SEARCH_PAGES`.
+
 ## Publishing
 
 `build.js` reads the catalogue from Supabase when `SUPABASE_URL` and
@@ -41,6 +61,18 @@ browser.
 
 `node tests/build-from-supabase.test.js` proves the loop against a fake
 PostgREST — no real project needed.
+
+## Sticky header
+
+The header and the nav both pin to the top, so the nav's offset comes from
+`--head-h`, published by `measureStack()` and kept current by a ResizeObserver.
+Sticky sidebars use `--stick-h`, the height of both together. Hard-coding either
+breaks the moment the mobile search row opens, which changes the header height
+by 21px.
+
+The header sits above the nav in z-order so the search dropdown is not clipped
+by it — a child cannot escape its parent's stacking context, so the header has
+to win.
 
 ## Keyboard and motion
 
