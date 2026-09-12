@@ -62,6 +62,71 @@ browser.
 `node tests/build-from-supabase.test.js` proves the loop against a fake
 PostgREST — no real project needed.
 
+## The business — one source of truth
+
+Every fact about the shop lives in the `BIZ` block at the top of the script in
+`site/index.html`: name, address, phone, email, FFL number, opening hours,
+social links. Nothing else hardcodes them. `build.js` reads the block and fills
+the contact page, the hours table, the phone in the header and the footer block
+at build time, so the values are in the HTML a crawler reads rather than being
+painted in later by JavaScript.
+
+Unknown facts are `null`, and a `null` renders as the same gold marker the
+policy pages use. Today that is the address, city, ZIP, phone, email and FFL.
+Region and country are known from the outset.
+
+How much structured data gets emitted depends on how much is filled in:
+
+| BIZ state | Homepage schema |
+|---|---|
+| as it ships | `Organization` — name, logo, description, URL |
+| `street`+`city`+`postal`+`tel` set | `Store`, with `PostalAddress` |
+| `geo` also set | adds `GeoCoordinates`, so the shop can pin on a map |
+| `hoursConfirmed:true` | adds `openingHoursSpecification` |
+| `social.*` set | adds `sameAs`, and the footer icon becomes a real link |
+| `calendarConfirmed:true` | `/calendar` emits an `Event` per entry |
+
+The gating is the point. A search engine that finds three versions of an address
+trusts none of them, and an `Event` in a results page is a promise that
+something happens at a time and a place. So:
+
+- A **partial address fails the build**. All of `street`, `city` and `postal`, or
+  none of them.
+- `tel` must be E.164 (`+1` then ten digits) and must come with `telText`, the
+  form it reads as on the page. The E.164 value is what `tel:` dials.
+- `geo` needs numeric `lat` and `lon` — right-click the pin in Google Maps.
+- Opening hours and the calendar each sit behind their own flag, because both
+  were written to fill the page. Structured data built on a guess sends
+  somebody to a locked door.
+
+The build prints which level it emitted. `node tests/business-schema.test.js`
+builds a doctored copy of the source both ways and checks all of it — 41
+assertions, no network, no database.
+
+Filling the block in also switches off four of the "not linked yet" toasts: a
+social entry with a URL becomes a real `rel="me"` link, and the ones still
+`null` keep the honest fallback.
+
+## Custom domain
+
+The canonical URL, the sitemap, `robots.txt` and every Open Graph image URL
+come from `SITE`, which reads Netlify's own `URL` variable. So attaching the
+domain is all it takes — nothing in the repo needs editing:
+
+1. Register `klovrprecision.com`.
+2. Netlify → Domain management → Add a domain, then point the registrar's
+   nameservers at Netlify (or add the CNAME/A records it gives you).
+3. Let Netlify issue the certificate, then set the custom domain as primary so
+   `*.netlify.app` redirects to it rather than competing with it.
+4. Trigger a deploy. Canonicals, sitemap and cards follow automatically.
+5. Set up mail on the domain and put the address in `BIZ.email` — the contact
+   form's failure message already tells people to write to
+   `shop@klovrprecision.com`.
+
+Until then everything resolves to `klovrprecision.netlify.app`, which is
+correct but is also what gets indexed, so the sooner the domain is attached the
+less there is to redirect.
+
 ## Sticky header
 
 The header and the nav both pin to the top, so the nav's offset comes from
@@ -221,6 +286,9 @@ get a complete page.
 Policy pages below; noindex until approved
 `/cart` · `/wishlist` · `/checkout` — noindex, kept out of the sitemap
 `/product/<id>` — one per catalogue item, pre-rendered with Product schema
+
+The homepage carries `Organization` or `Store` schema and `/calendar` can carry
+`Event` schema — see The business below for what governs which.
 
 Product pages are generated from the `SHOP` array read straight out of
 `site/index.html`, so the catalogue has one source of truth. To add an item,

@@ -3,8 +3,11 @@
    get a complete page, and each route can carry its own title and preview card. */
 const fs = require('fs'), path = require('path');
 
-const SRC  = 'site/index.html';
-const OUT  = 'dist';
+/* Overridable so a test can build a doctored copy of the source into a
+   throwaway directory without touching site/ or dist/. */
+const SRC  = process.env.BUILD_SRC || 'site/index.html';
+const OUT  = process.env.BUILD_OUT || 'dist';
+const ASSETS = path.join(path.dirname(SRC), 'web');
 const SITE = (process.env.URL || process.env.DEPLOY_PRIME_URL || 'https://klovrprecision.netlify.app').replace(/\/$/, '');
 const PLAUSIBLE = process.env.PLAUSIBLE_DOMAIN || '';
 
@@ -100,6 +103,27 @@ if (PLAUSIBLE && src.includes('no third&#8209;party analytics')) throw new Error
 /* The catalogue in the page is the fallback. When Supabase is configured we
    read it from there instead, so a price changed in /admin reaches the
    storefront on the next build. */
+const BIZ = new Function(src.match(/const BIZ=\{[\s\S]*?\n\};/)[0] + '; return BIZ;')();
+
+/* Name, address and phone have to agree everywhere or they are worth less than
+   nothing — a search engine that finds three versions of an address trusts
+   none of them. So the address is all-or-nothing. */
+/* region and country are known from the outset; these three are the ones that
+   pin a specific door, and they travel together. */
+const ADDR_FIELDS = ['street', 'city', 'postal'];
+const addrGiven = ADDR_FIELDS.filter(f => BIZ[f]);
+if (addrGiven.length && addrGiven.length !== ADDR_FIELDS.length) throw new Error(
+  'BIZ has a partial address (' + addrGiven.join(', ') + ' set, missing ' +
+  ADDR_FIELDS.filter(f => !BIZ[f]).join(', ') + '). Fill all of it or none of it.');
+if (BIZ.tel && !/^\+1\d{10}$/.test(BIZ.tel)) throw new Error(
+  'BIZ.tel must be E.164 for the tel: link — +1 then ten digits, no spaces. Got: ' + BIZ.tel);
+if (BIZ.tel && !BIZ.telText) throw new Error('BIZ.tel is set but BIZ.telText (how it reads on the page) is not');
+if (BIZ.geo && !(Number.isFinite(BIZ.geo.lat) && Number.isFinite(BIZ.geo.lon))) throw new Error(
+  'BIZ.geo needs numeric lat and lon');
+
+const HAS_ADDR  = addrGiven.length === ADDR_FIELDS.length;
+const LOCAL_OK  = HAS_ADDR && !!BIZ.tel;          /* enough to claim a place */
+
 const SHOP_LITERAL = src.match(/const SHOP=\[[\s\S]*?\n\];/)[0];
 let SHOP = new Function(SHOP_LITERAL + '; return SHOP;')();
 
@@ -182,13 +206,72 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
 
 /* Whatever the catalogue came from, the page must ship that same catalogue —
    otherwise the shop grid would render one thing and the product pages another. */
-const bodyBase = source === 'Supabase'
-  ? body.replace(SHOP_LITERAL, 'const SHOP=' + JSON.stringify(SHOP) + ';')
+const bodyRaw = source === 'Supabase'
+  ? body.replace(SHOP_LITERAL, () => 'const SHOP=' + JSON.stringify(SHOP) + ';')
   : body;
+
+for (const r of ROUTES) {
+  if (r.path === '')         r.ld = orgSchema();
+  if (r.path === 'calendar') r.ld = eventSchema() || undefined;
+}
 
 rm(OUT);
 fs.mkdirSync(OUT, { recursive: true });
-copy('site/web', path.join(OUT, 'web'));
+copy(ASSETS, path.join(OUT, 'web'));
+
+/* Replaces the contents of <tag data-biz="key"> … </tag>. Build-time rather
+   than runtime so the address and phone are in the HTML a crawler reads. */
+function slot(html, key, inner) {
+  const re = new RegExp('(<[^>]*\\bdata-biz="' + key + '"[^>]*>)([\\s\\S]*?)(</[a-z]+>)', 'g');
+  if (!re.test(html)) throw new Error(`no data-biz="${key}" slot found in site/index.html`);
+  return html.replace(re, (m, open, _old, close) => open + inner + close);
+}
+/* An unresolved fact reads the same here as it does on the policy pages. */
+const tbd  = t => `<span class="tbd">${t}</span>`;
+const nbsp = t => String(t).replace(/ /g, '&nbsp;');
+
+function applyBusiness(html) {
+  const telLink = BIZ.tel ? `<a href="tel:${BIZ.tel}">${nbsp(BIZ.telText)}</a>` : null;
+
+  html = slot(html, 'address', HAS_ADDR
+    ? `${BIZ.street}<br>${BIZ.city}, ${BIZ.region} ${BIZ.postal}`
+    : tbd('street address, city and ZIP'));
+  html = slot(html, 'tel',   telLink || tbd('phone number'));
+  html = slot(html, 'email', BIZ.email ? `<a href="mailto:${BIZ.email}">${BIZ.email}</a>` : tbd('email address'));
+  html = slot(html, 'ffl',   BIZ.ffl || tbd('FFL number'));
+
+  /* Hours: one table, built from the same array the schema uses. */
+  const h12 = t => { const [H, M] = t.split(':').map(Number);
+    return `${H % 12 || 12}:${String(M).padStart(2, '0')}`; };
+  const span = d => d.length === 1 ? d[0] : `${d[0].slice(0,3)} – ${d[d.length-1].slice(0,3)}`;
+  html = slot(html, 'hours', BIZ.hours.map(b =>
+    `<tr><th>${span(b.d)}</th><td class="n">${h12(b.o)} – ${h12(b.c)}</td></tr>`).join('')
+    + (BIZ.hoursNote ? `<tr><th>${BIZ.hoursNote.replace(/^Closed /, '')}</th><td class="n">Closed</td></tr>` : ''));
+  html = slot(html, 'hours-note', BIZ.hoursConfirmed ? ''
+    : tbd('confirm these hours — they were written to fill the page'));
+
+  /* Footer block. Each line disappears rather than showing a blank. */
+  html = slot(html, 'address-inline', HAS_ADDR ? `${BIZ.street}, ${BIZ.city}, ${BIZ.region} ${BIZ.postal}` : '');
+  html = slot(html, 'hours-inline',   BIZ.hoursConfirmed
+    ? BIZ.hours.map(b => `${span(b.d)} ${h12(b.o)}–${h12(b.c)}`).join(' &middot; ') : '');
+  html = slot(html, 'tel-inline',     telLink || '');
+  /* Three empty paragraphs would still hold their space under the logo. */
+  if (!HAS_ADDR && !BIZ.tel && !BIZ.hoursConfirmed)
+    html = html.replace(/<div class="nap">[\s\S]*?<\/div>\n/, '');
+  /* No number means no phone label in the header of every page. */
+  if (!BIZ.tel) html = html.replace(/<span class="lab" data-biz="tel-util">[\s\S]*?<\/span><\/span>/, '');
+
+  /* A social icon that has a real address becomes a real link. */
+  for (const [net, url] of Object.entries(BIZ.social)) {
+    if (!url) continue;
+    html = html.replace(
+      new RegExp(`<a href="#" data-social="${net}" onclick="soon.social\\('${net}'\\);return false" aria-label="[^"]*"`),
+      () => `<a href="${url}" data-social="${net}" rel="me noopener" target="_blank" aria-label="KLOVR Precision on ${net}"`);
+  }
+  return html;
+}
+
+const bodyBase = applyBusiness(bodyRaw);
 
 function page(r, b, url) {
   return `<!doctype html>
@@ -224,6 +307,65 @@ ${b}
 </html>`;
 }
 
+/* Organization is safe with nothing but a name and a logo, and it is what puts
+   the mark in a knowledge panel. Store adds the parts that need a real
+   address, and is emitted only when there is one. */
+function orgSchema() {
+  const o = {
+    '@context':'https://schema.org',
+    '@type': LOCAL_OK ? 'Store' : 'Organization',
+    '@id'  : SITE + '/#business',
+    name   : BIZ.name,
+    url    : SITE + '/',
+    logo   : SITE + '/' + BIZ.logo,
+    image  : [SITE + '/web/hero-rifle.jpg'],
+    description: BIZ.desc,
+  };
+  if (BIZ.legal) o.legalName = BIZ.legal;
+  const sameAs = Object.values(BIZ.social).filter(Boolean);
+  if (sameAs.length) o.sameAs = sameAs;
+  if (BIZ.email) o.email = BIZ.email;
+  if (BIZ.tel) o.telephone = BIZ.tel;
+  if (!LOCAL_OK) return o;
+
+  o.address = { '@type':'PostalAddress', streetAddress:BIZ.street, addressLocality:BIZ.city,
+                addressRegion:BIZ.region, postalCode:BIZ.postal, addressCountry:BIZ.country };
+  if (BIZ.geo) o.geo = { '@type':'GeoCoordinates', latitude:BIZ.geo.lat, longitude:BIZ.geo.lon };
+  if (BIZ.priceRange) o.priceRange = BIZ.priceRange;
+  if (BIZ.hoursConfirmed) o.openingHoursSpecification = BIZ.hours.map(b => ({
+    '@type':'OpeningHoursSpecification', dayOfWeek:b.d, opens:b.o, closes:b.c }));
+  return o;
+}
+
+/* The calendar's events are placeholders until somebody says otherwise, and an
+   Event in search results is a promise that something happens at a time and a
+   place. */
+function eventSchema() {
+  if (!BIZ.calendarConfirmed) return null;
+  const EVENTS = new Function(src.match(/const EVENTS=\[[\s\S]*?\n\];/)[0] + '; return EVENTS;')();
+  return EVENTS.map(e => {
+    const ev = {
+      '@context':'https://schema.org','@type':'Event',
+      name: e.t, description: e.d,
+      startDate: e.date, endDate: e.end || e.date,
+      eventAttendanceMode:'https://schema.org/OfflineEventAttendanceMode',
+      eventStatus:'https://schema.org/EventScheduled',
+      url: SITE + '/calendar',
+      location:{ '@type':'Place', name:e.loc,
+        address: HAS_ADDR && /shop/i.test(e.loc)
+          ? { '@type':'PostalAddress', streetAddress:BIZ.street, addressLocality:BIZ.city,
+              addressRegion:BIZ.region, postalCode:BIZ.postal, addressCountry:BIZ.country }
+          : { '@type':'PostalAddress', addressRegion:BIZ.region, addressCountry:BIZ.country } },
+      organizer:{ '@type':'Organization', name:BIZ.name, url:SITE + '/' },
+    };
+    /* A price in schema has to be a number; "$40 entry" is prose. */
+    const n = e.price && e.price.match(/\$([\d,]+)/);
+    ev.offers = { '@type':'Offer', url:SITE + '/calendar', availability:'https://schema.org/InStock',
+                  price: n ? Number(n[1].replace(/,/g,'')) : 0, priceCurrency:'USD' };
+    return ev;
+  });
+}
+
 for (const i of SHOP) {
   ROUTES.push({
     path : 'product/' + i.id,
@@ -251,7 +393,7 @@ for (const r of ROUTES) {
   b = b.replace("'__ORDERS_API__'", process.env.SUPABASE_URL ? "'1'" : "'0'");
   b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
   if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
-  if (r.inject) b = b.replace('<div id="productBody"></div>', '<div id="productBody">' + r.inject + '</div>');
+  if (r.inject) b = b.replace('<div id="productBody"></div>', () => '<div id="productBody">' + r.inject + '</div>');
 
   const doc = page(r, b, url);
 
@@ -263,14 +405,14 @@ for (const r of ROUTES) {
 
 /* ---- staff area: its own document, not part of the public bundle ---- */
 {
-  const adminSrc = fs.readFileSync('site/admin.html', 'utf8');
+  const adminSrc = fs.readFileSync(path.join(path.dirname(SRC), 'admin.html'), 'utf8');
   // single source of truth: tokens and the logo come from the public page
   const tokens = src.match(/:root\{[\s\S]*?\n\}/)[0];
   const logo   = src.match(/<span class="on-dark">([\s\S]*?)<\/span>/)[1];
 
   const cut  = adminSrc.indexOf('<div class="demobar"');
   if (cut < 0) throw new Error('admin.html: could not find the start of the body content');
-  let head   = adminSrc.slice(0, cut).replace(/\/\* %TOKENS%[^\n]*\*\//, tokens);
+  let head   = adminSrc.slice(0, cut).replace(/\/\* %TOKENS%[^\n]*\*\//, () => tokens);
   const adminBody = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
   // Publishable values only. SUPABASE_SERVICE_KEY must never be injected here —
   // it bypasses row level security and belongs to the Netlify Functions alone.
@@ -326,6 +468,11 @@ fs.writeFileSync(path.join(OUT, 'robots.txt'),
 
 console.log(`built ${ROUTES.length} routes into ${OUT}/ against ${SITE}`);
 console.log(`catalogue: ${SHOP.length} products from ${source}`);
+console.log(LOCAL_OK
+  ? `local search: Store schema with address${BIZ.geo ? ', map pin' : ' (no map pin — set BIZ.geo)'}` +
+    `${BIZ.hoursConfirmed ? ', opening hours' : ' (hours withheld — BIZ.hoursConfirmed is false)'}`
+  : `local search: Organization only — fill BIZ.${ADDR_FIELDS.filter(f => !BIZ[f]).concat(BIZ.tel ? [] : ['tel']).join(', BIZ.')} to claim the shop's location`);
+if (!BIZ.calendarConfirmed) console.log('calendar: no Event schema — BIZ.calendarConfirmed is false');
 console.log(ROUTES.map(r => '  /' + r.path).join('\n'));
 
 }
