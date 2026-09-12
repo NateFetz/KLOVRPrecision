@@ -361,14 +361,64 @@ All three forms are Netlify Forms — no backend. Submissions land under
 Both post over `fetch` and show an inline result. Each carries a honeypot field
 for spam.
 
-## Analytics
+## Measurement
 
-Not wired up yet. Two options:
+First-party, on purpose. The privacy page tells customers this site runs no
+third-party trackers, and firearms customers have a particular reason to care
+who holds a list with their name on it. Events go to
+`netlify/functions/collect.js` and into `site_events` in the shop's own
+database. No vendor, no account, no monthly fee, and that sentence on the
+privacy page stays true.
 
-- **Netlify Analytics** — server-side, no code, nothing to block. Enable it in the
-  site dashboard.
-- **Plausible** — set a `PLAUSIBLE_DOMAIN` environment variable in Netlify and
-  `build.js` injects the script automatically. No cookie banner needed.
+It is **off until `SUPABASE_URL` is set**, and `ANALYTICS=off` switches it off
+again. The build prints which on every deploy. A visitor whose browser sends
+Global Privacy Control or Do Not Track is never recorded, and if `sessionStorage`
+is unavailable — a locked-down private window — the page measures nothing rather
+than falling back to something more persistent.
+
+**The twelve events.** Adding one means adding it to the allow-list in
+`collect.js` as well as the page, deliberately, so nothing starts being
+collected by accident:
+
+`page` · `search` · `product_view` · `add_to_cart` · `remove_from_cart` ·
+`checkout_step` · `order_sent` · `build_step` · `build_saved` · `build_shared` ·
+`build_submitted` · `ffl_search`
+
+**What is never written down**, whatever the browser sends: IP addresses, user
+agent strings, full referrer URLs, city-level location, and the ZIP typed into
+the dealer finder — that last is the closest thing on the site to a home
+address, so `ffl_search` records only how many dealers came back. Kept
+alongside each event: country and state (a shop with shipping restrictions has
+a real use for the state), phone-or-computer, and the referring host — 
+`duckduckgo.com`, never the URL.
+
+**No cookie and no visitor id.** A random value in `sessionStorage` lets a
+funnel count one person once. It dies with the tab, is never joined to an order
+or a customer, and cannot recognise anyone on a later visit.
+
+The collector is public and unauthenticated, so it assumes the caller is
+hostile: every event name is on an allow-list, every property is validated
+against that entry's shape, strings are truncated, numbers clamped, batches
+capped at 30, and the endpoint returns 204 and nothing else whatever happens.
+`site_events` has no insert policy at all — writes are `service_role` only.
+
+**The admin's Insight page** answers five questions: where checkout loses
+people, which searches found nothing, what people actually spec in the
+configurator, views against add-to-carts per product, and everything recorded.
+Searches that found nothing is the most directly useful of those — it is a list
+of what people came for and did not get.
+
+Retention: nothing prunes itself. `select prune_site_events(400);` drops
+anything older than 400 days; schedule it in Supabase → Database → Cron.
+
+`node tests/collect.test.js` covers all of it — 34 assertions, including that an
+IP, a user agent, a city and a ZIP cannot reach a row even when sent
+deliberately. The privacy page's promises, expressed as code.
+
+**If you would rather have a hosted tool as well**, `PLAUSIBLE_DOMAIN` still
+injects Plausible — but the build will refuse until the "no third-party
+analytics" paragraph on the privacy page is rewritten, because setting that
+variable makes it false.
 
 ## Regenerating web imagery
 

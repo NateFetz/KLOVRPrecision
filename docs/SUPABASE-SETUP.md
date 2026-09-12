@@ -24,6 +24,7 @@ Dashboard → **SQL Editor** → paste and run each file in order:
 5. `supabase/migrations/0005_storefront_fields.sql` — fields the shop renders
 6. `supabase/migrations/0006_catalogue_content.sql` — descriptions, specs, images
 7. `supabase/migrations/0007_ffl_directory.sql` — dealer directory and search
+8. `supabase/migrations/0008_site_events.sql` — site measurement and its reports
 
 Or, with the CLI: `supabase db push`.
 

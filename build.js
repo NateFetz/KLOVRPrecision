@@ -10,6 +10,10 @@ const OUT  = process.env.BUILD_OUT || 'dist';
 const ASSETS = path.join(path.dirname(SRC), 'web');
 const SITE = (process.env.URL || process.env.DEPLOY_PRIME_URL || 'https://klovrprecision.netlify.app').replace(/\/$/, '');
 const PLAUSIBLE = process.env.PLAUSIBLE_DOMAIN || '';
+/* First-party event collection. On when there is a database to put it in,
+   unless explicitly switched off. The function no-ops without a service key,
+   so this flag only decides whether the page bothers asking. */
+const COLLECT = !!process.env.SUPABASE_URL && process.env.ANALYTICS !== 'off';
 
 const ROUTES = [
   { path: '',              view: 'home',
@@ -95,6 +99,12 @@ if (POLICIES_FINAL) {
 /* The privacy page states that nothing third-party is tracking the visitor.
    Switching Plausible on with PLAUSIBLE_DOMAIN makes that sentence false, so
    the build stops rather than publishing a privacy policy that lies. */
+/* Switching measurement on without saying so on the privacy page would make
+   that page quietly false, which is the one failure here that matters. */
+if (COLLECT && !src.includes('id="pr-measure"')) throw new Error(
+  'Event collection is on, but the privacy page has no section describing it. ' +
+  'Add one (anchor id="pr-measure") saying what is recorded and what is not, ' +
+  'or set ANALYTICS=off.');
 if (PLAUSIBLE && src.includes('no third&#8209;party analytics')) throw new Error(
   'PLAUSIBLE_DOMAIN is set, but the privacy page still says the site runs no ' +
   'third-party analytics. Rewrite that paragraph (search site/index.html for ' +
@@ -444,6 +454,7 @@ for (const r of ROUTES) {
   let b = bodyBase.replace('id="home" class="view on"', 'id="home" class="view"');
   // checkout talks to the order function only once Supabase is configured
   b = b.replace("'__ORDERS_API__'", process.env.SUPABASE_URL ? "'1'" : "'0'");
+  b = b.replace("'__COLLECT__'", COLLECT ? "'1'" : "'0'");
   b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
   if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
   if (r.inject) b = b.replace('<div id="productBody"></div>', () => '<div id="productBody">' + r.inject + '</div>');
@@ -502,6 +513,7 @@ ${adminBody}
     desc :'That page is not here. Search the shop, or start from the front page.',
     img  :'web/hero-rifle.jpg', noindex:true };
   let b = bodyBase.replace('id="home" class="view on"', 'id="home" class="view"')
+                  .replace("'__COLLECT__'", COLLECT ? "'1'" : "'0'")
                   .replace('id="notfound" class="view"', 'id="notfound" class="view on"')
                   .replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
   const doc = page(r, b, SITE + '/404');
@@ -526,6 +538,9 @@ console.log(LOCAL_OK
     `${BIZ.hoursConfirmed ? ', opening hours' : ' (hours withheld — BIZ.hoursConfirmed is false)'}`
   : `local search: Organization only — fill BIZ.${ADDR_FIELDS.filter(f => !BIZ[f]).concat(BIZ.tel ? [] : ['tel']).join(', BIZ.')} to claim the shop's location`);
 if (!BIZ.calendarConfirmed) console.log('calendar: no Event schema — BIZ.calendarConfirmed is false');
+console.log(COLLECT
+  ? 'measurement: first-party events → /.netlify/functions/collect (ANALYTICS=off disables)'
+  : 'measurement: off' + (process.env.ANALYTICS === 'off' ? ' (ANALYTICS=off)' : ' — no SUPABASE_URL'));
 console.log(ROUTES.map(r => '  /' + r.path).join('\n'));
 
 }

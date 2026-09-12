@@ -76,6 +76,19 @@ label{display:flex;flex-direction:column;gap:5px}
 .stat b{display:block;font-family:var(--mono);font-size:1.5rem;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
 .stat.good b{color:var(--clover-2)} .stat.warn b{color:var(--warn)} .stat.money b{color:var(--gold)}
 .tablewrap{border:1px solid var(--rule);overflow-x:auto}
+/* A number next to a bar reads faster than a number on its own, and this needs
+   no charting library to say "most people leave at step two". */
+.bar{position:relative;display:block;height:18px;background:var(--rule);min-width:2px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--clover);display:block}
+.bar.warn i{background:var(--gold)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;align-items:start}
+.panelbox{border:1px solid var(--rule);padding:18px 18px 20px}
+.panelbox h3{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;margin:0 0 4px;color:var(--ink)}
+.panelbox p.why{font-size:.8rem;line-height:1.55;color:var(--muted);margin:0 0 14px}
+.rangepick{display:flex;gap:6px}
+.rangepick button{background:none;border:1px solid var(--rule);color:var(--ink-2);
+ font-family:var(--mono);font-size:.7rem;padding:7px 11px;cursor:pointer}
+.rangepick button[aria-pressed="true"]{border-color:var(--clover);color:var(--ink)}
 table{width:100%;border-collapse:collapse;font-size:.86rem}
 th,td{text-align:left;padding:11px var(--s3);border-bottom:1px solid var(--rule-2);white-space:nowrap}
 thead th{font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
@@ -191,6 +204,7 @@ td.r{text-align:right}
       <button data-v="orders" aria-current="page">Orders <span class="pill" id="navNew">0</span></button>
       <button data-v="shipments">Shipments</button>
       <button data-v="products">Products</button>
+      <button data-v="insight">Insight</button>
       <button data-v="quickbooks">QuickBooks</button>
     </nav>
     <div class="side-ft">
@@ -289,6 +303,12 @@ const fromRow=o=>({
 const toStatus=s=>({ffl:'at_dealer',ship:'shipped'}[s]||s);
 const prodFromRow=r=>({sku:r.sku,name:r.name,cat:r.category||'',price:fromCents(r.price_cents),
  stock:r.stock,ffl:r.delivery!=='door',nfa:r.delivery==='nfa',live:r.is_live,updated:r.updated_at});
+
+/* The staff tool renders text that visitors typed — names, notes, addresses,
+   and now search queries. Without this, a customer who puts a script tag in
+   the name field gets it executed inside an authenticated staff session. */
+const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
 const DB={
  async load(){
@@ -411,6 +431,7 @@ const PAGES={
  orders:{t:'Orders',s:'Everything that has come through the storefront.',r:renderOrders},
  shipments:{t:'Shipments',s:'Firearms go to a dealer; everything else goes to the customer.',r:renderShipments},
  products:{t:'Products',s:'Pricing, stock, and how each item is allowed to be delivered.',r:renderProducts},
+ insight:{t:'Insight',s:'What people do on the site. First-party, nothing shared.',r:renderInsight},
  quickbooks:{t:'QuickBooks',s:'Sync customers, invoices, and payments.',r:renderQB}
 };
 function show(v){
@@ -453,8 +474,8 @@ function renderOrders(){
     <th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Status</th><th class="r">Total</th></tr></thead>
    <tbody>${ORDERS.map(o=>`<tr onclick="openOrder('${o.id}')">
      <td class="num">${o.id}</td><td class="num">${o.date}</td>
-     <td class="wrap">${o.cust.name}</td>
-     <td class="wrap">${o.lines.map(l=>l.qty+'× '+l.name).join('<br>')}</td>
+     <td class="wrap">${esc(o.cust.name)}</td>
+     <td class="wrap">${o.lines.map(l=>l.qty+'× '+esc(l.name)).join('<br>')}</td>
      <td>${o.dest==='ffl'?'<span class="pill ffl">To dealer</span>':'<span class="pill ship">To door</span>'}</td>
      <td>${pill(o.status)}</td><td class="r num">${usd(total(o))}</td></tr>`).join('')}</tbody></table></div>`;
 }
@@ -466,28 +487,28 @@ function openOrder(id){
   <div class="panel-hd"><div><h3>${o.id}</h3><p class="lab">${o.date} · ${pill(o.status)}</p></div>
    <button class="panel-x" onclick="closePanel()" aria-label="Close">&times;</button></div>
   <div class="panel-body">
-   ${o.note?`<div class="warnbox"><b>Note</b>${o.note}</div>`:''}
+   ${o.note?`<div class="warnbox"><b>Note</b>${esc(o.note)}</div>`:''}
    <div><h4>Customer</h4><dl class="kv">
-     <dt>Name</dt><dd>${o.cust.name}</dd><dt>Email</dt><dd>${o.cust.email}</dd><dt>Phone</dt><dd class="num">${o.cust.phone}</dd></dl></div>
+     <dt>Name</dt><dd>${esc(o.cust.name)}</dd><dt>Email</dt><dd>${esc(o.cust.email)}</dd><dt>Phone</dt><dd class="num">${esc(o.cust.phone)}</dd></dl></div>
    <div><h4>${o.dest==='ffl'?'Receiving dealer':'Delivery address'}</h4>
     ${o.dest==='ffl'
-      ? `<dl class="kv"><dt>Dealer</dt><dd>${o.ffl.name}</dd><dt>Address</dt><dd>${o.ffl.addr}</dd>
-         <dt>FFL</dt><dd class="num">${o.ffl.lic}</dd>
-         ${o.ffl.expires?`<dt>Expires</dt><dd class="num">${o.ffl.expires}</dd>`:''}
+      ? `<dl class="kv"><dt>Dealer</dt><dd>${esc(o.ffl.name)}</dd><dt>Address</dt><dd>${esc(o.ffl.addr)}</dd>
+         <dt>FFL</dt><dd class="num">${esc(o.ffl.lic)}</dd>
+         ${o.ffl.expires?`<dt>Expires</dt><dd class="num">${esc(o.ffl.expires)}</dd>`:''}
          <dt>Checked</dt><dd>${o.ffl.verified
-            ? `<span class="pill paid"><i class="dot"></i>${o.ffl.verified.slice(0,10)}${o.ffl.verifiedBy?' · '+o.ffl.verifiedBy:''}</span>`
+            ? `<span class="pill paid"><i class="dot"></i>${esc(o.ffl.verified.slice(0,10))}${esc(o.ffl.verifiedBy)?' · '+o.ffl.verifiedBy:''}</span>`
             : '<span class="pill hold"><i class="dot"></i>Not yet verified</span>'}</dd></dl>
          <div class="panel-acts" style="margin-top:12px">
            <a class="btn ghost sm" href="https://fflezcheck.atf.gov/FFLEzCheck/" target="_blank" rel="noopener">Open eZ Check</a>
-           ${o.ffl.verified?'':`<button class="btn sm" onclick="markVerified('${o.ffl.lic}','${o.id}')">Record as verified</button>`}
+           ${o.ffl.verified?'':`<button class="btn sm" onclick="markVerified('${esc(o.ffl.lic)}','${o.id}')">Record as verified</button>`}
          </div>
          <p class="hint" style="margin-top:10px">ATF has no API for eZ Check, so this is a manual check. Confirm the licence is current there, then record it here.</p>`
-      : `<p>${o.addr}</p>`}</div>
+      : `<p>${esc(o.addr)}</p>`}</div>
    <div><h4>Items</h4>
-    ${o.lines.map(l=>`<div class="linerow"><span>${l.qty}× ${l.name}</span><span class="num">${usd(l.price*l.qty)}</span></div>`).join('')}
+    ${o.lines.map(l=>`<div class="linerow"><span>${l.qty}× ${esc(l.name)}</span><span class="num">${usd(l.price*l.qty)}</span></div>`).join('')}
     <div class="linerow" style="border-bottom:0"><b>Total</b><b class="num" style="color:var(--gold)">${usd(total(o))}</b></div></div>
    <div><h4>Shipping</h4>
-    <label><span class="lab">Tracking number</span><input id="trk" value="${o.tracking||''}" placeholder="Add when it ships"></label>
+    <label><span class="lab">Tracking number</span><input id="trk" value="${esc(o.tracking||'')}" placeholder="Add when it ships"></label>
     <div class="panel-acts" style="margin-top:12px"><button class="btn sm" onclick="saveTracking('${o.id}')">Save tracking</button></div></div>
    <div><h4>QuickBooks</h4><dl class="kv"><dt>Invoice</dt><dd>${o.qb?'<span class="num">'+o.qb+'</span>':'Not synced'}</dd></dl>
     ${!o.qb?`<div class="panel-acts" style="margin-top:12px"><button class="btn ghost sm" onclick="pushQB('${o.id}')">Create invoice</button></div>`:''}</div>
@@ -550,9 +571,9 @@ function renderShipments(){
     <td class="num">${o.id}</td>
     <td>${o.dest==='ffl'?'<span class="pill ffl">Licensed dealer</span>':'<span class="pill ship">Customer</span>'}</td>
     <td class="wrap">${o.dest==='ffl'
-      ? `<b>${o.ffl.name}</b><br><span class="hint">${o.ffl.addr}<br>FFL ${o.ffl.lic}</span>`
-      : `${o.cust.name}<br><span class="hint">${o.addr}</span>`}</td>
-    <td class="num">${o.tracking||'<span class="hint">—</span>'}</td>
+      ? `<b>${esc(o.ffl.name)}</b><br><span class="hint">${esc(o.ffl.addr)}<br>FFL ${esc(o.ffl.lic)}</span>`
+      : `${esc(o.cust.name)}<br><span class="hint">${esc(o.addr)}</span>`}</td>
+    <td class="num">${o.tracking?esc(o.tracking):'<span class="hint">—</span>'}</td>
     <td>${pill(o.status)}</td></tr>`).join('')}</tbody></table></div>
   <p class="hint" style="margin-top:16px">A firearm may only be despatched to the licensed dealer on the order. Check the licence on ATF eZ Check before it leaves the bench.</p>`;
 }
@@ -571,7 +592,7 @@ function publishBar(){
  const n=pendingCount();
  return `<div class="pubbar${n?' pending':''}">
    <div><b>${n?`${n} change${n>1?'s':''} not yet on the storefront`:'Storefront is up to date'}</b>
-     <span class="hint">${SITE.published?`Last published ${SITE.published.slice(0,16).replace('T',' ')}${SITE.by?' by '+SITE.by:''}`:'Never published'}</span></div>
+     <span class="hint">${SITE.published?`Last published ${SITE.published.slice(0,16).replace('T',' ')}${SITE.by?' by '+esc(SITE.by):''}`:'Never published'}</span></div>
    <button class="btn${n?'':' ghost'}" id="pubBtn" onclick="publish()">Publish to storefront</button>
  </div>`;
 }
@@ -595,13 +616,13 @@ function renderProducts(){
  document.getElementById('pgBody').innerHTML=`
   ${publishBar()}
   <div class="toolbar">
-   <input placeholder="Search products" value="${pFilter}" oninput="pFilter=this.value;renderProducts()">
+   <input placeholder="Search products" value="${esc(pFilter)}" oninput="pFilter=this.value;renderProducts()">
    <span class="hint">${rows.length} of ${PRODUCTS.length}</span>
   </div>
   <div class="tablewrap"><table><thead><tr>
    <th>Product</th><th>SKU</th><th>Category</th><th class="r">Price</th><th class="r">Stock</th><th>Delivery</th><th>Status</th></tr></thead>
-   <tbody>${rows.map(p=>`<tr onclick="editProduct('${p.sku}')">
-    <td class="wrap">${p.name}</td><td class="num">${p.sku}</td><td>${p.cat}</td>
+   <tbody>${rows.map(p=>`<tr onclick="editProduct('${esc(p.sku)}')">
+    <td class="wrap">${esc(p.name)}</td><td class="num">${esc(p.sku)}</td><td>${esc(p.cat)}</td>
     <td class="r num" style="color:var(--gold)">${usd(p.price)}</td>
     <td class="r num">${p.stock||'<span class="hint">built to order</span>'}</td>
     <td>${p.nfa?'<span class="pill hold">NFA</span>':p.ffl?'<span class="pill ffl">Dealer</span>':'<span class="pill ship">Door</span>'}</td>
@@ -616,10 +637,10 @@ function editProduct(sku){
    <button class="panel-x" onclick="closePanel()" aria-label="Close">&times;</button></div>
   <div class="panel-body">
    <div class="fields">
-    <label><span class="lab">Name</span><input id="pName" value="${p.name}"></label>
+    <label><span class="lab">Name</span><input id="pName" value="${esc(p.name)}"></label>
     <div class="fieldrow">
-     <label><span class="lab">SKU</span><input id="pSku" value="${p.sku}" ${isNew?'':'readonly'}></label>
-     <label><span class="lab">Category</span><input id="pCat" value="${p.cat}"></label>
+     <label><span class="lab">SKU</span><input id="pSku" value="${esc(p.sku)}" ${isNew?'':'readonly'}></label>
+     <label><span class="lab">Category</span><input id="pCat" value="${esc(p.cat)}"></label>
     </div>
     <div class="fieldrow">
      <label><span class="lab">Price, USD</span><input id="pPrice" class="num" inputmode="decimal" value="${p.price}"></label>
@@ -638,7 +659,7 @@ function editProduct(sku){
    <p class="hint">Delivery is not a label — it drives checkout. Anything marked for a dealer cannot be sent to a home address, and the cart enforces it.</p>
    <div class="panel-acts">
     <button class="btn" onclick="saveProduct('${sku||''}')">${isNew?'Add product':'Save changes'}</button>
-    ${isNew?'':`<button class="btn danger sm" onclick="deleteProduct('${p.sku}')">Delete</button>`}
+    ${isNew?'':`<button class="btn danger sm" onclick="deleteProduct('${esc(p.sku)}')">Delete</button>`}
    </div>
    <p class="savedmsg" id="pSaved" hidden>Saved</p>
   </div>`);
@@ -658,6 +679,125 @@ async function deleteProduct(sku){
  if(!confirm('Remove '+sku+' from the catalogue?'))return;
  try{ await DB.deleteProduct(sku); }catch(e){ note('Could not delete: '+(e.message||e)); return; }
  closePanel(); renderProducts();
+}
+
+/* ---------------- insight ----------------
+   Five questions worth answering, and nothing else. Every figure comes from
+   this shop's own database through functions that check is_staff() — there is
+   no analytics vendor in the loop and nothing leaves. */
+let insDays=30, INS=null;
+function setInsDays(d){insDays=d;INS=null;renderInsight()}
+
+async function loadInsight(){
+ const call=(fn)=>sbc.rpc(fn,{p_days:insDays}).then(r=>r.error?[]:(r.data||[]));
+ const [summary,gaps,choices,funnel,products]=await Promise.all(
+   ['events_summary','search_gaps','build_choices','checkout_funnel','product_interest'].map(call));
+ return {summary,gaps,choices,funnel,products};
+}
+
+const bar=(v,max,warn)=>`<span class="bar${warn?' warn':''}"><i style="width:${max?Math.max(2,Math.round(v/max*100)):0}%"></i></span>`;
+
+function renderInsight(){
+ document.getElementById('pgActions').innerHTML=
+  `<div class="rangepick">${[7,30,90].map(d=>
+    `<button aria-pressed="${d===insDays}" onclick="setInsDays(${d})">${d} days</button>`).join('')}</div>`;
+ const body=document.getElementById('pgBody');
+
+ if(!LIVE){
+  body.innerHTML=`<p class="warnbox">Measurement needs the Supabase connection. Nothing is
+   recorded while this is a prototype, and nothing is recorded on the live site either until
+   the environment variables are set.</p>`;
+  return;
+ }
+ if(!INS){
+  body.innerHTML='<p class="warnbox">Reading…</p>';
+  loadInsight().then(d=>{INS=d;renderInsight()}).catch(e=>note('Could not read the figures: '+(e.message||e)));
+  return;
+ }
+ const {summary,gaps,choices,funnel,products}=INS;
+ const count=n=>{const r=summary.find(x=>x.name===n);return r?+r.events:0};
+ const sess=n=>{const r=summary.find(x=>x.name===n);return r?+r.sessions:0};
+
+ if(!summary.length){
+  body.innerHTML=`<p class="warnbox">Nothing recorded in the last ${insDays} days. Either the
+   site has had no visitors, or measurement is switched off — the build prints which on every
+   deploy.</p>`;
+  return;
+ }
+
+ /* Funnel: sessions that reached each step, and where they went. */
+ const f=[1,2,3,4].map(st=>{const r=funnel.find(x=>+x.step===st);return r?+r.sessions:0});
+ const top=f[0]||0;
+ const STEPNAME=['Contact','Delivery','Compliance','Review'];
+
+ const orders=count('order_sent'), carts=sess('add_to_cart');
+
+ body.innerHTML=`
+  <div class="grid2">
+
+   <div class="panelbox"><h3>Checkout</h3>
+    <p class="why">Sessions that reached each step. The biggest drop is the one to fix.</p>
+    <div class="tablewrap"><table>
+     ${f.map((n,i)=>`<tr><th>${i+1}. ${STEPNAME[i]}</th>
+       <td style="width:52%">${bar(n,top,i>0&&f[i-1]&&n/f[i-1]<0.5)}</td>
+       <td class="n">${n}</td>
+       <td class="n">${i&&f[i-1]?Math.round(n/f[i-1]*100)+'%':''}</td></tr>`).join('')}
+     <tr><th>Order sent</th><td style="width:52%">${bar(orders,top)}</td>
+      <td class="n">${orders}</td><td class="n">${top?Math.round(orders/top*100)+'%':''}</td></tr>
+    </table></div></div>
+
+   <div class="panelbox"><h3>Searches that found nothing</h3>
+    <p class="why">What people came for and did not get. The most directly useful list here —
+    it is either stock to order or a name to change.</p>
+    ${gaps.length?`<div class="tablewrap"><table>
+      ${gaps.slice(0,12).map(g=>`<tr><th>${esc(g.q)}</th><td class="n">${g.times}</td>
+        <td class="n" style="color:var(--muted)">${String(g.last_at||'').slice(0,10)}</td></tr>`).join('')}
+     </table></div>`:'<p class="why">Every search found something.</p>'}</div>
+
+   <div class="panelbox"><h3>What people spec</h3>
+    <p class="why">Configurator choices. A chambering nobody picks is barrel money on a shelf;
+    one everybody picks is worth having in stock.</p>
+    ${choices.length?groupedChoices(choices):'<p class="why">No builds configured yet.</p>'}</div>
+
+   <div class="panelbox"><h3>Products</h3>
+    <p class="why">Looked at against put in a basket. A lot of views and no baskets usually means
+    the price, the photograph, or the stock line.</p>
+    ${products.length?`<div class="tablewrap"><table>
+      <tr><th>SKU</th><th class="n">Views</th><th class="n">Carted</th><th class="n">Rate</th></tr>
+      ${products.slice(0,14).map(r=>`<tr><th>${esc(r.sku||'—')}</th>
+        <td class="n">${r.views}</td><td class="n">${r.carted}</td>
+        <td class="n">${+r.views?Math.round(r.carted/r.views*100)+'%':'—'}</td></tr>`).join('')}
+     </table></div>`:'<p class="why">Nothing viewed yet.</p>'}</div>
+
+   <div class="panelbox"><h3>Everything recorded</h3>
+    <p class="why">Events and the number of separate sessions they came from, last ${insDays} days.</p>
+    <div class="tablewrap"><table>
+     ${summary.map(r=>`<tr><th>${esc(r.name)}</th>
+       <td style="width:46%">${bar(+r.events,Math.max(...summary.map(x=>+x.events)))}</td>
+       <td class="n">${r.events}</td><td class="n" style="color:var(--muted)">${r.sessions}</td></tr>`).join('')}
+    </table></div></div>
+
+   <div class="panelbox"><h3>What this does not hold</h3>
+    <p class="why">No IP addresses, no user agents, no cookies, no visitor identifiers, no ZIP
+    codes from the dealer finder, and no link between any of this and a customer or an order.
+    Sessions are a random value that dies with the browser tab. A visitor whose browser sends
+    Global Privacy Control or Do Not Track is not recorded at all. The privacy page says exactly
+    this, so if you change what is collected, change that page in the same sitting.</p></div>
+
+  </div>`;
+}
+
+/* Choices arrive flat; the useful shape is one block per step. */
+function groupedChoices(rows){
+ const by={};
+ rows.forEach(r=>{(by[r.step]=by[r.step]||[]).push(r)});
+ return Object.entries(by).map(([step,list])=>{
+  const max=Math.max(...list.map(x=>+x.picks));
+  return `<p class="why" style="margin:14px 0 6px;color:var(--ink-2)">${esc(step)}</p>
+   <div class="tablewrap"><table>${list.slice(0,6).map(r=>
+    `<tr><th>${esc(r.choice||'—')}</th><td style="width:50%">${bar(+r.picks,max)}</td>
+     <td class="n">${r.picks}</td></tr>`).join('')}</table></div>`;
+ }).join('');
 }
 
 /* ---------------- quickbooks ---------------- */
@@ -693,12 +833,12 @@ function renderQB(){
   <div class="tablewrap" style="margin-bottom:28px"><table><thead><tr>
    <th>KLOVR SKU</th><th>Product</th><th>QuickBooks item</th><th>Income account</th></tr></thead>
    <tbody>${PRODUCTS.slice(0,8).map(p=>`<tr>
-    <td class="num">${p.sku}</td><td class="wrap">${p.name}</td>
+    <td class="num">${esc(p.sku)}</td><td class="wrap">${esc(p.name)}</td>
     <td class="num">${QB.connected?'QB:'+p.sku.toUpperCase():'<span class="hint">—</span>'}</td>
     <td>${QB.connected?(p.ffl?'Firearm sales':'Parts &amp; accessories'):'<span class="hint">—</span>'}</td></tr>`).join('')}</tbody></table></div>
   <h3 style="font-size:.86rem;letter-spacing:.13em;color:var(--clover);margin:0 0 12px">Activity</h3>
   <div class="tablewrap"><table><thead><tr><th>When</th><th>Event</th></tr></thead>
-   <tbody>${QB.log.length?QB.log.map(l=>`<tr><td class="num">${l.t}</td><td class="wrap">${l.m}</td></tr>`).join('')
+   <tbody>${QB.log.length?QB.log.map(l=>`<tr><td class="num">${l.t}</td><td class="wrap">${esc(l.m)}</td></tr>`).join('')
      :'<tr><td colspan="2" class="hint">Nothing yet.</td></tr>'}</tbody></table></div>`;
 }
 function connectQB(){

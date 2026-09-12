@@ -1367,7 +1367,35 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 
    <h3 id="pr-2">What stays in your browser</h3>
    <p>Your cart, your wishlist and any build you saved are kept in your own browser's storage, on your own device. They are not sent to us and we cannot see them. Clearing your browser data clears them, and they do not follow you to another device. A shared build link carries the specification in the link itself &mdash; there is no record of it on our side.</p>
-   <p>We run no advertising trackers, no third&#8209;party analytics, no pixels and no cookie banner, because there is nothing to consent to. <span class="tbd">If analytics is ever added, this paragraph has to change and the choice of tool matters: a server&#8209;side one keeps this page short.</span></p>
+   <p>We run no advertising trackers, no third&#8209;party analytics, no pixels and no cookie banner, because there is nothing to consent to.</p>
+
+   <h3 id="pr-measure">What we count</h3>
+   <p>We do measure how the site is used, because a shop that cannot tell which
+   pages work is guessing. That measurement is ours &mdash; it runs on our own
+   server, into our own database, and no third party is involved at any point.</p>
+   <p>What gets written down is a short list of things that happened: a page was
+   viewed, a search was run and how many results it returned, a product was
+   looked at, something went into a basket, a checkout step was reached, a rifle
+   specification was configured or shared, an order was sent. Alongside each one
+   we keep the country and state it came from, whether the device was a phone or
+   a computer, and &mdash; if you arrived from somewhere else &mdash; the name of
+   the site you came from, such as &ldquo;duckduckgo.com&rdquo;. Not the address
+   you came from, just the site.</p>
+   <p>What is deliberately not written down, whatever your browser sends us: your
+   IP address, your browser's identifying string, the full address of the page
+   that referred you, your town, and the ZIP code you type into the dealer
+   finder. That last one is the closest thing on this site to a home address and
+   it is never stored &mdash; the dealer search records only how many dealers came
+   back.</p>
+   <p>There is no cookie and no visitor identifier. To count one person's path
+   through checkout as one path rather than four, the page keeps a random value
+   in your browser's tab memory. It is discarded when you close the tab, it never
+   leaves your device except attached to those events, it is never connected to
+   your name, your email or your order, and it cannot be used to recognise you on
+   a later visit or on any other website.</p>
+   <p>If your browser says not to track you &mdash; Global Privacy Control, or the
+   older Do Not Track &mdash; we record nothing at all. You do not have to ask us
+   twice, and there is no box to tick.</p>
 
    <h3 id="pr-3">Federal firearms records</h3>
    <p>A completed transfer means a Form 4473, and that form is not ours to be relaxed about. Federal law says what goes on it, says we keep it, and says how long &mdash; and it says who may inspect it. Those records are kept as the ATF requires and are separate from anything else here. They are never used for marketing, never sold, and never merged with your order history. We do not keep a registry, and we could not hand one over because there is nothing to hand over beyond what the law already prescribes.</p>
@@ -1447,6 +1475,52 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 </div></footer>
 
 <script>
+/* ---------------- measurement ----------------
+   First-party and deliberately small. No cookie, no durable visitor id, no IP,
+   no user agent, no full referrer — the server drops all of that on the floor.
+   The session value below lives in sessionStorage, dies with the tab, and
+   exists only so a funnel can count one person once; it is never joined to an
+   order or a name.
+
+   Off unless build.js says otherwise, and off regardless if the browser asks
+   not to be tracked. Somebody who sets that switch has said what they want and
+   there is nothing to negotiate. */
+const COLLECT='__COLLECT__'==='1';
+const DNT=(()=>{ try{
+  return navigator.globalPrivacyControl===true
+      || navigator.doNotTrack==='1' || window.doNotTrack==='1';
+ }catch(e){ return false } })();
+
+const SESSION=(()=>{ if(!COLLECT||DNT)return '';
+ try{
+  let v=sessionStorage.getItem('kp_s');
+  if(!v){ v=Math.random().toString(36).slice(2)+Date.now().toString(36); sessionStorage.setItem('kp_s',v) }
+  return v;
+ }catch(e){ return '' }  /* private window, storage blocked — then we measure nothing */
+})();
+
+let evQ=[], evTimer=null;
+function flushEvents(){
+ clearTimeout(evTimer); evTimer=null;
+ if(!evQ.length||!SESSION)return;
+ const body=JSON.stringify({s:SESSION,r:document.referrer||'',e:evQ});
+ evQ=[];
+ /* sendBeacon so a page being closed still reports, and so this never sits in
+    front of anything the visitor is waiting for. */
+ try{
+  if(navigator.sendBeacon)navigator.sendBeacon('/.netlify/functions/collect',new Blob([body],{type:'text/plain'}));
+  else fetch('/.netlify/functions/collect',{method:'POST',body,keepalive:true});
+ }catch(e){}
+}
+function track(n,p){
+ if(!COLLECT||DNT||!SESSION)return;
+ evQ.push({n,p:p||{},u:location.pathname});
+ if(evQ.length>=20){flushEvents();return}
+ if(!evTimer)evTimer=setTimeout(flushEvents,3000);
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushEvents()});
+window.addEventListener('pagehide',flushEvents);
+
 /* ---------------- the business ----------------
    One source of truth for every fact about the shop. build.js reads this
    object, fills the address, phone, hours and social links into the built
@@ -1519,7 +1593,10 @@ function openReq(scroll){
 }
 async function sendForm(e,form){
  e.preventDefault();
- if(form.id==='buildForm')fillSpec();
+ if(form.id==='buildForm'){fillSpec();
+  track('build_submitted',{code:document.getElementById('buildCode').textContent,
+                           price:Math.round(parseFloat(String(document.getElementById('tPrice').textContent).replace(/[^0-9.]/g,''))||0)});
+ }
  const msg=form.querySelector('.formmsg'),btn=form.querySelector('button[type=submit]');
  btn.disabled=true; btn.textContent='Sending…';
  try{
@@ -1645,6 +1722,7 @@ let fromLink=false;
 async function shareBuild(){
  const url=buildURL();
  const title='KLOVR build '+buildCode();
+ track('build_shared',{code:buildCode()});
  if(navigator.share){
   try{ await navigator.share({title,text:'The rifle I have specced at KLOVR Precision',url}); return }
   catch(e){ if(e&&e.name==='AbortError')return }   // user dismissed the sheet
@@ -1677,7 +1755,7 @@ function saveBuild(){
  savedList().unshift({code,name:buildName(),at:new Date().toISOString().slice(0,10),
    price:document.getElementById('tPrice').textContent});
  SAVED=savedList().slice(0,12);
- saveBuilds(); render();
+ saveBuilds(); render(); track('build_saved',{code});
  toast('Build saved on this device.','ok');
 }
 function loadBuild(code){
@@ -1732,7 +1810,7 @@ function render(){
  const pu=document.getElementById('printUrl');
  if(pu)pu.textContent='This spec: '+buildURL();
 }
-const set=(k,id)=>{S[k]=id;fromLink=false;render();syncBuildURL();};
+const set=(k,id)=>{S[k]=id;fromLink=false;track('build_step',{k,v:(pick(k,id)||{}).nm||id});render();syncBuildURL();};
 
 /* ---------------- shop ---------------- */
 /* Catalogue. `ffl` means the item may only be delivered to a licensed dealer;
@@ -1915,6 +1993,7 @@ function addToCart(id,btn){
  if(have>=max){toast('That is all we have — '+max+' of '+i.n+' already in your cart.','warn');return}
  if(l)l.qty++; else CART.push({id,qty:1});
  saveCart();
+ track('add_to_cart',{sku:i.id,qty:1});
  toast(i.n+' added to your cart.','ok',{label:'View cart',run:"go('cart')"});
  if(btn){const t=btn.textContent;btn.textContent='Added';btn.classList.add('ok');
   setTimeout(()=>{btn.textContent=t;btn.classList.remove('ok')},1100);}
@@ -1927,7 +2006,7 @@ function setQty(id,q){
  if(!q)CART=CART.filter(x=>x.id!==id); else l.qty=q;
  saveCart(); renderCart();
 }
-function removeLine(id){CART=CART.filter(x=>x.id!==id);saveCart();renderCart();}
+function removeLine(id){track('remove_from_cart',{sku:id});CART=CART.filter(x=>x.id!==id);saveCart();renderCart();}
 function toggleWish(id){
  WISH=inWish(id)?WISH.filter(x=>x!==id):WISH.concat(id);
  saveWish(); shop();
@@ -2103,6 +2182,7 @@ function setHero(src,el){
  [...el.parentElement.children].forEach(b=>b.classList.toggle('on',b===el));
 }
 function renderProduct(){
+ if(PID)track('product_view',{sku:PID});
  const el=document.getElementById('productBody'),i=byId(PID);
  if(!i){el.innerHTML=empty('Product not found','That item is not in the catalogue.','Browse the shop',"go('shop')");return;}
  const gal=i.gal&&i.gal.length?i.gal:(i.img?[i.img]:[]);
@@ -2218,6 +2298,7 @@ async function searchFFL(){
   if(!r.ok)throw new Error(d.error||'Search failed');
   FFLS=(d.dealers||[]).map(x=>({n:x.name,l:x.licence,a:x.address1,c:x.city,s:x.state,z:x.zip,phone:x.phone,near:x.near}));
   fflState=FFLS.length?'done':'empty';
+  track('ffl_search',{n:FFLS.length});   /* count only — never the ZIP */
   if(!FFLS.length)fflMsg='No dealers found near '+zip+'. Try a nearby ZIP, or call us and we will find one.';
  }catch(e){fflState='error';fflMsg=e.message||'Dealer search failed. Call the shop and we will sort it.'}
  renderCheckout();
@@ -2239,8 +2320,11 @@ function blocked(){
  return out;
 }
 const STEPS_CO=['Contact','Delivery','Compliance','Review'];
+/* renderCheckout runs on every field edit; a step counts once. */
+let coSeen=0;
 function renderCheckout(){
  const el=document.getElementById('checkoutBody');
+ if(CO.step!==coSeen){coSeen=CO.step;track('checkout_step',{step:CO.step})}
  if(!lines().length&&!CO.sent){el.innerHTML=empty('Nothing to check out','Your cart is empty.','Browse the shop',"go('shop')");return;}
  if(CO.sent){el.innerHTML=`<div class="emptystate"><h3>Order received</h3>
    ${CO.ref?`<p class="lab" style="letter-spacing:.2em">Reference <b class="num" style="color:var(--gold);font-size:1.1rem">${CO.ref}</b></p>`:''}
@@ -2375,6 +2459,7 @@ async function placeOrder(btn){
     }).toString()});
    if(!r.ok)throw new Error(r.status);
   }
+  track('order_sent',{dest:needFFL()?'ffl':'door',items:lines().length,value:Math.round(subtotal())});
   CART=[];saveCart();CO.sent=true;renderCheckout();
  }catch(e){
   fail('That did not send. Email shop@klovrprecision.com with your order and we will pick it up there.');
@@ -2589,6 +2674,7 @@ function renderSearch(){
    <p>Search actions, chassis, barrels, optics, or anything else in the shop. You can search by SKU too.</p>
    <button class="btn" onclick="go('shop')">Browse everything</button></div>`;return}
  const r=runSearch(SQ);
+ track('search',{q:SQ,n:r.total});
  if(!r.total){el.innerHTML=`<div class="emptystate"><h3>Nothing matched &ldquo;${esc(SQ)}&rdquo;</h3>
    <p>Try fewer words, or a different spelling. If we ought to stock it and do not, tell us &mdash; we can usually get it through a distributor.</p>
    <div class="acts"><button class="btn" onclick="go('shop')">Browse everything</button>
@@ -2762,6 +2848,7 @@ function go(v,f,push){
  if(v==='cart')renderCart(); if(v==='wishlist')renderWish(); if(v==='checkout')renderCheckout(); if(v==='product')renderProduct(); else mountBuyBar(null); if(v==='calendar')renderCalendar(); if(v==='search')renderSearch();
  if(v==='build'){render();syncBuildURL();}
  document.querySelectorAll('.navitem.open').forEach(n=>close(n));
+ track('page',{view:v});
  if(push!==false){const u=v==='product'?'/product/'+PID:v==='search'?'/search?q='+encodeURIComponent(SQ):(ROUTE[v]||'/'); if(location.pathname.replace(/\/+$/,'')!==u.replace(/\/+$/,''))history.pushState({v},'',u);}
  window.scrollTo({top:0,behavior:'instant'});
 }
