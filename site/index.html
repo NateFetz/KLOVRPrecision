@@ -42,6 +42,51 @@ h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em
 p{margin:0} a{color:inherit} img{display:block;max-width:100%}
 :focus-visible{outline:2px solid var(--clover-2);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gut),var(--safe-l));padding-right:max(var(--gut),var(--safe-r))}
+/* ---------------- lightbox ---------------- */
+.lbox{position:fixed;inset:0;z-index:250;background:rgba(5,5,5,.95);display:grid;
+ grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
+ padding:max(var(--s4),var(--safe-l)) max(var(--s3),var(--safe-r)) calc(var(--s6) + var(--safe-b))}
+.lbox-fig{margin:0;display:grid;place-items:center;overflow:hidden;height:100%}
+.lbox-fig img{max-width:100%;max-height:calc(100dvh - var(--s8));object-fit:contain;
+ cursor:zoom-in;transition:transform .22s ease}
+.lbox-fig img.zoomed{transform:scale(2.2);cursor:zoom-out}
+.lbox-x{position:absolute;top:max(var(--s3),var(--safe-b));right:max(var(--s3),var(--safe-r));
+ width:44px;height:44px;background:none;border:1px solid var(--line);color:var(--ink);
+ font-size:1.7rem;line-height:1;cursor:pointer;z-index:2}
+.lbox-x:hover{border-color:var(--clover);color:var(--clover-2)}
+.lbox-nav{width:52px;height:76px;background:none;border:0;color:var(--ink-2);
+ font-size:2.4rem;line-height:1;cursor:pointer;font-family:var(--disp);font-weight:300}
+.lbox-nav:hover{color:var(--gold)}
+.lbox-count{position:absolute;bottom:calc(var(--s4) + var(--safe-b));left:0;right:0;text-align:center;
+ font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.14em;color:var(--muted)}
+.herozoom{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in;position:relative}
+.herozoom img{display:block;width:100%;height:100%;object-fit:cover}
+.zoomhint{position:absolute;bottom:10px;right:10px;width:34px;height:34px;display:grid;place-items:center;
+ background:color-mix(in srgb,var(--ground) 68%,transparent);border:1px solid var(--line);
+ color:var(--ink-2);backdrop-filter:blur(4px)}
+.zoomhint svg{width:17px;height:17px}
+.herozoom:hover .zoomhint{color:var(--ink);border-color:var(--clover)}
+@media (max-width:620px){
+  .lbox{grid-template-columns:minmax(0,1fr)}
+  .lbox-nav{display:none}          /* swipe instead */
+}
+
+/* ---------------- sticky buy bar ---------------- */
+.buybar{display:none}
+@media (max-width:900px){
+  body[data-view="product"] .buybar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:130;
+   background:var(--surface);border-top:1px solid var(--clover)}
+  .buybar-in{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
+   padding:var(--s3) max(var(--s4),var(--safe-r)) calc(var(--s3) + var(--safe-b)) max(var(--s4),var(--safe-l))}
+  .buybar-in>div{min-width:0}
+  .buybar b{display:block;font-family:var(--disp);text-transform:uppercase;letter-spacing:.06em;
+   font-size:.78rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .buybar em{font-style:normal;font-size:1.05rem;font-weight:600;color:var(--gold)}
+  .buybar .btn{flex:0 0 auto}
+  body[data-view="product"] .related{padding-bottom:var(--s8)}
+  body[data-view="product"] .toast{bottom:calc(80px + var(--safe-b))}
+}
+
 /* ---------------- toast ---------------- */
 .toast{position:fixed;z-index:190;right:var(--s4);bottom:calc(var(--s4) + var(--safe-b));
  max-width:min(92vw,400px);display:flex;align-items:center;gap:var(--s3);
@@ -702,6 +747,14 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 
 <div class="scrim" id="scrim" hidden></div>
 <div class="scrim" id="evScrim" hidden onclick="closeEv()"></div>
+<div class="lbox" id="lbox" hidden role="dialog" aria-modal="true" aria-label="Product photograph">
+  <button class="lbox-x" onclick="closeLightbox()" aria-label="Close">&times;</button>
+  <button class="lbox-nav prev" onclick="stepLightbox(-1)" aria-label="Previous photograph">&#8249;</button>
+  <figure class="lbox-fig"><img id="lboxImg" alt=""></figure>
+  <button class="lbox-nav next" onclick="stepLightbox(1)" aria-label="Next photograph">&#8250;</button>
+  <p class="lbox-count" id="lboxCount"></p>
+</div>
+<div class="buybar" id="buybar" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <aside class="evpanel" id="evPanel" hidden role="dialog" aria-modal="true" aria-label="Event detail"></aside>
 <div class="mainnav" id="mainnav"><div class="wrap" id="nav">
@@ -1514,9 +1567,10 @@ function addToCalendar(id){
 }
 
 /* ---------------- product detail ---------------- */
-let PID=null;
+let PID=null, PDPGAL=[], pdpIdx=0;
 function openProduct(id){PID=id;go('product');}
 function setHero(src,el){
+ pdpIdx=Math.max(0,PDPGAL.indexOf(src));
  const h=document.getElementById('pdpHero');
  h.src=src; h.srcset=src.replace('.jpg','-sm.jpg')+' 700w, '+src+' 1800w';
  [...el.parentElement.children].forEach(b=>b.classList.toggle('on',b===el));
@@ -1525,8 +1579,13 @@ function renderProduct(){
  const el=document.getElementById('productBody'),i=byId(PID);
  if(!i){el.innerHTML=empty('Product not found','That item is not in the catalogue.','Browse the shop',"go('shop')");return;}
  const gal=i.gal&&i.gal.length?i.gal:(i.img?[i.img]:[]);
+ PDPGAL=gal; pdpIdx=0;
  const w=inWish(i.id);
- const hero=gal.length?`<img id="pdpHero" src="${gal[0]}" srcset="${gal[0].replace('.jpg','-sm.jpg')} 700w, ${gal[0]} 1800w" sizes="(max-width:900px) 94vw, 52vw" alt="${i.n}">`
+ const hero=gal.length?`<button class="herozoom" onclick="openLightbox(PDPGAL,pdpIdx)" aria-label="Enlarge photograph">
+     <img id="pdpHero" src="${gal[0]}" srcset="${gal[0].replace('.jpg','-sm.jpg')} 700w, ${gal[0]} 1800w" sizes="(max-width:900px) 94vw, 52vw" alt="${i.n}">
+     <span class="zoomhint" aria-hidden="true">
+       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/></svg>
+     </span></button>`
    :`<span class="lab">${i.cat||'Photography pending'}</span>`;
  const thumbs=gal.length>1?`<div class="pdpthumbs">${gal.map((g,n)=>
    `<button class="${n?'':'on'}" onclick="setHero('${g}',this)" aria-label="View image ${n+1}"><img src="${g.replace('.jpg','-sm.jpg')}" alt="" loading="lazy"></button>`).join('')}</div>`:'';
@@ -1557,6 +1616,7 @@ function renderProduct(){
   </div>
   ${rel.length?`<section class="related"><div class="eyebrow"><span class="lab">Also in this range</span></div>
     <div class="grid">${rel.map(x=>card(x)).join('')}</div></section>`:''}`;
+ mountBuyBar(i);
 }
 
 /* ---------------- wishlist ---------------- */
@@ -1786,6 +1846,96 @@ async function placeOrder(btn){
  }catch(e){
   fail('That did not send. Email shop@klovrprecision.com with your order and we will pick it up there.');
  }
+}
+
+/* ---------------- lightbox ----------------
+   Uses the -xl renditions, which are only fetched once this opens, so the page
+   itself pays nothing for them. */
+let lbGal=[], lbIdx=0, lbZoom=false;
+const xl=src=>src.replace(/\.jpg$/,'-xl.jpg');
+function openLightbox(gallery,i){
+ lbGal=gallery; lbIdx=i||0; lbZoom=false;
+ paintLightbox();
+ const el=document.getElementById('lbox');
+ el.hidden=false;
+ document.body.classList.add('nav-open');
+ trapFocus(el);
+}
+function paintLightbox(){
+ const img=document.getElementById('lboxImg'), src=lbGal[lbIdx];
+ img.classList.remove('zoomed'); img.style.transformOrigin='center';
+ lbZoom=false;
+ img.src=xl(src);
+ img.alt='Photograph '+(lbIdx+1)+' of '+lbGal.length;
+ document.getElementById('lboxCount').textContent=lbGal.length>1?(lbIdx+1)+' / '+lbGal.length:'';
+ document.querySelectorAll('.lbox-nav').forEach(b=>b.hidden=lbGal.length<2);
+}
+function stepLightbox(n){
+ if(lbGal.length<2)return;
+ lbIdx=(lbIdx+n+lbGal.length)%lbGal.length;
+ paintLightbox();
+}
+function closeLightbox(){
+ const el=document.getElementById('lbox');
+ if(el.hidden)return;
+ el.hidden=true;
+ document.getElementById('lboxImg').removeAttribute('src');
+ document.body.classList.remove('nav-open');
+ releaseFocus();
+}
+/* Click to magnify from the point you clicked, so you can inspect a cut or a
+   roll mark rather than just seeing it bigger. */
+function zoomLightbox(e){
+ const img=e.currentTarget, r=img.getBoundingClientRect();
+ lbZoom=!lbZoom;
+ if(lbZoom){
+  img.style.transformOrigin=(((e.clientX-r.left)/r.width)*100)+'% '+(((e.clientY-r.top)/r.height)*100)+'%';
+  img.classList.add('zoomed');
+ } else {
+  img.classList.remove('zoomed'); img.style.transformOrigin='center';
+ }
+}
+function panLightbox(e){
+ if(!lbZoom)return;
+ const img=e.currentTarget, r=img.getBoundingClientRect();
+ img.style.transformOrigin=(((e.clientX-r.left)/r.width)*100)+'% '+(((e.clientY-r.top)/r.height)*100)+'%';
+}
+(()=>{
+ const img=document.getElementById('lboxImg');
+ img.addEventListener('click',zoomLightbox);
+ img.addEventListener('pointermove',panLightbox);
+ const el=document.getElementById('lbox');
+ el.addEventListener('click',e=>{if(e.target===el||e.target.classList.contains('lbox-fig'))closeLightbox()});
+ let x0=0;
+ el.addEventListener('touchstart',e=>{x0=e.changedTouches[0].clientX},{passive:true});
+ el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x0;
+  if(Math.abs(dx)>50&&!lbZoom)stepLightbox(dx<0?1:-1)},{passive:true});
+ addEventListener('keydown',e=>{
+  if(document.getElementById('lbox').hidden)return;
+  if(e.key==='Escape')closeLightbox();
+  if(e.key==='ArrowRight')stepLightbox(1);
+  if(e.key==='ArrowLeft')stepLightbox(-1);
+ });
+})();
+
+/* ---------------- sticky buy bar ----------------
+   A product page is long; the buy button should not scroll away on a phone. */
+let buyObserver=null;
+function mountBuyBar(i){
+ const bar=document.getElementById('buybar');
+ if(buyObserver){buyObserver.disconnect();buyObserver=null}
+ bar.hidden=true;
+ if(!i)return;
+ bar.innerHTML=`<div class="buybar-in">
+   <div><b>${esc(i.n)}</b><em class="num">${usd(i.price)}</em></div>
+   <button class="btn" onclick="addToCart('${i.id}',this)"${soldOut(i)?' disabled':''}>${soldOut(i)?'Out of stock':'Add to cart'}</button>
+  </div>`;
+ const anchor=document.querySelector('.pdpactions');
+ if(!anchor||typeof IntersectionObserver==='undefined')return;
+ buyObserver=new IntersectionObserver(([e])=>{
+  bar.hidden=e.isIntersecting;
+ },{rootMargin:'-72px 0px 0px 0px'});
+ buyObserver.observe(anchor);
 }
 
 /* ---------------- confirmations ---------------- */
@@ -2051,7 +2201,7 @@ function go(v,f,push){
  document.querySelectorAll('#nav .navitem>button').forEach(b=>{
   if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
  if(f)setFilter(f);
- if(v==='cart')renderCart(); if(v==='wishlist')renderWish(); if(v==='checkout')renderCheckout(); if(v==='product')renderProduct(); if(v==='calendar')renderCalendar(); if(v==='search')renderSearch();
+ if(v==='cart')renderCart(); if(v==='wishlist')renderWish(); if(v==='checkout')renderCheckout(); if(v==='product')renderProduct(); else mountBuyBar(null); if(v==='calendar')renderCalendar(); if(v==='search')renderSearch();
  document.querySelectorAll('.navitem.open').forEach(n=>close(n));
  if(push!==false){const u=v==='product'?'/product/'+PID:v==='search'?'/search?q='+encodeURIComponent(SQ):(ROUTE[v]||'/'); if(location.pathname.replace(/\/+$/,'')!==u.replace(/\/+$/,''))history.pushState({v},'',u);}
  window.scrollTo({top:0,behavior:'instant'});

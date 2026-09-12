@@ -279,6 +279,23 @@ One 4px scale, exposed as tokens. Use these rather than inventing values:
 | `--sec` | clamp(40, 6vw, 88) | vertical rhythm between sections |
 | `--pad-box` | clamp(16, 2.2vw, 24) | inner padding for panels and cards |
 
+### Product photography
+
+Three renditions per shot, all generated from the originals so nothing is ever
+upscaled:
+
+| Suffix | Width | Used for |
+|---|---|---|
+| `-sm` | 520–820 | phones, via `srcset` |
+| *(none)* | 900–1800 | desktop |
+| `-xl` | 1800 | the lightbox only |
+
+`-xl` is fetched only when someone opens the lightbox, so the page pays nothing
+for 5.3 MB of detail that most visitors never ask for.
+
+`photos/MANIFEST.tsv` maps every web name back to its original camera file. Use
+it when regenerating — the mapping is not recoverable from the filenames.
+
 ### Colour and contrast
 
 Measured, not eyeballed. Every pair below clears WCAG AA on the darkest surface
