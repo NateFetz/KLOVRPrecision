@@ -243,6 +243,127 @@ footer{padding:44px 0 56px}
 
 .legal{border-top:1px solid var(--rule);margin-top:36px;padding-top:22px;font-family:var(--mono);font-size:.66rem;line-height:1.85;color:var(--muted);max-width:76ch}
 
+
+/* ---------------- cart, wishlist, checkout ---------------- */
+.platewrap{position:relative}
+.heart{position:absolute;top:9px;right:9px;width:36px;height:36px;display:grid;place-items:center;
+ background:color-mix(in srgb,var(--ground) 72%,transparent);border:1px solid var(--rule);
+ color:var(--ink-2);cursor:pointer;backdrop-filter:blur(4px);transition:color .15s,border-color .15s}
+.heart svg{width:18px;height:18px}
+.heart:hover{color:var(--ink);border-color:var(--ink-2)}
+.heart.on{color:var(--clover-2);border-color:var(--clover)}
+.btn.ok{background:var(--clover-2);border-color:var(--clover-2)}
+.linkbtn{background:none;border:0;color:var(--muted);cursor:pointer;font-family:var(--mono);
+ font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;padding:4px 0;text-decoration:underline}
+.linkbtn:hover{color:var(--stop)}
+
+.emptystate{border:1px solid var(--rule);background:var(--surface);padding:clamp(30px,5vw,54px);text-align:center;
+ display:flex;flex-direction:column;align-items:center;gap:14px}
+.emptystate h3{font-size:var(--fs-h2)}
+.emptystate p{color:var(--ink-2);max-width:52ch;font-size:var(--fs-sm)}
+
+.cartlayout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:clamp(22px,3vw,40px);align-items:start}
+.cartgroup{border:1px solid var(--rule);margin-bottom:20px}
+.cartgroup-hd{padding:15px 18px;border-bottom:1px solid var(--rule);background:var(--surface)}
+.cartgroup-hd h3{font-size:.88rem;letter-spacing:.12em;color:var(--clover)}
+.cartgroup-hd p{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);margin-top:5px;line-height:1.5}
+.cartline{display:grid;grid-template-columns:84px minmax(0,1fr) auto auto;gap:16px;align-items:center;
+ padding:16px 18px;border-bottom:1px solid var(--rule-2)}
+.cartline:last-child{border-bottom:0}
+.cartthumb{aspect-ratio:4/3;background:var(--stage);border:1px solid var(--rule);display:grid;place-items:center;overflow:hidden}
+.cartthumb img{width:100%;height:100%;object-fit:cover}
+.cartinfo h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.07em;font-size:.9rem;font-weight:500;line-height:1.3}
+.cartinfo .meta{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);margin-top:5px;line-height:1.5}
+.cartqty{display:flex;align-items:center;border:1px solid var(--rule)}
+.cartqty button{width:34px;height:38px;background:none;border:0;color:var(--ink-2);cursor:pointer;font-size:1.05rem}
+.cartqty button:hover{color:var(--ink);background:var(--raised)}
+.cartqty input{width:42px;height:38px;text-align:center;border:0;border-left:1px solid var(--rule);
+ border-right:1px solid var(--rule);background:none;padding:0;font-size:.9rem}
+.cartprice{display:flex;flex-direction:column;align-items:flex-end;gap:4px;white-space:nowrap}
+.cartprice .num{font-size:1.02rem;font-weight:600;color:var(--gold)}
+
+.summary{border:1px solid var(--clover);background:var(--raised);padding:19px;position:sticky;top:96px;
+ display:flex;flex-direction:column;gap:9px}
+.summary h3{font-size:.88rem;letter-spacing:.13em;padding-bottom:11px;border-bottom:1px solid var(--rule)}
+.srow{display:flex;justify-content:space-between;gap:14px;font-size:var(--fs-sm);color:var(--ink-2);line-height:1.45}
+.srow span:last-child{white-space:nowrap}
+.srow.total{border-top:1px solid var(--rule);padding-top:11px;margin-top:4px;color:var(--ink);
+ font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem;align-items:baseline}
+.srow.total .num{font-family:var(--mono);font-size:1.24rem;font-weight:600;color:var(--gold);text-transform:none;letter-spacing:0}
+.summary .btn{margin-top:8px;text-align:center}
+
+.steps-co{list-style:none;margin:0 0 26px;padding:0;display:flex;flex-wrap:wrap;gap:2px;border:1px solid var(--rule)}
+.steps-co li{flex:1 1 120px;display:flex;align-items:center;gap:9px;padding:13px 15px;background:var(--surface);
+ font-family:var(--disp);text-transform:uppercase;letter-spacing:.11em;font-size:.74rem;color:var(--muted)}
+.steps-co li .num{width:21px;height:21px;display:grid;place-items:center;border:1px solid currentColor;
+ font-size:.68rem;flex:0 0 auto}
+.steps-co li.now{color:var(--ink);background:var(--raised);box-shadow:inset 0 -2px 0 var(--clover)}
+.steps-co li.done{color:var(--clover)}
+.cologout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:clamp(22px,3vw,40px);align-items:start}
+.costep{border:1px solid var(--rule);background:var(--surface);padding:clamp(20px,3vw,30px)}
+.costep h2{font-size:var(--fs-h2);margin-bottom:20px}
+.costep-h{font-size:.88rem;letter-spacing:.12em;color:var(--clover);margin:26px 0 12px}
+.fields{display:flex;flex-direction:column;gap:13px}
+.fieldrow{display:grid;grid-template-columns:2fr 1fr 1fr;gap:11px}
+.conav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--rule)}
+
+.fflsearch{display:flex;gap:9px;margin-bottom:15px}
+.fflsearch input{max-width:220px}
+.ffllist{display:flex;flex-direction:column;gap:9px}
+.fflcard{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--rule);padding:14px 15px;cursor:pointer;background:var(--raised)}
+.fflcard:hover{border-color:var(--ink-2)}
+.fflcard.on{border-color:var(--clover);background:var(--clover-soft);box-shadow:inset 2px 0 0 var(--clover)}
+.fflcard input{width:auto;flex:0 0 auto;margin-top:3px}
+.fflcard b{display:block;font-family:var(--disp);text-transform:uppercase;letter-spacing:.07em;font-size:.9rem;font-weight:500}
+.fflcard em{display:block;font-style:normal;font-size:var(--fs-sm);color:var(--ink-2);margin-top:4px}
+.fflcard i{display:block;font-style:normal;font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);margin-top:5px}
+
+.okbox,.blockbox{padding:14px 16px;font-size:var(--fs-sm);line-height:1.6}
+.okbox{border-left:2px solid var(--clover);background:var(--clover-soft);color:var(--ink-2)}
+.blockbox{border-left:2px solid var(--stop);background:var(--stop-soft);color:var(--ink-2)}
+.okbox b,.blockbox b{display:block;font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;
+ text-transform:uppercase;margin-bottom:5px}
+.okbox b{color:var(--clover-2)} .blockbox b{color:var(--stop)}
+.blockbox ul{margin:8px 0;padding-left:19px}
+.attest{display:flex;flex-direction:column;gap:14px;margin-top:22px}
+.check{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;font-size:var(--fs-sm);
+ line-height:1.55;color:var(--ink-2);cursor:pointer}
+.check input{width:18px;height:18px;margin-top:2px;flex:0 0 auto;accent-color:var(--clover)}
+
+
+/* ---------------- product detail ---------------- */
+.platelink{display:block;text-decoration:none}
+.card h3 a{text-decoration:none}
+.card h3 a:hover{color:var(--clover-2)}
+.crumb{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:var(--fs-xs);
+ letter-spacing:.07em;color:var(--muted);margin-bottom:22px}
+.crumb a{color:var(--muted);text-decoration:none}
+.crumb a:hover{color:var(--ink)}
+.crumb em{font-style:normal;color:var(--ink-2)}
+.pdp{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(24px,4vw,52px);align-items:start}
+.pdphero{background:var(--stage);border:1px solid var(--rule);aspect-ratio:3/2;display:grid;place-items:center;overflow:hidden}
+.pdphero img{width:100%;height:100%;object-fit:cover}
+.pdpthumbs{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap}
+.pdpthumbs button{width:78px;aspect-ratio:3/2;padding:0;border:1px solid var(--rule);background:var(--stage);
+ cursor:pointer;overflow:hidden}
+.pdpthumbs button img{width:100%;height:100%;object-fit:cover;display:block}
+.pdpthumbs button.on{border-color:var(--clover);box-shadow:0 0 0 1px var(--clover)}
+.pdpinfo h1{font-size:clamp(1.5rem,2.6vw,2.05rem);margin:14px 0 0;letter-spacing:.06em}
+.pdpprice{font-size:1.85rem;font-weight:600;color:var(--gold);margin:14px 0 18px}
+.pdpdesc{display:flex;flex-direction:column;gap:12px;color:var(--ink-2);font-size:.97rem;line-height:1.65;max-width:56ch}
+.pdpactions{display:flex;gap:10px;margin:22px 0 20px;flex-wrap:wrap}
+.pdpactions .btn{flex:1 1 auto;text-align:center;min-width:140px}
+.heartbtn.on{border-color:var(--clover);color:var(--clover-2)}
+.fulfil{padding:13px 16px;font-size:var(--fs-sm);line-height:1.6;color:var(--ink-2);border-left:2px solid}
+.fulfil b{display:block;font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px}
+.fulfil.door{border-color:var(--clover);background:var(--clover-soft)} .fulfil.door b{color:var(--clover-2)}
+.fulfil.ffl{border-color:var(--stop);background:var(--stop-soft)} .fulfil.ffl b{color:var(--stop)}
+.fulfil.nfa{border-color:var(--warn);background:var(--gold-soft)} .fulfil.nfa b{color:var(--warn)}
+.spec-h{font-size:.85rem;letter-spacing:.13em;color:var(--clover);margin:28px 0 11px}
+.spectable th{width:40%;color:var(--muted);font-weight:500;vertical-align:top}
+.spectable td{color:var(--ink-2)}
+.related{padding-top:clamp(34px,5vw,58px);margin-top:clamp(30px,4vw,50px);border-top:1px solid var(--rule)}
+
 /* ============ burger + off-canvas drawer (markup is shared with desktop nav) ============ */
 .burger{display:none;background:none;border:0;cursor:pointer;padding:12px 10px;flex-direction:column;gap:5px;justify-self:start}
 .burger span{display:block;width:23px;height:2px;background:var(--ink);transition:transform .25s,opacity .2s}
@@ -335,6 +456,20 @@ footer{padding:44px 0 56px}
   .opt{padding:12px 13px}
   .sw i{width:52px;height:52px}
   .sheet{margin-bottom:74px}
+  .cartlayout,.cologout,.pdp{grid-template-columns:1fr}
+  .pdpinfo h1{font-size:1.4rem}
+  .pdpprice{font-size:1.55rem}
+  .pdpthumbs button{width:64px}
+  .summary{position:static}
+  .cartline{grid-template-columns:64px minmax(0,1fr);gap:12px;padding:14px}
+  .cartqty{grid-column:1/2;justify-self:start}
+  .cartprice{grid-column:2/3;align-items:flex-end;margin-top:-8px}
+  .fieldrow{grid-template-columns:1fr 1fr}
+  .fieldrow label:first-child{grid-column:1/-1}
+  .steps-co li{flex:1 1 auto;padding:11px 10px;font-size:.66rem;letter-spacing:.07em}
+  .steps-co li span.num{display:none}
+  .conav{flex-direction:column-reverse}
+  .conav .btn{text-align:center}
 
   /* running total follows you down the configurator */
   #build.on .mobtotal{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:120;
@@ -397,13 +532,13 @@ footer{padding:44px 0 56px}
     <button class="acct" onclick="mock()" aria-label="Account">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
     </button>
-    <button class="tool wish" onclick="mock()">
+    <button class="tool wish" onclick="go('wishlist')" aria-label="Wishlist">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.6-7-9.4A4.1 4.1 0 0 1 12 7a4.1 4.1 0 0 1 7 3.6C19 15.4 12 20 12 20z"/></svg>
-      Wishlist
+      Wishlist&nbsp;<span class="cnt num" data-wish-count></span>
     </button>
-    <button class="tool" onclick="mock()">
+    <button class="tool" onclick="go('cart')" aria-label="Cart">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h16l-1.6 10.4a2 2 0 0 1-2 1.6H7.6a2 2 0 0 1-2-1.6L4 6z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg>
-      Cart&nbsp;<span class="cnt num">(0)</span>
+      Cart&nbsp;<span class="cnt num" data-cart-count>(0)</span>
     </button>
   </div>
 </div></header>
@@ -602,6 +737,29 @@ footer{padding:44px 0 56px}
   <div class="mobtotal"><div><span class="lab">Estimate</span><b class="num" id="mobPrice">&mdash;</b></div><button class="btn sm" onclick="openReq(1)">Request build</button></div>
 </section></div>
 
+<!-- ===== PRODUCT ===== -->
+<div id="product" class="view"><section class="wrap"><div id="productBody"></div></section></div>
+
+<!-- ===== WISHLIST ===== -->
+<div id="wishlist" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Saved</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:26px">Your wishlist</h2>
+  <div id="wishBody"></div>
+</section></div>
+
+<!-- ===== CART ===== -->
+<div id="cart" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Cart</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:26px">Your cart</h2>
+  <div id="cartBody"></div>
+</section></div>
+
+<!-- ===== CHECKOUT ===== -->
+<div id="checkout" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Checkout</span></div>
+  <div id="checkoutBody"></div>
+</section></div>
+
 <!-- ===== CONTACT ===== -->
 <div id="contact" class="view"><section class="wrap">
   <div class="eyebrow"><span class="lab">Contact</span></div>
@@ -649,6 +807,13 @@ footer{padding:44px 0 56px}
     </div>
   </div>
 </section></div>
+
+<form name="order-request" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="order-request">
+  <p hidden><label>Leave this blank <input name="bot-field"></label></p>
+  <input name="name"><input name="email"><input name="phone">
+  <input name="ship-to"><input name="receiving-ffl"><input name="order"><input name="total">
+</form>
 
 <footer><div class="wrap">
   <div class="foot">
@@ -802,36 +967,139 @@ function render(){
 const set=(k,id)=>{S[k]=id;render();};
 
 /* ---------------- shop ---------------- */
+/* Catalogue. `ffl` means the item may only be delivered to a licensed dealer;
+   `noShip` are states we cannot send it to at all. Both drive checkout. */
 const SHOP=[
- {c:'action',n:'KLOVR Short Action — Burnt Bronze',m:'700 footprint · integral 20 MOA rail · fluted bolt',p:'$1,395',t:[['door','Ships to your door'],['stock','In stock: 8']],img:'web/p-action-short.jpg'},
- {c:'action',n:'KLOVR Magnum Action — Burnt Bronze',m:'Magnum bolt face · 70° throw · M16 extractor',p:'$1,495',t:[['door','Ships to your door'],['stock','In stock: 3']],img:'web/p-action-magnum.jpg'},
- {c:'chassis',n:'KLOVR Chassis — Burnt Bronze',m:'Billet 7075 · AICS mags · engraved forend',p:'$1,150',t:[['door','Ships to your door'],['stock','In stock: 5']],img:'web/p-chassis-bronze.jpg'},
- {c:'chassis',n:'KLOVR Chassis — Skeletonized',m:'Adjustable comb and length of pull',p:'$1,150',t:[['door','Ships to your door'],['stock','Built to order']],img:'web/p-chassis-black.jpg'},
- {c:'rifle',n:'KLOVR Complete Rifle — 6.5 Creedmoor',m:'22″ fluted · bronze chassis · sub‑MOA proofed',p:'$4,850',t:[['ffl','Ships to FFL'],['stock','Built to order']],img:'web/p-rifle-cm.jpg'},
- {c:'rifle',n:'KLOVR Complete Rifle — .300 Win Magnum',m:'24″ fluted · magnum action · sub‑MOA proofed',p:'$5,290',t:[['ffl','Ships to FFL'],['stock','Built to order']],img:'web/p-rifle-mag.jpg'},
- {c:'barrel',n:'Pre‑fit barrel — 6.5 CM, 22″ fluted',m:'416R stainless · 1:8 · threaded 5/8×24',p:'$520',t:[['door','Ships to your door'],['stock','In stock: 11']],img:'web/p-barrel.jpg'},
- {c:'barrel',n:'Spare bolt assembly',m:'Fluted body · M16 extractor · short action',p:'$385',t:[['door','Ships to your door'],['stock','In stock: 6']],img:'web/p-bolt.jpg'},
- {c:'optic',n:'3.5–10×40 hunting scope',m:'30 mm tube · capped turrets · second focal',p:'$649',t:[['door','Ships to your door'],['stock','In stock: 6']],cat:'Optics'},
- {c:'optic',n:'4–16×50 long‑range scope',m:'Exposed elevation · 0.1 mil clicks',p:'$1,199',t:[['door','Ships to your door'],['stock','In stock: 2']],cat:'Optics'},
- {c:'mount',n:'34 mm rings — burnt bronze',m:'Matched pair · 1.1″ height · 4‑screw caps',p:'$189',t:[['door','Ships to your door'],['stock','In stock: 9']],cat:'Mounts'},
- {c:'ammo',n:'6.5 Creedmoor — 140 gr match',m:'20 rounds · boat tail · brass case',p:'$41.50',t:[['door','Ships to your door'],['stock','In stock: 34']],cat:'Ammunition',s:'No shipment to CA, MA, NY, IL, NJ, or New York City.'},
- {c:'gear',n:'Carbon bipod, 7–10″',m:'Picatinny mount · cant and pan',p:'$379',t:[['door','Ships to your door'],['stock','In stock: 7']],cat:'Support gear'},
- {c:'gear',n:'Takedown rifle case, 48″',m:'Foam‑lined · lockable · airline rated',p:'$189',t:[['door','Ships to your door'],['stock','In stock: 4']],cat:'Cases'},
- {c:'nfa',n:'Titanium suppressor — 6.5 mm',m:'11.4 oz · direct thread 5/8×24',p:'$949',t:[['nfa','NFA · stamp required'],['stock','In stock: 1']],cat:'Suppressors',s:'Form 4 and $200 stamp. Held in our safe until approval. Not transferable to CA, DC, DE, HI, IL, IA, MA, NJ, NY, RI.'}];
+ {id:'act-short', c:'action', n:'KLOVR Short Action — Burnt Bronze', m:'700 footprint · integral 20 MOA rail · fluted bolt', price:1395, stock:8, img:'web/p-action-short.jpg',
+  gal:['web/p-action-short.jpg','web/hero-action.jpg','web/feat-profile.jpg','web/feat-muzzle.jpg'],
+  d:['Cut from 416R stainless, nitrided, then finished in the burnt bronze that started the company. The recoil lug is machined as part of the receiver rather than sandwiched behind the barrel nut, so there is one less joint to move under recoil.',
+     'The rail is integral and cut at 20 MOA, which means there is no base to shoot loose and no screws to check. The bolt body is fluted to shed debris and throws at 70°, clearing a 50 mm objective without changing your cheek weld.'],
+  specs:[['Footprint','Remington 700, short action'],['Bolt face','.473 standard'],['Rail','Integral, 20 MOA'],
+   ['Bolt','Fluted body, 70° throw, M16 extractor'],['Material','416R stainless, nitrided'],
+   ['Finish','Burnt bronze Cerakote'],['Barrel tenon','1.0625 × 16'],['Weight','31.4 oz'],['In the box','Action, bolt, recoil lug']]},
+
+ {id:'act-magnum', c:'action', n:'KLOVR Magnum Action — Burnt Bronze', m:'Magnum bolt face · 70° throw · M16 extractor', price:1495, stock:3, img:'web/p-action-magnum.jpg',
+  gal:['web/p-action-magnum.jpg','web/gal-1.jpg','web/hero-action.jpg'],
+  d:['The same receiver, opened up for belted and beltless magnums. Magnum bolt face, longer magazine cut, and the same integral 20 MOA rail.',
+     'Built for .300 Win Mag, 7mm Rem Mag, and the PRC family. If you are chambering something long and you want one action to carry it, this is the one.'],
+  specs:[['Footprint','Remington 700, long action'],['Bolt face','.532 magnum'],['Rail','Integral, 20 MOA'],
+   ['Bolt','Fluted body, 70° throw, M16 extractor'],['Material','416R stainless, nitrided'],
+   ['Finish','Burnt bronze Cerakote'],['Weight','33.8 oz'],['In the box','Action, bolt, recoil lug']]},
+
+ {id:'chs-bronze', c:'chassis', n:'KLOVR Chassis — Burnt Bronze', m:'Billet 7075 · AICS mags · engraved forend', price:1150, stock:5, img:'web/p-chassis-bronze.jpg',
+  gal:['web/p-chassis-bronze.jpg','web/hero-chassis.jpg','web/gal-5.jpg','web/gal-4.jpg'],
+  d:['Cut from a single billet of 7075-T6 and hollowed where the material was carrying nothing. What is left is thick where the action sits and where the forend takes a bipod load.',
+     'Takes AICS magazines, adjusts for comb height and length of pull, and carries M-LOK along the forend. The roll mark is engraved, not printed.'],
+  specs:[['Material','Billet 7075-T6 aluminium'],['Magazine','AICS pattern, detachable'],['Forend','12″, M-LOK'],
+   ['Adjustment','Comb height and length of pull'],['Fits','Remington 700 footprint'],
+   ['Finish','Burnt bronze Cerakote'],['Weight','3 lb 2 oz'],['Hardware','Action screws and torque spec included']]},
+
+ {id:'chs-skel', c:'chassis', n:'KLOVR Chassis — Skeletonized', m:'Adjustable comb and length of pull', price:1150, made:1, img:'web/p-chassis-black.jpg',
+  gal:['web/p-chassis-black.jpg','web/gal-2.jpg','web/gal-3.jpg'],
+  d:['The same chassis with the skeleton cuts opened further. Four ounces lighter, and you can see straight through it, which some people love and some people do not.',
+     'Built to order in the finish you pick.'],
+  specs:[['Material','Billet 7075-T6 aluminium'],['Magazine','AICS pattern, detachable'],['Forend','12″, M-LOK'],
+   ['Adjustment','Comb height and length of pull'],['Fits','Remington 700 footprint'],
+   ['Finish','Your choice of house colours'],['Weight','2 lb 14 oz'],['Lead time','4–6 weeks']]},
+
+ {id:'rifle-cm', c:'rifle', n:'KLOVR Complete Rifle — 6.5 Creedmoor', m:'22″ fluted · bronze chassis · sub‑MOA proofed', price:4850, made:1, ffl:1, img:'web/p-rifle-cm.jpg',
+  gal:['web/p-rifle-cm.jpg','web/hero-rifle.jpg','web/cfg-stage.jpg','web/gal-1.jpg'],
+  d:['A complete rifle on our own action and chassis, chambered, trued, and bedded on the bench. It leaves with a three-shot group at 100 yards and that target in the case.',
+     'Six-five Creedmoor because it does most of what most people need: flat enough for open country, mild enough to shoot well, and cheap enough to practise with.'],
+  specs:[['Chambering','6.5 Creedmoor'],['Barrel','22″ fluted, 1:8, 416R stainless'],
+   ['Action','KLOVR short action, integral 20 MOA rail'],['Chassis','KLOVR billet, burnt bronze'],
+   ['Muzzle','Threaded 5/8 × 24, capped'],['Trigger','Adjustable, set at 2 lb 8 oz'],
+   ['Weight','8 lb 4 oz bare'],['Accuracy','Sub-MOA three-shot guarantee'],['Lead time','10–14 weeks']]},
+
+ {id:'rifle-wm', c:'rifle', n:'KLOVR Complete Rifle — .300 Win Magnum', m:'24″ fluted · magnum action · sub‑MOA proofed', price:5290, made:1, ffl:1, img:'web/p-rifle-mag.jpg',
+  gal:['web/p-rifle-mag.jpg','web/gal-1.jpg','web/hero-rifle.jpg'],
+  d:['The magnum build, for elk country and the long shots that come with it. Twenty-four inches to get the most out of the case, on the magnum action.',
+     'Proofed to the same standard as every complete rifle: three shots, 100 yards, under an inch, target in the case.'],
+  specs:[['Chambering','.300 Winchester Magnum'],['Barrel','24″ fluted, 1:10, 416R stainless'],
+   ['Action','KLOVR magnum action, integral 20 MOA rail'],['Chassis','KLOVR billet'],
+   ['Muzzle','Threaded 5/8 × 24, radial brake'],['Trigger','Adjustable, set at 2 lb 8 oz'],
+   ['Weight','9 lb 1 oz bare'],['Accuracy','Sub-MOA three-shot guarantee'],['Lead time','10–14 weeks']]},
+
+ {id:'bbl-65', c:'barrel', n:'Pre‑fit barrel — 6.5 CM, 22″ fluted', m:'416R stainless · 1:8 · threaded 5/8×24', price:520, stock:11, img:'web/p-barrel.jpg',
+  gal:['web/p-barrel.jpg','web/cfg-stage.jpg'],
+  d:['Chambered and headspaced to drop onto a KLOVR action or any 700 footprint with a barrel nut. No gunsmith, no lathe — a wrench and a go gauge.',
+     'Fluted to shed weight and heat without giving up much stiffness.'],
+  specs:[['Chambering','6.5 Creedmoor'],['Length','22″'],['Twist','1:8'],['Contour','Fluted sporter'],
+   ['Material','416R stainless'],['Muzzle','Threaded 5/8 × 24 with cap'],['Fitment','KLOVR and 700-footprint actions'],['Finish','Nitride']]},
+
+ {id:'bolt-sa', c:'barrel', n:'Spare bolt assembly', m:'Fluted body · M16 extractor · short action', price:385, stock:6, img:'web/p-bolt.jpg',
+  gal:['web/p-bolt.jpg','web/hero-action.jpg'],
+  d:['A second bolt, headspaced to your action if you send us the serial number. Useful if you run more than one barrel.'],
+  specs:[['Action length','Short'],['Bolt face','.473 standard'],['Body','Fluted'],['Extractor','M16-style'],
+   ['Throw','70°'],['Finish','Nitride'],['Note','Send your action serial for headspacing']]},
+
+ {id:'opt-3510', c:'optic', n:'3.5–10×40 hunting scope', m:'30 mm tube · capped turrets · second focal', price:649, stock:6, cat:'Optics',
+  d:['A general-purpose hunting scope. Capped turrets so nothing moves in a scabbard, and enough magnification for anything inside four hundred yards.'],
+  specs:[['Magnification','3.5–10×'],['Objective','40 mm'],['Tube','30 mm'],['Focal plane','Second'],
+   ['Turrets','Capped, 1/4 MOA'],['Length','12.6″'],['Weight','19.2 oz']]},
+
+ {id:'opt-41650', c:'optic', n:'4–16×50 long‑range scope', m:'Exposed elevation · 0.1 mil clicks', price:1199, stock:2, cat:'Optics',
+  d:['Exposed elevation with a zero stop, for people who dial rather than hold over. Fifty millimetre objective for the first and last half hour of light.'],
+  specs:[['Magnification','4–16×'],['Objective','50 mm'],['Tube','34 mm'],['Focal plane','First'],
+   ['Turrets','Exposed elevation, 0.1 mil, zero stop'],['Length','13.9″'],['Weight','29.6 oz']]},
+
+ {id:'rings-34', c:'mount', n:'34 mm rings — burnt bronze', m:'Matched pair · 1.1″ height · 4‑screw caps', price:189, stock:9, cat:'Mounts',
+  d:['Matched pair, lapped, finished to match our actions. Four screws per cap so the clamping load spreads evenly across the tube.'],
+  specs:[['Tube','34 mm'],['Height','1.1″ centre over rail'],['Caps','Four screws each'],
+   ['Material','7075-T6 aluminium'],['Finish','Burnt bronze Cerakote'],['Torque','18 in-lb caps, 65 in-lb clamps']]},
+
+ {id:'ammo-65', c:'ammo', n:'6.5 Creedmoor — 140 gr match', m:'20 rounds · boat tail · brass case', price:41.5, stock:34, cat:'Ammunition',
+  noShip:['CA','MA','NY','IL','NJ'], note:'Ammunition cannot ship to CA, MA, NY, IL, or NJ.',
+  d:['Match ammunition for load development and practice. Twenty rounds, brass case, boat tail.'],
+  specs:[['Chambering','6.5 Creedmoor'],['Bullet','140 gr boat tail'],['Case','Brass, reloadable'],
+   ['Count','20 rounds'],['Restrictions','Cannot ship to CA, MA, NY, IL, NJ']]},
+
+ {id:'bipod-carb', c:'gear', n:'Carbon bipod, 7–10″', m:'Picatinny mount · cant and pan', price:379, stock:7, cat:'Support gear',
+  d:['Carbon legs, aluminium head, cant and pan with a single tension knob. Mounts straight to a rail.'],
+  specs:[['Height','7–10″'],['Mount','Picatinny'],['Movement','Cant and pan, lockable'],['Weight','11.4 oz'],['Legs','Carbon fibre, notched']]},
+
+ {id:'case-48', c:'gear', n:'Takedown rifle case, 48″', m:'Foam‑lined · lockable · airline rated', price:189, stock:4, cat:'Cases',
+  d:['Rated for airline checked baggage, which means lockable with a non-TSA lock as the law requires for firearms.'],
+  specs:[['Internal length','48″'],['Lining','Pluck foam'],['Locks','Two, non-TSA'],['Rating','Airline checked baggage'],['Weight','11 lb'],['Wheels','Yes']]},
+
+ {id:'sup-65', c:'nfa', n:'Titanium suppressor — 6.5 mm', m:'11.4 oz · direct thread 5/8×24', price:949, stock:1, cat:'Suppressors', ffl:1, nfa:1,
+  noShip:['CA','DC','DE','HI','IL','IA','MA','NJ','NY','RI'], note:'Form 4 and $200 stamp. Held in our safe until approval.',
+  d:['Titanium, direct thread, rated to magnum pressures in 6.5. Eleven and a half ounces on the end of a hunting rifle is about as light as this gets.',
+     'This is an NFA item. It requires ATF Form 4, fingerprints, and a $200 transfer stamp, and it stays in our safe until your stamp clears — currently 20 to 45 days on eForms.'],
+  specs:[['Calibre','6.5 mm, magnum rated'],['Mount','Direct thread 5/8 × 24'],['Material','Titanium'],
+   ['Weight','11.4 oz'],['Length','7.2″'],['Paperwork','ATF Form 4, $200 stamp'],
+   ['Restrictions','Not transferable to CA, DC, DE, HI, IL, IA, MA, NJ, NY, RI']]},
+];
+const byId=id=>SHOP.find(x=>x.id===id);
+const usd=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
+const tagsFor=i=>[
+  i.nfa ? ['nfa','NFA · stamp required'] : i.ffl ? ['ffl','Ships to FFL'] : ['door','Ships to your door'],
+  i.made ? ['stock','Built to order'] : ['stock','In stock: '+i.stock]
+];
 
 let filt='all';
 function shop(){
- document.getElementById('shopGrid').innerHTML=SHOP.filter(i=>filt==='all'||i.c===filt).map(i=>{
-  const plate=i.img
-    ? `<div class="plate"><img src="${i.img}" srcset="${i.img.replace('.jpg','-sm.jpg')} 520w, ${i.img} 900w" sizes="(max-width:420px) 46vw, (max-width:900px) 30vw, 290px" alt="${i.n}" loading="lazy" decoding="async"></div>`
-    : `<div class="plate empty"><span>${i.cat||'Photography pending'}</span></div>`;
-  return `<article class="card">${plate}<div class="body">
-    <div class="tags">${i.t.map(t=>`<span class="tag ${t[0]}">${t[1]}</span>`).join('')}</div>
-    <h3>${i.n}</h3><p class="meta">${i.m}</p>
-    ${i.s?`<p class="note-state">${i.s}</p>`:''}
-    <p class="price">${i.p}</p>
-    <button class="btn sm add" onclick="mock()">Add to cart</button>
-  </div></article>`;}).join('');
+ document.getElementById('shopGrid').innerHTML=SHOP.filter(i=>filt==='all'||i.c===filt)
+  .map(i=>card(i)).join('');
+}
+function card(i){
+ const plate=i.img
+   ? `<div class="plate"><img src="${i.img}" srcset="${i.img.replace('.jpg','-sm.jpg')} 520w, ${i.img} 900w" sizes="(max-width:420px) 46vw, (max-width:900px) 30vw, 290px" alt="${i.n}" loading="lazy" decoding="async"></div>`
+   : `<div class="plate empty"><span>${i.cat||'Photography pending'}</span></div>`;
+ const w=inWish(i.id);
+ return `<article class="card">
+   <div class="platewrap"><a class="platelink" href="/product/${i.id}" onclick="openProduct('${i.id}');return false" aria-label="${i.n}">${plate}</a>
+     <button class="heart${w?' on':''}" onclick="toggleWish('${i.id}')" aria-pressed="${w}" aria-label="${w?'Remove from':'Save to'} wishlist">
+       <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" fill="${w?'currentColor':'none'}"><path d="M12 20s-7-4.6-7-9.4A4.1 4.1 0 0 1 12 7a4.1 4.1 0 0 1 7 3.6C19 15.4 12 20 12 20z"/></svg>
+     </button>
+   </div>
+   <div class="body">
+     <div class="tags">${tagsFor(i).map(t=>`<span class="tag ${t[0]}">${t[1]}</span>`).join('')}</div>
+     <h3><a href="/product/${i.id}" onclick="openProduct('${i.id}');return false">${i.n}</a></h3><p class="meta">${i.m}</p>
+     ${i.note?`<p class="note-state">${i.note}</p>`:''}
+     <p class="price">${usd(i.price)}</p>
+     <button class="btn sm add" onclick="addToCart('${i.id}',this)">Add to cart</button>
+   </div></article>`;
 }
 document.getElementById('filters').addEventListener('click',e=>{
  const b=e.target.closest('.chip'); if(!b)return; setFilter(b.dataset.f);});
@@ -851,10 +1119,279 @@ document.getElementById('galGrid').innerHTML=GAL.map(g=>`
  <figure><div class="ph r32"><img src="${g[2]}" srcset="${g[2].replace('.jpg','-sm.jpg')} 700w, ${g[2]} 1400w" sizes="(max-width:900px) 94vw, 33vw" alt="${g[0]}" loading="lazy" decoding="async"></div>
  <figcaption><b>${g[0]}</b><span>${g[1]}</span></figcaption></figure>`).join('');
 
+/* ---------------- cart + wishlist (device-local) ---------------- */
+const LS={
+ get(k,d){try{const v=localStorage.getItem('klovr.'+k);return v?JSON.parse(v):d}catch(e){return d}},
+ set(k,v){try{localStorage.setItem('klovr.'+k,JSON.stringify(v))}catch(e){}}
+};
+let CART=LS.get('cart',[]),WISH=LS.get('wish',[]);
+const cartQty=()=>CART.reduce((n,l)=>n+l.qty,0);
+const lines=()=>CART.map(l=>({...l,i:byId(l.id)})).filter(l=>l.i);
+const subtotal=()=>lines().reduce((n,l)=>n+l.i.price*l.qty,0);
+const inWish=id=>WISH.includes(id);
+const saveCart=()=>{LS.set('cart',CART);sync()};
+const saveWish=()=>{LS.set('wish',WISH);sync()};
+function sync(){
+ document.querySelectorAll('[data-cart-count]').forEach(e=>e.textContent='('+cartQty()+')');
+ document.querySelectorAll('[data-wish-count]').forEach(e=>e.textContent=WISH.length?'('+WISH.length+')':'');
+}
+function addToCart(id,btn){
+ const l=CART.find(x=>x.id===id); if(l)l.qty++; else CART.push({id,qty:1});
+ saveCart();
+ if(btn){const t=btn.textContent;btn.textContent='Added';btn.classList.add('ok');
+  setTimeout(()=>{btn.textContent=t;btn.classList.remove('ok')},1100);}
+}
+function setQty(id,q){
+ q=Math.max(0,parseInt(q,10)||0); const l=CART.find(x=>x.id===id); if(!l)return;
+ if(!q)CART=CART.filter(x=>x.id!==id); else l.qty=q;
+ saveCart(); renderCart();
+}
+function removeLine(id){CART=CART.filter(x=>x.id!==id);saveCart();renderCart();}
+function toggleWish(id){
+ WISH=inWish(id)?WISH.filter(x=>x!==id):WISH.concat(id);
+ saveWish(); shop();
+ if(document.getElementById('wishlist').classList.contains('on'))renderWish();
+}
+function wishToCart(id){addToCart(id);WISH=WISH.filter(x=>x!==id);saveWish();renderWish();shop();}
+const empty=(h,t,b,fn)=>`<div class="emptystate"><h3>${h}</h3><p>${t}</p><button class="btn" onclick="${fn}">${b}</button></div>`;
+
+/* ---------------- product detail ---------------- */
+let PID=null;
+function openProduct(id){PID=id;go('product');}
+function setHero(src,el){
+ const h=document.getElementById('pdpHero');
+ h.src=src; h.srcset=src.replace('.jpg','-sm.jpg')+' 700w, '+src+' 1800w';
+ [...el.parentElement.children].forEach(b=>b.classList.toggle('on',b===el));
+}
+function renderProduct(){
+ const el=document.getElementById('productBody'),i=byId(PID);
+ if(!i){el.innerHTML=empty('Product not found','That item is not in the catalogue.','Browse the shop',"go('shop')");return;}
+ const gal=i.gal&&i.gal.length?i.gal:(i.img?[i.img]:[]);
+ const w=inWish(i.id);
+ const hero=gal.length?`<img id="pdpHero" src="${gal[0]}" srcset="${gal[0].replace('.jpg','-sm.jpg')} 700w, ${gal[0]} 1800w" sizes="(max-width:900px) 94vw, 52vw" alt="${i.n}">`
+   :`<span class="lab">${i.cat||'Photography pending'}</span>`;
+ const thumbs=gal.length>1?`<div class="pdpthumbs">${gal.map((g,n)=>
+   `<button class="${n?'':'on'}" onclick="setHero('${g}',this)" aria-label="View image ${n+1}"><img src="${g.replace('.jpg','-sm.jpg')}" alt="" loading="lazy"></button>`).join('')}</div>`:'';
+ const fulfil=i.nfa
+   ? `<div class="fulfil nfa"><b>NFA item — stamp required</b>Sold through an SOT. Needs ATF Form 4, fingerprints, and a $200 transfer stamp. It stays in our safe until your stamp clears.</div>`
+   : i.ffl
+   ? `<div class="fulfil ffl"><b>Ships to a licensed dealer</b>Firearms are delivered to an FFL near you, never to a home. You complete Form 4473 and the background check there, and take it home the same visit in most states.</div>`
+   : `<div class="fulfil door"><b>Ships to your door</b>No transfer needed for this item.</div>`;
+ const rel=SHOP.filter(x=>x.c===i.c&&x.id!==i.id).slice(0,3);
+ el.innerHTML=`
+  <nav class="crumb"><a href="/shop" onclick="go('shop');return false">Shop</a><span>/</span><a href="/shop" onclick="go('shop','${i.c}');return false">${i.cat||({action:'Actions',chassis:'Chassis',rifle:'Complete rifles',barrel:'Barrels & bolts'}[i.c]||i.c)}</a><span>/</span><em>${i.n}</em></nav>
+  <div class="pdp">
+   <div class="pdpgal"><div class="pdphero">${hero}</div>${thumbs}</div>
+   <div class="pdpinfo">
+    <div class="tags">${tagsFor(i).map(t=>`<span class="tag ${t[0]}">${t[1]}</span>`).join('')}</div>
+    <h1>${i.n}</h1>
+    <p class="pdpprice num">${usd(i.price)}</p>
+    <div class="pdpdesc">${(i.d||[i.m]).map(x=>`<p>${x}</p>`).join('')}</div>
+    <div class="pdpactions">
+     <button class="btn" onclick="addToCart('${i.id}',this)">Add to cart</button>
+     <button class="btn ghost heartbtn${w?' on':''}" onclick="toggleWish('${i.id}');renderProduct()">${w?'Saved':'Save'}</button>
+    </div>
+    ${fulfil}
+    ${i.note?`<p class="note-state" style="margin-top:12px">${i.note}</p>`:''}
+    <h3 class="spec-h">Specification</h3>
+    <div class="tablewrap"><table class="spectable">${(i.specs||[]).map(s=>`<tr><th>${s[0]}</th><td>${s[1]}</td></tr>`).join('')}</table></div>
+   </div>
+  </div>
+  ${rel.length?`<section class="related"><div class="eyebrow"><span class="lab">Also in this range</span></div>
+    <div class="grid">${rel.map(x=>card(x)).join('')}</div></section>`:''}`;
+}
+
+/* ---------------- wishlist ---------------- */
+function renderWish(){
+ const el=document.getElementById('wishBody');
+ const items=WISH.map(byId).filter(Boolean);
+ if(!items.length){el.innerHTML=empty('Nothing saved yet',
+   'Tap the heart on any product to keep it here. Your wishlist lives on this device — it is not sent anywhere.',
+   'Browse the shop',"go('shop')");return;}
+ el.innerHTML=`<p class="prose" style="margin-bottom:22px">${items.length} saved item${items.length>1?'s':''}. Saved on this device only.</p>
+  <div class="grid">${items.map(i=>card(i)).join('')}</div>`;
+}
+
+/* ---------------- cart ---------------- */
+function renderCart(){
+ const el=document.getElementById('cartBody'),L=lines();
+ if(!L.length){el.innerHTML=empty('Your cart is empty',
+   'Actions, chassis, barrels, and gear ship to your door. Complete rifles and suppressors go to a licensed dealer near you.',
+   'Browse the shop',"go('shop')");return;}
+ const ffl=L.filter(l=>l.i.ffl),door=L.filter(l=>!l.i.ffl);
+ const group=(t,n,arr)=>!arr.length?'':`<div class="cartgroup">
+   <div class="cartgroup-hd"><h3>${t}</h3><p>${n}</p></div>${arr.map(cartLine).join('')}</div>`;
+ el.innerHTML=`<div class="cartlayout"><div>
+   ${group('Ships to a licensed dealer','You collect these in person after ATF Form 4473 and the background check.',ffl)}
+   ${group('Ships to your door','No transfer needed.',door)}
+  </div>
+  <aside class="summary">
+   <h3>Summary</h3>
+   <div class="srow"><span>Subtotal</span><span class="num">${usd(subtotal())}</span></div>
+   <div class="srow"><span>Shipping</span><span>Calculated at checkout</span></div>
+   ${ffl.length?'<div class="srow"><span>Transfer fee</span><span>Paid to your dealer</span></div>':''}
+   <div class="srow total"><span>Total</span><span class="num">${usd(subtotal())}</span></div>
+   <button class="btn" onclick="startCheckout()">Checkout</button>
+   <p class="fineprint">${ffl.length
+     ? 'Some items must ship to a licensed dealer — you will choose one at checkout. The transfer fee is paid to that dealer, not to us.'
+     : 'Everything here ships direct to you.'}</p>
+  </aside></div>`;
+}
+const cartLine=l=>`<div class="cartline">
+  <div class="cartthumb">${l.i.img?`<img src="${l.i.img.replace('.jpg','-sm.jpg')}" alt="" loading="lazy">`:`<span class="lab">${l.i.cat||''}</span>`}</div>
+  <div class="cartinfo"><h4>${l.i.n}</h4><p class="meta">${l.i.m}</p>
+    ${l.i.note?`<p class="note-state">${l.i.note}</p>`:''}</div>
+  <div class="cartqty">
+    <button onclick="setQty('${l.id}',${l.qty-1})" aria-label="Decrease quantity">&minus;</button>
+    <input class="num" value="${l.qty}" inputmode="numeric" onchange="setQty('${l.id}',this.value)" aria-label="Quantity">
+    <button onclick="setQty('${l.id}',${l.qty+1})" aria-label="Increase quantity">+</button>
+  </div>
+  <div class="cartprice"><span class="num">${usd(l.i.price*l.qty)}</span>
+    <button class="linkbtn" onclick="removeLine('${l.id}')">Remove</button></div>
+</div>`;
+
+/* ---------------- checkout ---------------- */
+const STATES='AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
+/* Example dealers. At launch this queries the ATF FFL eZ Check list. */
+const FFLS=[
+ {n:'Cedar Creek Arms',l:'1‑XX‑XXX‑XX‑XX‑00412',a:'118 Mill Street',c:'Bozeman',s:'MT',z:'59715',f:35},
+ {n:'Gallatin Valley Outfitters',l:'1‑XX‑XXX‑XX‑XX‑01188',a:'4402 Jackrabbit Lane',c:'Belgrade',s:'MT',z:'59714',f:30},
+ {n:'Bridger Firearms & Supply',l:'1‑XX‑XXX‑XX‑XX‑02275',a:'7 North Rouse Avenue',c:'Bozeman',s:'MT',z:'59715',f:40}
+];
+let CO={step:1,name:'',email:'',phone:'',addr:'',city:'',st:'',zip:'',fflZip:'',ffl:null,age:false,truth:false,sent:false};
+const needFFL=()=>lines().some(l=>l.i.ffl);
+const needDoor=()=>lines().some(l=>!l.i.ffl);
+const hasNFA=()=>lines().some(l=>l.i.nfa);
+function startCheckout(){CO.step=1;CO.sent=false;go('checkout');}
+function co(k,v){CO[k]=v;}
+/* an item is blocked when its destination state is on its own no-ship list */
+function blocked(){
+ const out=[];
+ lines().forEach(l=>{
+  if(!l.i.noShip)return;
+  const dest=l.i.ffl?(CO.ffl&&CO.ffl.s):CO.st;
+  if(dest&&l.i.noShip.indexOf(dest)>-1)out.push({n:l.i.n,dest});
+ });
+ return out;
+}
+const STEPS_CO=['Contact','Delivery','Compliance','Review'];
+function renderCheckout(){
+ const el=document.getElementById('checkoutBody');
+ if(!lines().length&&!CO.sent){el.innerHTML=empty('Nothing to check out','Your cart is empty.','Browse the shop',"go('shop')");return;}
+ if(CO.sent){el.innerHTML=`<div class="emptystate"><h3>Request received</h3>
+   <p>Thanks — we have your order request and the dealer you picked. We will confirm stock and come back to you with payment before anything ships. Nothing has been charged.</p>
+   <button class="btn" onclick="go('shop')">Keep looking</button></div>`;return;}
+ el.innerHTML=`<ol class="steps-co">${STEPS_CO.map((s,n)=>
+   `<li class="${n+1===CO.step?'now':n+1<CO.step?'done':''}"><span class="num">${n+1}</span>${s}</li>`).join('')}</ol>
+  <div class="cologout">${[step1,step2,step3,step4][CO.step-1]()}${coSummary()}</div>`;
+}
+const coSummary=()=>`<aside class="summary">
+  <h3>Order</h3>
+  ${lines().map(l=>`<div class="srow"><span>${l.qty}× ${l.i.n}</span><span class="num">${usd(l.i.price*l.qty)}</span></div>`).join('')}
+  <div class="srow total"><span>Subtotal</span><span class="num">${usd(subtotal())}</span></div>
+  <p class="fineprint">Nothing is charged here. Card processing goes live once the merchant account is approved; until then this sends us a request and we confirm by phone or email.</p>
+</aside>`;
+const nav=(back,next,label)=>`<div class="conav">
+  ${back?`<button class="btn ghost" onclick="CO.step--;renderCheckout()">Back</button>`:'<span></span>'}
+  ${next?`<button class="btn" onclick="${next}">${label||'Continue'}</button>`:''}</div>`;
+
+function step1(){return `<div class="costep"><h2>Who are we shipping to?</h2>
+ <div class="fields">
+  <label><span class="lab">Full name</span><input value="${CO.name}" oninput="co('name',this.value)" placeholder="As it appears on your ID"></label>
+  <label><span class="lab">Email</span><input type="email" value="${CO.email}" oninput="co('email',this.value)" placeholder="you@example.com"></label>
+  <label><span class="lab">Phone</span><input value="${CO.phone}" oninput="co('phone',this.value)" placeholder="(000) 000-0000"></label>
+ </div>
+ <p class="fineprint">Your name must match the ID you present to the receiving dealer.</p>
+ ${nav(false,"if(CO.name&&CO.email){CO.step=2;renderCheckout()}else alert('Name and email are needed to continue.')")}</div>`;}
+
+function step2(){
+ const door=needDoor()?`<h3 class="costep-h">Delivery address</h3>
+  <div class="fields">
+   <label><span class="lab">Street</span><input value="${CO.addr}" oninput="co('addr',this.value)"></label>
+   <div class="fieldrow">
+    <label><span class="lab">City</span><input value="${CO.city}" oninput="co('city',this.value)"></label>
+    <label><span class="lab">State</span><select onchange="co('st',this.value);renderCheckout()">
+      <option value="">—</option>${STATES.map(s=>`<option ${s===CO.st?'selected':''}>${s}</option>`).join('')}</select></label>
+    <label><span class="lab">ZIP</span><input value="${CO.zip}" oninput="co('zip',this.value)" inputmode="numeric"></label>
+   </div>
+  </div>
+  <p class="fineprint">For the items that ship direct.</p>`:'';
+ const ffl=needFFL()?`<h3 class="costep-h">Receiving dealer</h3>
+  <p class="prose" style="font-size:var(--fs-sm);margin-bottom:14px">Firearms are delivered to a licensed dealer, never to a home. Choose one near you — you will complete Form 4473 and the background check there.</p>
+  <div class="fflsearch"><input placeholder="Your ZIP code" value="${CO.fflZip}" inputmode="numeric" oninput="co('fflZip',this.value)">
+    <button class="btn sm" onclick="renderCheckout()">Find dealers</button></div>
+  <div class="ffllist">${FFLS.map((d,n)=>`
+    <label class="fflcard${CO.ffl&&CO.ffl.n===d.n?' on':''}">
+      <input type="radio" name="ffl" ${CO.ffl&&CO.ffl.n===d.n?'checked':''} onchange="CO.ffl=FFLS[${n}];renderCheckout()">
+      <span><b>${d.n}</b><em>${d.a}, ${d.c}, ${d.s} ${d.z}</em>
+      <i class="num">FFL ${d.l} · transfer fee ${usd(d.f)}</i></span></label>`).join('')}</div>
+  <p class="fineprint">Example dealers. At launch this searches the ATF FFL eZ Check list by ZIP and verifies the licence is current.</p>`:'';
+ const ok=(!needDoor()||CO.st)&&(!needFFL()||CO.ffl);
+ return `<div class="costep"><h2>Where is it going?</h2>${door}${ffl}
+  ${nav(true,ok?"CO.step=3;renderCheckout()":"alert('Pick a destination first — a state for direct shipping, a dealer for firearms.')")}</div>`;
+}
+
+function step3(){
+ const b=blocked();
+ const list=b.length?`<div class="blockbox"><b>Cannot ship as configured</b>
+   <ul>${b.map(x=>`<li>${x.n} — not permitted to ${x.dest}</li>`).join('')}</ul>
+   <p>Remove those items, or choose a dealer in another state, to continue.</p></div>`
+  :`<div class="okbox"><b>Destination check passed</b>Everything in this cart can be delivered to the destinations you chose.</div>`;
+ return `<div class="costep"><h2>Compliance</h2>
+  ${list}
+  <div class="attest">
+   <label class="check"><input type="checkbox" ${CO.age?'checked':''} onchange="co('age',this.checked)">
+     <span>I am at least 18 years old for long guns${hasNFA()?', and at least 21 for the NFA item in this order':''}, and I am not prohibited by federal or state law from receiving a firearm.</span></label>
+   <label class="check"><input type="checkbox" ${CO.truth?'checked':''} onchange="co('truth',this.checked)">
+     <span>I understand the firearm will be transferred to me in person by the receiving dealer after ATF Form 4473 and a background check, and that a denial cancels the sale and refunds me in full.</span></label>
+  </div>
+  ${hasNFA()?`<p class="fineprint">The suppressor in this order requires ATF Form 4, fingerprints, and a $200 stamp. It stays in our safe until approval, which is currently running 20–45 days on eForms.</p>`:''}
+  ${nav(true,(!b.length&&CO.age&&CO.truth)?"CO.step=4;renderCheckout()":"alert('Tick both statements — and clear any blocked items — to continue.')")}</div>`;
+}
+
+function step4(){
+ return `<div class="costep"><h2>Review</h2>
+  <dl class="dl">
+   <dt>Name</dt><dd>${CO.name||'—'}</dd>
+   <dt>Email</dt><dd>${CO.email||'—'}</dd>
+   <dt>Phone</dt><dd>${CO.phone||'—'}</dd>
+   ${needDoor()?`<dt>Ship to</dt><dd>${[CO.addr,CO.city,CO.st,CO.zip].filter(Boolean).join(', ')||'—'}</dd>`:''}
+   ${needFFL()?`<dt>Dealer</dt><dd>${CO.ffl?`${CO.ffl.n}<br>${CO.ffl.a}, ${CO.ffl.c}, ${CO.ffl.s} ${CO.ffl.z}<br><span class="num">FFL ${CO.ffl.l}</span>`:'—'}</dd>`:''}
+  </dl>
+  <div class="okbox" style="margin-top:20px"><b>No payment is taken here</b>
+   Card processing is not live yet. Sending this gives us your order and your dealer; we confirm stock and arrange payment with you directly.</div>
+  ${nav(true,"placeOrder(this)","Send order request")}</div>`;
+}
+
+async function placeOrder(btn){
+ btn.disabled=true;btn.textContent='Sending…';
+ const body=new URLSearchParams({
+  'form-name':'order-request',
+  name:CO.name,email:CO.email,phone:CO.phone,
+  'ship-to':needDoor()?[CO.addr,CO.city,CO.st,CO.zip].filter(Boolean).join(', '):'n/a',
+  'receiving-ffl':CO.ffl?`${CO.ffl.n}, ${CO.ffl.a}, ${CO.ffl.c}, ${CO.ffl.s} ${CO.ffl.z} (FFL ${CO.ffl.l})`:'n/a',
+  order:lines().map(l=>`${l.qty}× ${l.i.n} — ${usd(l.i.price*l.qty)}`).join('\n'),
+  total:usd(subtotal())
+ }).toString();
+ try{
+  const r=await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+  if(!r.ok)throw new Error(r.status);
+  CART=[];saveCart();CO.sent=true;renderCheckout();
+ }catch(e){
+  btn.disabled=false;btn.textContent='Try again';
+  alert('That did not send. Email shop@klovrprecision.com with your build and we will pick it up there.');
+ }
+}
+
 /* ---------------- routing ---------------- */
-const ROUTE={home:'/',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact'};
+const ROUTE={home:'/',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact',cart:'/cart',wishlist:'/wishlist',checkout:'/checkout'};
 const VIEW=Object.fromEntries(Object.entries(ROUTE).map(([v,u])=>[u,v]));
-const pathView=()=>VIEW[(location.pathname.replace(/\/+$/,'')||'/')]||'home';
+function pathView(){
+ const u=location.pathname.replace(/\/+$/,'')||'/';
+ const m=u.match(/^\/product\/(.+)$/);
+ if(m){PID=decodeURIComponent(m[1]);return 'product';}
+ return VIEW[u]||'home';
+}
 
 /* ---------------- nav + dropdowns ---------------- */
 const navEl=document.getElementById('mainnav'),scrim=document.getElementById('scrim'),burger=document.getElementById('burger');
@@ -876,8 +1413,9 @@ function go(v,f,push){
  document.querySelectorAll('#nav .navitem>button').forEach(b=>{
   if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
  if(f)setFilter(f);
+ if(v==='cart')renderCart(); if(v==='wishlist')renderWish(); if(v==='checkout')renderCheckout(); if(v==='product')renderProduct();
  document.querySelectorAll('.navitem.open').forEach(n=>close(n));
- if(push!==false){const u=ROUTE[v]||'/'; if(location.pathname.replace(/\/+$/,'')!==u.replace(/\/+$/,''))history.pushState({v},'',u);}
+ if(push!==false){const u=v==='product'?'/product/'+PID:(ROUTE[v]||'/'); if(location.pathname.replace(/\/+$/,'')!==u.replace(/\/+$/,''))history.pushState({v},'',u);}
  window.scrollTo({top:0,behavior:'instant'});
 }
 window.addEventListener('popstate',()=>go(pathView(),null,false));
@@ -920,6 +1458,7 @@ function start(){ if(matchMedia('(prefers-reduced-motion:reduce)').matches)retur
  timer=setInterval(()=>slide(1),7000);}
 
 /* ---------------- init ---------------- */
+sync();
 go(pathView(),null,false);
 render(); shop(); start();
 </script>

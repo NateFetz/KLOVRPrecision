@@ -27,17 +27,45 @@ runs via the History API, so links are instant, but crawlers and no-JS visitors
 get a complete page.
 
 `/` · `/shop` · `/custom-rifles` · `/gallery` · `/contact`
+`/cart` · `/wishlist` · `/checkout` — noindex, kept out of the sitemap
+`/product/<id>` — one per catalogue item, pre-rendered with Product schema
 
-To add or reword one, edit the `ROUTES` array at the top of `build.js`.
+Product pages are generated from the `SHOP` array read straight out of
+`site/index.html`, so the catalogue has one source of truth. To add an item,
+add it to `SHOP`; the page, sitemap entry, and schema follow automatically.
+
+Built pages carry `<base href="/">` so relative asset paths resolve at any
+route depth — without it, `web/x.jpg` on `/product/foo` looks for
+`/product/web/x.jpg`.
+
+## Cart, wishlist, checkout
+
+Cart and wishlist live in `localStorage` — per device, never sent anywhere until
+checkout. The cart splits lines by fulfilment: items marked `ffl` can only be
+delivered to a licensed dealer, everything else ships direct.
+
+Checkout runs contact → delivery → compliance → review. The compliance step
+checks each item's `noShip` list against its actual destination (the ship-to
+state for direct items, the dealer's state for firearms) and blocks the order if
+anything is not permitted. Both attestations must be ticked to continue.
+
+No payment is taken. The final step posts an order request, since card
+processing needs the merchant account. See `docs/payments-integration.html` for
+what wiring that up involves.
+
+The dealer list in checkout is example data. At launch it should query the ATF
+FFL eZ Check list by ZIP and verify the licence is current.
 
 ## Forms
 
-Both forms are Netlify Forms — no backend. Submissions land under
+All three forms are Netlify Forms — no backend. Submissions land under
 **Netlify → Forms**, and you can add email notifications there.
 
 - **contact** — name, email, topic, details.
 - **build-request** — contact details plus the full configurator spec, the build
   code, and the estimate, so a quote request arrives ready to read.
+- **order-request** — cart contents, total, ship-to address, and the receiving
+  dealer including licence number.
 
 Both post over `fetch` and show an inline result. Each carries a honeypot field
 for spam.

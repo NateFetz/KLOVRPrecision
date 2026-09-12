@@ -25,6 +25,18 @@ const ROUTES = [
     title: 'Recent Builds — KLOVR Precision',
     desc : 'Rifles and components that went home. Every complete rifle is photographed before it ships and leaves with its target card.',
     img  : 'web/gal-1.jpg' },
+  { path: 'cart',          view: 'cart',
+    title: 'Your Cart — KLOVR Precision',
+    desc : 'Review your cart. Components ship direct; firearms are delivered to a licensed dealer for transfer.',
+    img  : 'web/p-action-short.jpg', noindex: true },
+  { path: 'wishlist',      view: 'wishlist',
+    title: 'Your Wishlist — KLOVR Precision',
+    desc : 'Items you have saved.',
+    img  : 'web/p-chassis-bronze.jpg', noindex: true },
+  { path: 'checkout',      view: 'checkout',
+    title: 'Checkout — KLOVR Precision',
+    desc : 'Contact details, delivery or dealer selection, and compliance checks.',
+    img  : 'web/p-rifle-cm.jpg', noindex: true },
   { path: 'contact',       view: 'contact',
     title: 'Contact, Hours & FFL Transfers — KLOVR Precision',
     desc : 'Shop hours, service pricing, and what to bring to an FFL transfer. Incoming transfers processed the day they land.',
@@ -32,6 +44,32 @@ const ROUTES = [
 ];
 
 const src   = fs.readFileSync(SRC, 'utf8');
+
+/* Read the catalogue straight out of the page so there is one source of truth. */
+const SHOP = new Function(src.match(/const SHOP=\[[\s\S]*?\n\];/)[0] + '; return SHOP;')();
+const usd = n => '$' + n.toLocaleString('en-US',
+  { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+const CAT = { action:'Actions', chassis:'Chassis', rifle:'Complete rifles', barrel:'Barrels & bolts' };
+
+/* A plain-HTML version of each product so crawlers and no-JS visitors get the
+   real content; the script replaces it with the interactive version on load. */
+const prerender = i => {
+  const gal = (i.gal && i.gal.length) ? i.gal : (i.img ? [i.img] : []);
+  return `<nav class="crumb"><a href="/shop">Shop</a><span>/</span><em>${esc(i.n)}</em></nav>
+<div class="pdp">
+ <div class="pdpgal"><div class="pdphero">${gal.length?`<img src="${gal[0]}" alt="${esc(i.n)}">`:''}</div></div>
+ <div class="pdpinfo">
+  <h1>${esc(i.n)}</h1>
+  <p class="pdpprice num">${usd(i.price)}</p>
+  <div class="pdpdesc">${(i.d||[i.m]).map(x=>`<p>${esc(x)}</p>`).join('')}</div>
+  ${i.nfa?'<div class="fulfil nfa"><b>NFA item — stamp required</b>Requires ATF Form 4, fingerprints, and a $200 transfer stamp.</div>'
+    :i.ffl?'<div class="fulfil ffl"><b>Ships to a licensed dealer</b>Delivered to an FFL near you, never to a home.</div>'
+    :'<div class="fulfil door"><b>Ships to your door</b>No transfer needed for this item.</div>'}
+  <h3 class="spec-h">Specification</h3>
+  <div class="tablewrap"><table class="spectable">${(i.specs||[]).map(s=>`<tr><th>${esc(s[0])}</th><td>${esc(s[1])}</td></tr>`).join('')}</table></div>
+ </div>
+</div>`;
+};
 const split = src.indexOf('<div class="util">');
 if (split < 0) throw new Error('could not find start of body content');
 let head = src.slice(0, split);
@@ -55,21 +93,42 @@ rm(OUT);
 fs.mkdirSync(OUT, { recursive: true });
 copy('site/web', path.join(OUT, 'web'));
 
+for (const i of SHOP) {
+  ROUTES.push({
+    path : 'product/' + i.id,
+    view : 'product',
+    title: i.n + ' — KLOVR Precision',
+    desc : (i.d ? i.d[0] : i.m).slice(0, 155),
+    img  : i.img || 'web/hero-rifle.jpg',
+    inject: prerender(i),
+    ld: {
+      '@context':'https://schema.org','@type':'Product',
+      name:i.n, sku:i.id, description:(i.d?i.d[0]:i.m),
+      image:[SITE+'/'+(i.img||'web/hero-rifle.jpg')],
+      brand:{'@type':'Brand',name:'KLOVR Precision'},
+      offers:{'@type':'Offer',url:SITE+'/product/'+i.id,priceCurrency:'USD',
+        price:i.price, availability:'https://schema.org/'+(i.made?'PreOrder':'InStock')}
+    }
+  });
+}
+
 for (const r of ROUTES) {
   const url = SITE + '/' + r.path;
   // mark this route's view as the visible one in the delivered HTML
   let b = body.replace('id="home" class="view on"', 'id="home" class="view"');
   b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
   if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
+  if (r.inject) b = b.replace('<div id="productBody"></div>', '<div id="productBody">' + r.inject + '</div>');
 
   const doc = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/">
 <title>${esc(r.title)}</title>
 <meta name="description" content="${esc(r.desc)}">
-<link rel="canonical" href="${url}">
+<link rel="canonical" href="${url}">${r.noindex ? '\n<meta name="robots" content="noindex">' : ''}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KLOVR Precision">
 <meta property="og:title" content="${esc(r.title)}">
@@ -84,6 +143,7 @@ for (const r of ROUTES) {
 <meta name="twitter:image" content="${SITE}/${r.img}">
 <meta name="theme-color" content="#0D0D0D">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230D0D0D'/%3E%3Cg fill='%23769F76'%3E%3Ccircle cx='34' cy='34' r='17'/%3E%3Ccircle cx='66' cy='34' r='17'/%3E%3Ccircle cx='34' cy='66' r='17'/%3E%3Ccircle cx='66' cy='66' r='17'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='8' fill='%23D2A85F'/%3E%3C/svg%3E">
+${r.ld ? '<script type="application/ld+json">' + JSON.stringify(r.ld) + '</script>' : ''}
 ${PLAUSIBLE ? `<script defer data-domain="${PLAUSIBLE}" src="https://plausible.io/js/script.js"></script>` : ''}
 ${head}
 </head>
@@ -101,7 +161,7 @@ ${b}
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
 `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${ROUTES.map(r => `  <url><loc>${SITE}/${r.path}</loc></url>`).join('\n')}
+${ROUTES.filter(r => !r.noindex).map(r => `  <url><loc>${SITE}/${r.path}</loc></url>`).join('\n')}
 </urlset>
 `);
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
