@@ -145,7 +145,7 @@ td.r{text-align:right}
 }
 </style>
 
-<div class="demobar">
+<div class="demobar" data-demo-only>
   <b>Prototype</b>
   <span>Interface only. Sign-in is not real, nothing is stored on a server, and the records below are made up. A working staff area needs a backend — see the README.</span>
 </div>
@@ -160,8 +160,9 @@ td.r{text-align:right}
       <label><span class="lab">Work email</span><input type="email" id="suEmail" value="shawn@klovrprecision.com" required></label>
       <label><span class="lab">Password</span><input type="password" id="suPass" value="demo" required></label>
       <button class="btn" type="submit">Sign in</button>
+      <p class="warnbox" id="suErr" hidden style="border-color:var(--stop);background:var(--stop-soft);color:var(--stop)"></p>
     </form>
-    <div class="warnbox"><b>Not a real login</b>
+    <div class="warnbox" data-demo-only><b>Not a real login</b>
       Any details are accepted and nothing is checked. A login enforced in the browser is no login at all &mdash; anyone can read past it. Real staff accounts need server-side authentication before this holds a single customer record.</div>
   </div>
 </div>
@@ -189,7 +190,17 @@ td.r{text-align:right}
 <div class="scrim" id="scrim" hidden onclick="closePanel()"></div>
 <div class="panel" id="panel" hidden></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
+/* Injected by build.js from Netlify environment variables. While these are
+   still placeholders the page runs as a prototype against local sample data.
+   The anon key is safe in the browser — row level security is what protects
+   the data, not the key. The service_role key must never appear here. */
+const CFG={url:'__SUPABASE_URL__',key:'__SUPABASE_ANON_KEY__'};
+const LIVE=!CFG.url.startsWith('__')&&typeof supabase!=='undefined';
+const sbc=LIVE?supabase.createClient(CFG.url,CFG.key):null;
+const cents=n=>Math.round(n*100), fromCents=c=>c/100;
+
 const LS={get:(k,d)=>{try{const v=localStorage.getItem('klovradmin.'+k);return v?JSON.parse(v):d}catch(e){return d}},
          set:(k,v)=>{try{localStorage.setItem('klovradmin.'+k,JSON.stringify(v))}catch(e){}}};
 const usd=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
@@ -241,29 +252,114 @@ const SEED_PRODUCTS=[
  {sku:'case-48',name:'Takedown rifle case, 48″',cat:'Gear',price:189,stock:4,ffl:false,nfa:false,live:true},
  {sku:'sup-65',name:'Titanium suppressor — 6.5 mm',cat:'Suppressors',price:949,stock:1,ffl:true,nfa:true,live:true}
 ];
-let ORDERS=LS.get('orders',SEED_ORDERS), PRODUCTS=LS.get('products',SEED_PRODUCTS);
-let QB=LS.get('qb',{connected:false,realm:'',lastSync:'',log:[]});
+let ORDERS=[], PRODUCTS=[], QB={connected:false,realm:'',lastSync:'',log:[]};
+
+/* Rows come back from Postgres in the database's shape; the views were written
+   against the prototype's shape. Normalise once, here, rather than in ten
+   render functions. */
+const fromRow=o=>({
+ id:o.reference, uid:o.id, date:(o.placed_at||'').slice(0,10),
+ cust:{name:o.customer_name,email:o.customer_email,phone:o.customer_phone||''},
+ dest:o.destination,
+ addr:o.ship_address?[o.ship_address.line1,o.ship_address.city,o.ship_address.state,o.ship_address.zip].filter(Boolean).join(', '):'',
+ ffl:o.ffl_dealers?{name:o.ffl_dealers.business_name,lic:o.ffl_dealers.licence,
+   addr:[o.ffl_dealers.address1,o.ffl_dealers.city,o.ffl_dealers.state,o.ffl_dealers.zip].filter(Boolean).join(', ')}:null,
+ lines:(o.order_lines||[]).map(l=>({sku:l.sku,name:l.name,qty:l.qty,price:fromCents(l.unit_price_cents)})),
+ status:({at_dealer:'ffl'}[o.status])||o.status, tracking:o.tracking||'', qb:o.qb_invoice_no||'', note:o.note||''
+});
+const toStatus=s=>({ffl:'at_dealer',ship:'shipped'}[s]||s);
+const prodFromRow=r=>({sku:r.sku,name:r.name,cat:r.category||'',price:fromCents(r.price_cents),
+ stock:r.stock,ffl:r.delivery!=='door',nfa:r.delivery==='nfa',live:r.is_live});
+
+const DB={
+ async load(){
+  if(!LIVE){ORDERS=LS.get('orders',SEED_ORDERS);PRODUCTS=LS.get('products',SEED_PRODUCTS);
+           QB=LS.get('qb',{connected:false,realm:'',lastSync:'',log:[]});return}
+  const [o,p,q,l]=await Promise.all([
+   sbc.from('orders').select('*,order_lines(*),ffl_dealers(*)').order('placed_at',{ascending:false}),
+   sbc.from('products').select('*').order('category'),
+   sbc.from('qb_connection').select('realm_id,connected_at,last_sync_at').maybeSingle(),
+   sbc.from('qb_sync_log').select('at,message').order('at',{ascending:false}).limit(25)
+  ]);
+  if(o.error||p.error)throw o.error||p.error;
+  ORDERS=(o.data||[]).map(fromRow);
+  PRODUCTS=(p.data||[]).map(prodFromRow);
+  QB={connected:!!(q.data&&q.data.realm_id),realm:(q.data&&q.data.realm_id)||'',
+      lastSync:(q.data&&q.data.last_sync_at||'').slice(0,16).replace('T',' '),
+      log:(l.data||[]).map(x=>({t:x.at.slice(0,16).replace('T',' '),m:x.message}))};
+ },
+ async patchOrder(ref,patch){
+  const o=ORDERS.find(x=>x.id===ref);
+  if(!LIVE){Object.assign(o,patch.local);saveO();return}
+  const {error}=await sbc.from('orders').update(patch.remote).eq('id',o.uid);
+  if(error)throw error;
+  await DB.load();
+ },
+ async saveProduct(rec,originalSku){
+  if(!LIVE){const i=PRODUCTS.findIndex(x=>x.sku===(originalSku||rec.sku));
+   i>-1?PRODUCTS[i]=rec:PRODUCTS.push(rec); saveP(); return}
+  const row={sku:rec.sku,name:rec.name,category:rec.cat,price_cents:cents(rec.price),
+   stock:rec.stock,delivery:rec.nfa?'nfa':rec.ffl?'ffl':'door',is_live:rec.live};
+  const {error}=await sbc.from('products').upsert(row,{onConflict:'sku'});
+  if(error)throw error;
+  await DB.load();
+ },
+ async deleteProduct(sku){
+  if(!LIVE){PRODUCTS=PRODUCTS.filter(x=>x.sku!==sku);saveP();return}
+  const {error}=await sbc.from('products').delete().eq('sku',sku);
+  if(error)throw error;
+  await DB.load();
+ }
+};
 const saveO=()=>LS.set('orders',ORDERS), saveP=()=>LS.set('products',PRODUCTS), saveQ=()=>LS.set('qb',QB);
 const STATUS={new:['new','New'],paid:['paid','Paid'],hold:['hold','On hold'],ffl:['ffl','At dealer'],
               ship:['ship','Shipped'],shipped:['ship','Shipped'],complete:['done','Complete']};
 const pill=s=>{const [c,t]=STATUS[s]||['done',s];return `<span class="pill ${c}"><i class="dot"></i>${t}</span>`};
 const total=o=>o.lines.reduce((n,l)=>n+l.price*l.qty,0);
 
-/* ---------------- session (prototype only) ---------------- */
-function signIn(e){
+/* ---------------- session ---------------- */
+async function signIn(e){
  e.preventDefault();
  const email=document.getElementById('suEmail').value.trim();
- LS.set('who',{email,name:email.split('@')[0].replace(/(^|\.)([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace('.',' '),role:'Staff'});
+ const pass=document.getElementById('suPass').value;
+ const err=document.getElementById('suErr');
+ if(LIVE){
+  err.hidden=true;
+  const {error}=await sbc.auth.signInWithPassword({email,password:pass});
+  if(error){err.textContent=error.message;err.hidden=false;return false}
+ }else{
+  LS.set('who',{email,name:email.split('@')[0].replace(/(^|\.)([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace('.',' '),role:'Staff'});
+ }
  boot(); return false;
 }
-function signOut(){LS.set('who',null);location.reload()}
-function boot(){
- const who=LS.get('who',null);
- document.getElementById('signin').hidden=!!who;
- document.getElementById('shell').hidden=!who;
- if(!who)return;
+async function signOut(){ if(LIVE)await sbc.auth.signOut(); LS.set('who',null); location.reload(); }
+
+async function currentUser(){
+ if(!LIVE)return LS.get('who',null);
+ const {data:{session}}=await sbc.auth.getSession();
+ if(!session)return null;
+ /* Being signed in is not the same as being an employee — membership of the
+    staff table is, and RLS means a non-employee simply gets nothing back. */
+ const {data}=await sbc.from('staff').select('full_name,email,role').eq('id',session.user.id).maybeSingle();
+ if(!data){await sbc.auth.signOut();return {denied:true}}
+ return {name:data.full_name||data.email,email:data.email,role:data.role};
+}
+
+async function boot(){
+ document.querySelectorAll('[data-demo-only]').forEach(e=>e.hidden=LIVE);
+ const who=await currentUser();
+ if(who&&who.denied){
+  const err=document.getElementById('suErr');
+  err.textContent='That account is not on the staff list.';err.hidden=false;
+ }
+ const ok=who&&!who.denied;
+ document.getElementById('signin').hidden=!!ok;
+ document.getElementById('shell').hidden=!ok;
+ if(!ok)return;
  document.getElementById('whoName').textContent=who.name||who.email;
  document.getElementById('whoRole').textContent=who.role||'Staff';
+ try{ await DB.load(); }
+ catch(e){ alert('Could not load data: '+(e.message||e)); return; }
  document.getElementById('navNew').textContent=ORDERS.filter(o=>o.status==='new').length;
  show(LS.get('page','orders'));
 }
@@ -350,15 +446,27 @@ function openOrder(id){
    </div>
   </div>`);
 }
-function advance(id){const o=ORDERS.find(x=>x.id===id);o.status=NEXT[o.status]||o.status;saveO();renderOrders();openOrder(id);
+async function advance(id){const o=ORDERS.find(x=>x.id===id),next=NEXT[o.status]||o.status;
+ await DB.patchOrder(id,{local:{status:next},remote:{status:toStatus(next)}});
+ renderOrders();openOrder(id);
  document.getElementById('navNew').textContent=ORDERS.filter(x=>x.status==='new').length;}
-function holdOrder(id){const o=ORDERS.find(x=>x.id===id);o.status='hold';saveO();renderOrders();openOrder(id);}
-function saveTracking(id){const o=ORDERS.find(x=>x.id===id);o.tracking=document.getElementById('trk').value.trim();
- if(o.tracking&&o.status==='paid')o.status=o.dest==='ffl'?'ffl':'ship';
- saveO();renderOrders();openOrder(id);}
-function pushQB(id){
+async function holdOrder(id){await DB.patchOrder(id,{local:{status:'hold'},remote:{status:'hold'}});renderOrders();openOrder(id);}
+async function saveTracking(id){
+ const o=ORDERS.find(x=>x.id===id), trk=document.getElementById('trk').value.trim();
+ const status=(trk&&o.status==='paid')?(o.dest==='ffl'?'ffl':'ship'):o.status;
+ await DB.patchOrder(id,{local:{tracking:trk,status},remote:{tracking:trk,status:toStatus(status)}});
+ renderOrders();openOrder(id);}
+async function pushQB(id){
  if(!QB.connected){alert('Connect QuickBooks first — see the QuickBooks page.');return;}
  const o=ORDERS.find(x=>x.id===id);
+ if(LIVE){
+  const {data:{session}}=await sbc.auth.getSession();
+  const r=await fetch('/.netlify/functions/qb-sync',{method:'POST',
+    headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
+    body:JSON.stringify({orderId:o.uid})});
+  if(!r.ok){alert('QuickBooks: '+await r.text());return}
+  await DB.load(); renderOrders(); openOrder(id); return;
+ }
  o.qb='INV-'+(2042+ORDERS.filter(x=>x.qb).length);
  QB.log.unshift({t:new Date().toISOString().slice(0,16).replace('T',' '),m:'Invoice '+o.qb+' created for '+o.id});
  saveO();saveQ();openOrder(id);
@@ -442,20 +550,20 @@ function editProduct(sku){
    <p class="savedmsg" id="pSaved" hidden>Saved</p>
   </div>`);
 }
-function saveProduct(sku){
+async function saveProduct(sku){
  const g=id=>document.getElementById(id).value.trim();
  const del=g('pDel');
  const rec={sku:g('pSku'),name:g('pName'),cat:g('pCat'),price:parseFloat(g('pPrice'))||0,
    stock:parseInt(g('pStock'),10)||0,ffl:del!=='door',nfa:del==='nfa',live:g('pLive')==='1'};
  if(!rec.sku||!rec.name){alert('A product needs a SKU and a name.');return}
- const i=PRODUCTS.findIndex(x=>x.sku===(sku||rec.sku));
- if(i>-1)PRODUCTS[i]=rec; else PRODUCTS.push(rec);
- saveP(); renderProducts();
+ try{ await DB.saveProduct(rec,sku); }catch(e){ alert('Could not save: '+(e.message||e)); return; }
+ renderProducts();
  const m=document.getElementById('pSaved'); if(m){m.hidden=false;setTimeout(()=>m.hidden=true,1600)}
 }
-function deleteProduct(sku){
+async function deleteProduct(sku){
  if(!confirm('Remove '+sku+' from the catalogue?'))return;
- PRODUCTS=PRODUCTS.filter(x=>x.sku!==sku); saveP(); closePanel(); renderProducts();
+ try{ await DB.deleteProduct(sku); }catch(e){ alert('Could not delete: '+(e.message||e)); return; }
+ closePanel(); renderProducts();
 }
 
 /* ---------------- quickbooks ---------------- */
@@ -500,6 +608,7 @@ function renderQB(){
      :'<tr><td colspan="2" class="hint">Nothing yet.</td></tr>'}</tbody></table></div>`;
 }
 function connectQB(){
+ if(LIVE){location.href='/.netlify/functions/qb-start';return}
  QB.connected=true; QB.realm='9341 4520 1188 7723';
  QB.log.unshift({t:new Date().toISOString().slice(0,16).replace('T',' '),m:'Connected to QuickBooks Online (prototype — no real authorisation took place)'});
  saveQ(); renderQB();

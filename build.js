@@ -70,8 +70,8 @@ const prerender = i => {
  </div>
 </div>`;
 };
-const split = src.indexOf('<div class="util">');
-if (split < 0) throw new Error('could not find start of body content');
+const split = src.indexOf('<div class="util"');
+if (split < 0) throw new Error('index.html: could not find the start of the body content');
 let head = src.slice(0, split);
 const body = src.slice(split);
 
@@ -165,9 +165,14 @@ ${b}
   const tokens = src.match(/:root\{[\s\S]*?\n\}/)[0];
   const logo   = src.match(/<span class="on-dark">([\s\S]*?)<\/span>/)[1];
 
-  const cut  = adminSrc.indexOf('<div class="demobar">');
+  const cut  = adminSrc.indexOf('<div class="demobar"');
+  if (cut < 0) throw new Error('admin.html: could not find the start of the body content');
   let head   = adminSrc.slice(0, cut).replace(/\/\* %TOKENS%[^\n]*\*\//, tokens);
   const body = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
+  // Publishable values only. SUPABASE_SERVICE_KEY must never be injected here —
+  // it bypasses row level security and belongs to the Netlify Functions alone.
+  head = head.replace('__SUPABASE_URL__', process.env.SUPABASE_URL || '__SUPABASE_URL__')
+             .replace('__SUPABASE_ANON_KEY__', process.env.SUPABASE_ANON_KEY || '__SUPABASE_ANON_KEY__');
   head = head.replace(/<meta charset="utf-8">\n?/, '').replace(/<meta name="viewport"[^>]*>\n?/, '');
 
   const doc = `<!doctype html>
@@ -183,8 +188,13 @@ ${body}
 </body>
 </html>`;
   fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
+  for (const ph of ['%TOKENS%', '%LOGO%']) {
+    if (doc.includes(ph)) throw new Error(`admin.html: ${ph} was never substituted`);
+  }
   fs.writeFileSync(path.join(OUT, 'admin', 'index.html'), doc);
-  console.log('  /admin  (staff prototype, noindex)');
+  console.log(process.env.SUPABASE_URL
+    ? '  /admin  (noindex, wired to Supabase)'
+    : '  /admin  (noindex, prototype — set SUPABASE_URL and SUPABASE_ANON_KEY to go live)');
 }
 
 // sitemap + robots so the new routes get found

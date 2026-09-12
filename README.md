@@ -104,19 +104,27 @@ split by whether they go to a dealer or a customer, product management
 (pricing, stock, delivery rules, visibility), and a QuickBooks panel with item
 mapping and an activity log.
 
-### To make it real
+### Going live
 
-| Need | Why the browser cannot do it |
+The backend is written and waiting: schema, security policies, and the
+QuickBooks functions are all in the repo. See **`docs/SUPABASE-SETUP.md`** for
+the five steps that need your account.
+
+| Path | What it is |
 |---|---|
-| Staff accounts | A login enforced in JavaScript can be read straight past |
-| Orders, products | Must be a database the public site reads from, not `localStorage` |
-| QuickBooks | OAuth 2.0 refresh tokens must be held and renewed server-side |
+| `supabase/migrations/0001_schema.sql` | Tables. Money in integer cents. |
+| `supabase/migrations/0002_rls.sql` | Row level security. The important one. |
+| `supabase/migrations/0003_seed.sql` | Current catalogue |
+| `netlify/functions/qb-*.js` | QuickBooks OAuth and invoicing |
 
-Recommended: **Supabase** (Postgres, auth, row-level security) for data and
-sign-in, plus a **Netlify Function** to hold the QuickBooks token exchange. The
-public site stays static; only the staff area talks to the API. The data shapes
-in `site/admin.html` — `SEED_ORDERS`, `SEED_PRODUCTS` — are deliberately close
-to what those tables should look like.
+`/admin` runs on sample data until `SUPABASE_URL` and `SUPABASE_ANON_KEY` are
+set in Netlify, then becomes real with no code change. Clearing them rolls it
+back.
+
+**The `service_role` key never goes in a page.** `build.js` injects only the URL
+and anon key; the service key is read exclusively inside `netlify/functions/`.
+The `qb_connection` table, which holds OAuth refresh tokens, has RLS enabled and
+no policies at all — so only the service key can reach it.
 
 QuickBooks target is **QuickBooks Online**; Desktop would need the Web Connector
 instead and is materially more limited.
