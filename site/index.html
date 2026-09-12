@@ -42,6 +42,16 @@ h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em
 p{margin:0} a{color:inherit} img{display:block;max-width:100%}
 :focus-visible{outline:2px solid var(--clover-2);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gut),var(--safe-l));padding-right:max(var(--gut),var(--safe-r))}
+.nf-search{max-width:420px;margin-bottom:var(--s7)}
+.nf-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;
+ background:var(--rule);border:1px solid var(--rule)}
+.nf-card{text-align:left;background:var(--ground);border:0;color:var(--ink);cursor:pointer;
+ padding:var(--pad-box);font-family:var(--body)}
+.nf-card:hover{background:var(--raised)}
+.nf-card b{display:block;font-family:var(--disp);text-transform:uppercase;letter-spacing:.08em;
+ font-size:.95rem;font-weight:500;margin-bottom:6px}
+.nf-card em{font-style:normal;font-size:var(--fs-sm);color:var(--ink-2);line-height:1.5}
+
 /* ---------------- share and save a build ---------------- */
 .sharerow{display:flex;gap:var(--s2)}
 .sharerow .btn{flex:1 1 0;text-align:center}
@@ -710,6 +720,51 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   nav button,.drop button,.chip,.opt,.sw{min-height:44px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ============ print ============
+   The site is dark by design; paper is not. Flipping the tokens inverts the
+   whole thing in one place rather than overriding a hundred rules. */
+@media print{
+  :root{
+    --ground:#fff; --surface:#fff; --raised:#fff; --stage:#f2f2f0; --code:#f7f7f5;
+    --ink:#000; --ink-2:#1c1c1c; --muted:#4d4d4d; --rule:#b4b4b4; --rule-2:#d9d9d9; --line:#8a8a8a;
+    --clover:#2d5c2d; --clover-2:#2d5c2d; --clover-soft:#eef4ee;
+    --gold:#6a4a12;  --gold-2:#6a4a12;  --gold-soft:#f6f1e5;
+    --stop:#8a2b20;  --stop-soft:#f9eeec; --warn:#6a4a12;
+    --sec:14pt; --pad-box:8pt; --gut:0;
+  }
+  @page{margin:16mm}
+  body{background:#fff;font-size:10.5pt;line-height:1.45}
+  /* interface that means nothing on paper */
+  .skip,.util,header.head,.mainnav,.scrim,.promo,.carousel,.toast,.buybar,.mobtotal,
+  .evpanel,.lbox,.suggest,.filters,.sharerow,.savedbuilds,.heart,.pdpthumbs,.zoomhint,
+  .related,.foot ul,.social,.conav,.steps-co,.nf-links,.nf-search,.searchbox,
+  .btn,.linkbtn,.cartqty,.panel,.opts,.swatches,.cal-grid,.calnav,#savedWrap{display:none!important}
+  .printhead{display:flex!important}
+  #buildForm,.sheet-ft .btn{display:none!important}
+  .printurl{display:block!important}
+  /* the spec list is the point of printing a build sheet */
+  .step-head .picked{display:inline!important}
+  .step{padding:4pt 0;break-inside:avoid}
+  .step-head{margin-bottom:0}
+  .cfg,.cartlayout,.cologout,.pdp,.two{display:block}
+  .sheet,.summary{position:static;margin-top:10pt;border:1pt solid var(--rule)}
+  .cfgshot,.stage{display:none}
+  img{max-width:60mm}
+  .pdphero img{max-width:90mm}
+  h1,h2,h3,h4{break-after:avoid}
+  .card,.cartline,.linerow,.fflcard{break-inside:avoid}
+  a[href]{color:inherit;text-decoration:none}
+  .view:not(.on){display:none}
+}
+.printhead{display:none;align-items:baseline;gap:10pt;border-bottom:1pt solid #000;
+ padding-bottom:6pt;margin-bottom:12pt;font-family:var(--disp);text-transform:uppercase;
+ letter-spacing:.18em;font-size:11pt;color:#000}
+.printhead b{font-weight:600;letter-spacing:.3em}
+.printhead span{margin-left:auto;font-family:var(--mono);letter-spacing:.06em;
+ text-transform:none;font-size:8pt;color:#4d4d4d}
+.printurl{display:none;font-family:var(--mono);font-size:8.5pt;color:#4d4d4d;
+ margin-top:8pt;word-break:break-all}
 </style>
 <style>
 @media (min-width:880px){
@@ -720,6 +775,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 </style>
 
 <a class="skip" href="#main">Skip to content</a>
+<div class="printhead" aria-hidden="true"><b>KLOVR</b> Precision<span>klovrprecision.com</span></div>
 <div class="util"><div class="wrap">
   <a href="#" onclick="return false">Dealer login</a>
   <a href="#" onclick="return false">Warranty</a>
@@ -939,6 +995,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
       <figure class="cfgshot"><div class="ph r32"><img src="web/cfg-stage.jpg" srcset="web/cfg-stage-sm.jpg 820w, web/cfg-stage.jpg 1600w" sizes="(max-width:1180px) 94vw, 58vw" decoding="async" alt="KLOVR rifle on a cedar post" loading="lazy"></div><figcaption>Photographed example. A live visual preview of your own spec arrives once the studio part photography is shot &mdash; the build sheet updates now.</figcaption></figure>
       <div class="steps" id="steps"></div>
       <div id="savedWrap"></div>
+      <p class="printurl" id="printUrl" aria-hidden="true"></p>
     </div>
     <aside class="sheet">
       <div class="sheet-hd"><h3>Build sheet</h3><span class="code num" id="buildCode">&mdash;</span></div>
@@ -974,6 +1031,24 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
     </aside>
   </div>
   <div class="mobtotal"><div><span class="lab">Estimate</span><b class="num" id="mobPrice">&mdash;</b></div><button class="btn sm" onclick="openReq(1)">Request build</button></div>
+</section></div>
+
+<!-- ===== NOT FOUND ===== -->
+<div id="notfound" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">404</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:14px">That page is not here</h2>
+  <p class="prose" style="margin-bottom:26px">The link may be old, or we may have moved something. Nothing is broken on your end. Try one of these, or search for what you were after.</p>
+  <form class="searchbox nf-search" role="search" onsubmit="return nfSearch(event)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input id="nfq" type="search" autocomplete="off" aria-label="Search the shop" placeholder="Search actions, chassis, barrels">
+    <button type="submit">Go</button>
+  </form>
+  <div class="nf-links">
+    <button class="nf-card" onclick="go('shop')"><b>Shop</b><em>Actions, chassis, barrels, complete rifles</em></button>
+    <button class="nf-card" onclick="go('build')"><b>Build a rifle</b><em>Spec one and get a priced build sheet</em></button>
+    <button class="nf-card" onclick="go('gallery')"><b>Recent builds</b><em>What has gone out of the shop</em></button>
+    <button class="nf-card" onclick="go('contact')"><b>Contact</b><em>Hours, transfers, and how to reach us</em></button>
+  </div>
 </section></div>
 
 <!-- ===== SEARCH ===== -->
@@ -1308,6 +1383,8 @@ function render(){
  document.getElementById('buildCode').textContent=buildCode();
  const sb=document.getElementById('savedWrap'); if(sb)sb.innerHTML=savedBuildsHTML();
  const fl=document.getElementById('fromLink'); if(fl)fl.hidden=!fromLink;
+ const pu=document.getElementById('printUrl');
+ if(pu)pu.textContent='This spec: '+buildURL();
 }
 const set=(k,id)=>{S[k]=id;fromLink=false;render();syncBuildURL();};
 
@@ -2058,6 +2135,13 @@ function toast(msg,kind,cartLink){
 }
 function closeToast(){clearTimeout(toastTimer);document.getElementById('toast').hidden=true}
 
+function nfSearch(e){
+ e.preventDefault();
+ SQ=document.getElementById('nfq').value.trim();
+ go('search');
+ return false;
+}
+
 /* ---------------- search ----------------
    Searches products, the pages people actually look for, and calendar events.
    The query arrives from the URL, so every place it is rendered goes through
@@ -2227,7 +2311,8 @@ const TITLES={
  cart:'Your Cart — KLOVR Precision',
  wishlist:'Your Wishlist — KLOVR Precision',
  checkout:'Checkout — KLOVR Precision',
- search:'Search — KLOVR Precision'
+ search:'Search — KLOVR Precision',
+ notfound:'Page not found — KLOVR Precision'
 };
 function setTitle(v){
  if(v==='product'){const i=byId(PID); document.title=(i?i.n+' — ':'')+'KLOVR Precision'; return}
@@ -2272,7 +2357,7 @@ function releaseFocus(){
 }
 
 /* ---------------- routing ---------------- */
-const ROUTE={home:'/',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact',calendar:'/calendar',search:'/search',cart:'/cart',wishlist:'/wishlist',checkout:'/checkout'};
+const ROUTE={home:'/',notfound:'/404',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact',calendar:'/calendar',search:'/search',cart:'/cart',wishlist:'/wishlist',checkout:'/checkout'};
 const VIEW=Object.fromEntries(Object.entries(ROUTE).map(([v,u])=>[u,v]));
 function pathView(){
  const u=location.pathname.replace(/\/+$/,'')||'/';
@@ -2284,7 +2369,11 @@ function pathView(){
   if(b&&applyBuildCode(b))fromLink=true;
   return 'build';
  }
- return VIEW[u]||'home';
+ if(VIEW[u])return VIEW[u];
+ /* Opened straight off disk, or a .html file — treat as the front page rather
+    than pretending the URL is wrong. */
+ if(location.protocol==='file:'||u.endsWith('.html'))return 'home';
+ return 'notfound';
 }
 
 /* ---------------- nav + dropdowns ---------------- */

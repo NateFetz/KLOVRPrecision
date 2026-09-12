@@ -123,6 +123,32 @@ shows example dealers and says so.
 Confirming a licence is current is a manual eZ Check lookup. `/admin` links
 straight to it and records who checked and when.
 
+## Print
+
+The site is dark by design; paper is not. `@media print` redefines the colour
+tokens to a paper palette, which inverts the whole thing in one place rather
+than overriding a hundred rules. Interface that means nothing on paper — nav,
+carousel, buttons, option grids, the toast — is hidden.
+
+The build sheet is the reason this exists. Printing `/custom-rifles` gives a
+numbered spec list with every selection, the line-item pricing, the FFL notice,
+and the shareable URL for that exact spec, under a masthead that replaces the
+logo (which is ivory-on-dark and would vanish).
+
+To look at it without a printer, copy a built page and swap `@media print{` for
+`@media screen{`.
+
+## Not found
+
+`build.js` writes `dist/404.html`, which Netlify serves for any unmatched path.
+`pathView()` returns `notfound` for an unrecognised URL rather than falling back
+to the front page — otherwise a bad link would quietly render the homepage at
+the wrong address. Paths ending `.html`, and anything opened over `file:`, are
+treated as the front page so opening the build straight off disk still works.
+
+`serve.js` mirrors Netlify and serves `404.html` with a 404 status, so this is
+testable locally.
+
 ## Sharing a build
 
 A spec encodes as the option codes that already exist, joined by dashes:

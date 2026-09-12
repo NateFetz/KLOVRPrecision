@@ -146,36 +146,8 @@ rm(OUT);
 fs.mkdirSync(OUT, { recursive: true });
 copy('site/web', path.join(OUT, 'web'));
 
-for (const i of SHOP) {
-  ROUTES.push({
-    path : 'product/' + i.id,
-    view : 'product',
-    title: i.n + ' — KLOVR Precision',
-    desc : (i.d ? i.d[0] : i.m).slice(0, 155),
-    img  : i.img || 'web/hero-rifle.jpg',
-    inject: prerender(i),
-    ld: {
-      '@context':'https://schema.org','@type':'Product',
-      name:i.n, sku:i.id, description:(i.d?i.d[0]:i.m),
-      image:[SITE+'/'+(i.img||'web/hero-rifle.jpg')],
-      brand:{'@type':'Brand',name:'KLOVR Precision'},
-      offers:{'@type':'Offer',url:SITE+'/product/'+i.id,priceCurrency:'USD',
-        price:i.price, availability:'https://schema.org/'+(i.made?'PreOrder':'InStock')}
-    }
-  });
-}
-
-for (const r of ROUTES) {
-  const url = SITE + '/' + r.path;
-  // mark this route's view as the visible one in the delivered HTML
-  let b = bodyBase.replace('id="home" class="view on"', 'id="home" class="view"');
-  // checkout talks to the order function only once Supabase is configured
-  b = b.replace("'__ORDERS_API__'", process.env.SUPABASE_URL ? "'1'" : "'0'");
-  b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
-  if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
-  if (r.inject) b = b.replace('<div id="productBody"></div>', '<div id="productBody">' + r.inject + '</div>');
-
-  const doc = `<!doctype html>
+function page(r, b, url) {
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -206,6 +178,38 @@ ${head}
 ${b}
 </body>
 </html>`;
+}
+
+for (const i of SHOP) {
+  ROUTES.push({
+    path : 'product/' + i.id,
+    view : 'product',
+    title: i.n + ' — KLOVR Precision',
+    desc : (i.d ? i.d[0] : i.m).slice(0, 155),
+    img  : i.img || 'web/hero-rifle.jpg',
+    inject: prerender(i),
+    ld: {
+      '@context':'https://schema.org','@type':'Product',
+      name:i.n, sku:i.id, description:(i.d?i.d[0]:i.m),
+      image:[SITE+'/'+(i.img||'web/hero-rifle.jpg')],
+      brand:{'@type':'Brand',name:'KLOVR Precision'},
+      offers:{'@type':'Offer',url:SITE+'/product/'+i.id,priceCurrency:'USD',
+        price:i.price, availability:'https://schema.org/'+(i.made?'PreOrder':'InStock')}
+    }
+  });
+}
+
+for (const r of ROUTES) {
+  const url = SITE + '/' + r.path;
+  // mark this route's view as the visible one in the delivered HTML
+  let b = bodyBase.replace('id="home" class="view on"', 'id="home" class="view"');
+  // checkout talks to the order function only once Supabase is configured
+  b = b.replace("'__ORDERS_API__'", process.env.SUPABASE_URL ? "'1'" : "'0'");
+  b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
+  if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
+  if (r.inject) b = b.replace('<div id="productBody"></div>', '<div id="productBody">' + r.inject + '</div>');
+
+  const doc = page(r, b, url);
 
   const dir = r.path ? path.join(OUT, r.path) : OUT;
   fs.mkdirSync(dir, { recursive: true });
@@ -250,6 +254,20 @@ ${adminBody}
   console.log(process.env.SUPABASE_URL
     ? '  /admin  (noindex, wired to Supabase)'
     : '  /admin  (noindex, prototype — set SUPABASE_URL and SUPABASE_ANON_KEY to go live)');
+}
+
+/* Netlify serves 404.html from the publish root for any unmatched path. */
+{
+  const r = { view:'notfound',
+    title:'Page not found — KLOVR Precision',
+    desc :'That page is not here. Search the shop, or start from the front page.',
+    img  :'web/hero-rifle.jpg', noindex:true };
+  let b = bodyBase.replace('id="home" class="view on"', 'id="home" class="view"')
+                  .replace('id="notfound" class="view"', 'id="notfound" class="view on"')
+                  .replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
+  const doc = page(r, b, SITE + '/404');
+  fs.writeFileSync(path.join(OUT, '404.html'), doc);
+  console.log('  /404.html');
 }
 
 // sitemap + robots so the new routes get found
