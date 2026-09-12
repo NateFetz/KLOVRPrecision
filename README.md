@@ -42,6 +42,24 @@ browser.
 `node tests/build-from-supabase.test.js` proves the loop against a fake
 PostgREST — no real project needed.
 
+## Calendar
+
+Classes, range days, matches, shop hours, trade shows, and build slots, in
+`EVENTS` near the top of the calendar module. Month grid on desktop, list on
+anything under 900px — decided when it renders, not once at load, so a rotated
+phone gets the right one.
+
+Each event offers a `.ics` download built in the browser, so it lands in
+whatever calendar the visitor actually uses. Multi-day events set an exclusive
+`DTEND`, per RFC 5545.
+
+Events live in the page for now. Moving them to Supabase would follow the same
+pattern as the catalogue: a table, a fetch in `build.js`, a publish.
+
+> The opener-weekend entry deliberately points at Utah DWR rather than asserting
+> a date. Season dates vary by unit and change yearly; a website should not be
+> the thing someone plans a hunt around.
+
 ## Dealer directory
 
 Checkout searches real licensed dealers by ZIP. The directory is the ATF listing
@@ -87,7 +105,7 @@ meta description, canonical, and Open Graph card. Client-side navigation still
 runs via the History API, so links are instant, but crawlers and no-JS visitors
 get a complete page.
 
-`/` · `/shop` · `/custom-rifles` · `/gallery` · `/contact`
+`/` · `/shop` · `/custom-rifles` · `/gallery` · `/calendar` · `/contact`
 `/cart` · `/wishlist` · `/checkout` — noindex, kept out of the sitemap
 `/product/<id>` — one per catalogue item, pre-rendered with Product schema
 
