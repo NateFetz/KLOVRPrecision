@@ -23,6 +23,8 @@
   --gut:clamp(16px,4vw,34px); --maxw:1260px;
 }
 *{box-sizing:border-box}
+/* author rules like form{display:flex} outrank the UA [hidden] rule, so pin it */
+[hidden]{display:none!important}
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:var(--fs-body);line-height:1.6;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em;font-weight:500;text-wrap:balance;margin:0;line-height:1.12}
 p{margin:0} a{color:inherit} img{display:block;max-width:100%}
