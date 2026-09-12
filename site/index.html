@@ -42,6 +42,20 @@ h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em
 p{margin:0} a{color:inherit} img{display:block;max-width:100%}
 :focus-visible{outline:2px solid var(--clover-2);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gut),var(--safe-l));padding-right:max(var(--gut),var(--safe-r))}
+/* ---------------- share and save a build ---------------- */
+.sharerow{display:flex;gap:var(--s2)}
+.sharerow .btn{flex:1 1 0;text-align:center}
+.savedbuilds{margin-top:var(--s7)}
+.savedrow{display:flex;align-items:center;gap:var(--s3);border-bottom:1px solid var(--rule-2);
+ padding-right:var(--pad-box)}
+.savedrow:last-child{border-bottom:0}
+.savedrow>button:first-child{flex:1;text-align:left;background:none;border:0;color:var(--ink);
+ font-family:var(--body);padding:var(--s3) var(--pad-box);cursor:pointer;min-width:0}
+.savedrow>button:first-child:hover{background:var(--raised)}
+.savedrow b{display:block;font-family:var(--disp);text-transform:uppercase;letter-spacing:.06em;
+ font-size:.88rem;font-weight:500}
+.savedrow em{display:block;font-style:normal;font-size:var(--fs-xs);color:var(--muted);margin-top:4px}
+
 /* ---------------- lightbox ---------------- */
 .lbox{position:fixed;inset:0;z-index:250;background:rgba(5,5,5,.95);display:grid;
  grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
@@ -918,11 +932,13 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 <div id="build" class="view"><section class="wrap">
   <div class="eyebrow"><span class="lab">Custom rifles</span></div>
   <h2 style="font-size:var(--fs-h1);margin-bottom:12px">Spec your rifle</h2>
+  <p class="okbox" id="fromLink" hidden style="margin-bottom:22px"><b>Opened from a shared link</b>This is the spec someone sent you. Change anything and the link in your address bar keeps up.</p>
   <p class="prose" style="margin-bottom:30px">Pick the parts and the build sheet prices, weighs, and measures the rifle as you go. Nothing here is a purchase &mdash; you finish with a quote request, and we talk it through before anyone takes a deposit.</p>
   <div class="cfg">
     <div>
       <figure class="cfgshot"><div class="ph r32"><img src="web/cfg-stage.jpg" srcset="web/cfg-stage-sm.jpg 820w, web/cfg-stage.jpg 1600w" sizes="(max-width:1180px) 94vw, 58vw" decoding="async" alt="KLOVR rifle on a cedar post" loading="lazy"></div><figcaption>Photographed example. A live visual preview of your own spec arrives once the studio part photography is shot &mdash; the build sheet updates now.</figcaption></figure>
       <div class="steps" id="steps"></div>
+      <div id="savedWrap"></div>
     </div>
     <aside class="sheet">
       <div class="sheet-hd"><h3>Build sheet</h3><span class="code num" id="buildCode">&mdash;</span></div>
@@ -949,6 +965,10 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
           <button class="btn" type="submit">Send build sheet</button>
           <p class="formmsg" hidden></p>
         </form>
+        <div class="sharerow">
+          <button class="btn ghost sm" onclick="shareBuild()">Copy link</button>
+          <button class="btn ghost sm" onclick="saveBuild()">Save build</button>
+        </div>
         <p class="fineprint">50% deposit schedules the bench. Balance due at transfer. Estimate excludes tax, the transfer fee, and any NFA stamp. Rifle ships to your FFL.</p>
       </div>
     </aside>
@@ -1178,6 +1198,88 @@ const STEPS=[{k:'chamber',t:'Chambering'},{k:'action',t:'Action'},{k:'chassis',t
 let S={chamber:'65cm',action:'sa',chassis:'ch',barrel:'b22',finish:'bronze',optic:'s340',muzzle:'cap',bipod:'steel'};
 const pick=(k,id)=>D[k].find(o=>o.id===id)||D[k][0];
 
+/* ---------------- share and save a build ----------------
+   The spec encodes as the option codes that already exist, joined by dashes:
+   65C-SA-CH-22-BRZ-340-CAP-BP. Readable, stable, and short enough to text. */
+const CODE_ORDER=['chamber','action','chassis','barrel','finish','optic','muzzle','bipod'];
+const buildCode=()=>CODE_ORDER.map(k=>pick(k,S[k]).code).join('-');
+function applyBuildCode(str){
+ if(!str)return false;
+ const parts=String(str).toUpperCase().split('-');
+ let any=false;
+ CODE_ORDER.forEach((k,i)=>{
+  const o=D[k].find(x=>x.code===parts[i]);       // unknown codes fall through to the default
+  if(o){S[k]=o.id;any=true}
+ });
+ return any;
+}
+const buildURL=()=>location.origin+'/custom-rifles?b='+encodeURIComponent(buildCode());
+/* Keep the address bar in step with the spec without flooding history. */
+function syncBuildURL(){
+ if(document.body.dataset.view!=='build')return;
+ history.replaceState({v:'build'},'','/custom-rifles?b='+encodeURIComponent(buildCode()));
+}
+
+let fromLink=false;
+async function shareBuild(){
+ const url=buildURL();
+ const title='KLOVR build '+buildCode();
+ if(navigator.share){
+  try{ await navigator.share({title,text:'The rifle I have specced at KLOVR Precision',url}); return }
+  catch(e){ if(e&&e.name==='AbortError')return }   // user dismissed the sheet
+ }
+ try{ await navigator.clipboard.writeText(url); toast('Link copied. Anyone who opens it sees this exact spec.','ok') }
+ catch(e){
+  const t=document.createElement('textarea');
+  t.value=url; t.setAttribute('readonly','');
+  t.style.position='fixed'; t.style.left='-9999px';
+  document.body.appendChild(t); t.select();
+  try{ document.execCommand('copy'); toast('Link copied.','ok') }
+  catch(_){ toast('Could not copy. The address bar holds the link.','warn') }
+  t.remove();
+ }
+}
+
+/* ---- saved builds, on this device ---- */
+/* Read lazily: this block sits above the cart module where LS is declared, and
+   touching it at load time would hit the temporal dead zone and kill the whole
+   script. */
+let SAVED=null;
+const savedList=()=>{ if(SAVED===null)SAVED=LS.get('builds',[]); return SAVED };
+const saveBuilds=()=>LS.set('builds',SAVED);
+/* Include the barrel: people most often save the same chambering at two or
+   three lengths, and two rows reading the same thing is no help. */
+const buildName=()=>[pick('chamber',S.chamber).nm,pick('barrel',S.barrel).nm,pick('finish',S.finish).nm].join(' · ');
+function saveBuild(){
+ const code=buildCode();
+ if(savedList().some(b=>b.code===code)){toast('That spec is already saved.','warn');return}
+ savedList().unshift({code,name:buildName(),at:new Date().toISOString().slice(0,10),
+   price:document.getElementById('tPrice').textContent});
+ SAVED=savedList().slice(0,12);
+ saveBuilds(); render();
+ toast('Build saved on this device.','ok');
+}
+function loadBuild(code){
+ applyBuildCode(code); fromLink=false; render(); syncBuildURL();
+ window.scrollTo({top:0,behavior:'instant'});
+ toast('Spec loaded.','ok');
+}
+function dropBuild(code){
+ SAVED=savedList().filter(b=>b.code!==code); saveBuilds(); render();
+}
+function savedBuildsHTML(){
+ const list=savedList();
+ if(!list.length)return '';
+ return `<section class="savedbuilds">
+   <div class="eyebrow"><span class="lab">Saved on this device</span></div>
+   <div class="reslist">${list.map(b=>`<div class="savedrow">
+     <button onclick="loadBuild('${b.code}')">
+       <span><b>${esc(b.name)}</b><em class="num">${esc(b.code)} · ${esc(b.price)} · saved ${esc(b.at)}</em></span>
+     </button>
+     <button class="linkbtn" onclick="dropBuild('${b.code}')" aria-label="Remove ${esc(b.name)}">Remove</button>
+   </div>`).join('')}</div></section>`;
+}
+
 /* ---------------- configurator render ---------------- */
 function render(){
  document.getElementById('steps').innerHTML=STEPS.map((s,i)=>{
@@ -1203,9 +1305,11 @@ function render(){
  document.getElementById('tLead').textContent='10–14 wks'+(M.nfa?' + stamp':'');
  document.getElementById('tPrice').textContent=money(price);
  const mp=document.getElementById('mobPrice'); if(mp)mp.textContent=money(price);
- document.getElementById('buildCode').textContent=['KP',pick('chamber',S.chamber).code,pick('action',S.action).code,B.code,pick('finish',S.finish).code].join('‑');
+ document.getElementById('buildCode').textContent=buildCode();
+ const sb=document.getElementById('savedWrap'); if(sb)sb.innerHTML=savedBuildsHTML();
+ const fl=document.getElementById('fromLink'); if(fl)fl.hidden=!fromLink;
 }
-const set=(k,id)=>{S[k]=id;render();};
+const set=(k,id)=>{S[k]=id;fromLink=false;render();syncBuildURL();};
 
 /* ---------------- shop ---------------- */
 /* Catalogue. `ffl` means the item may only be delivered to a licensed dealer;
@@ -2175,6 +2279,11 @@ function pathView(){
  const m=u.match(/^\/product\/(.+)$/);
  if(m){PID=decodeURIComponent(m[1]);return 'product';}
  if(u==='/search'){SQ=new URLSearchParams(location.search).get('q')||'';return 'search';}
+ if(u==='/custom-rifles'){
+  const b=new URLSearchParams(location.search).get('b');
+  if(b&&applyBuildCode(b))fromLink=true;
+  return 'build';
+ }
  return VIEW[u]||'home';
 }
 
@@ -2202,6 +2311,7 @@ function go(v,f,push){
   if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
  if(f)setFilter(f);
  if(v==='cart')renderCart(); if(v==='wishlist')renderWish(); if(v==='checkout')renderCheckout(); if(v==='product')renderProduct(); else mountBuyBar(null); if(v==='calendar')renderCalendar(); if(v==='search')renderSearch();
+ if(v==='build'){render();syncBuildURL();}
  document.querySelectorAll('.navitem.open').forEach(n=>close(n));
  if(push!==false){const u=v==='product'?'/product/'+PID:v==='search'?'/search?q='+encodeURIComponent(SQ):(ROUTE[v]||'/'); if(location.pathname.replace(/\/+$/,'')!==u.replace(/\/+$/,''))history.pushState({v},'',u);}
  window.scrollTo({top:0,behavior:'instant'});

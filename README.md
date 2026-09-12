@@ -123,6 +123,31 @@ shows example dealers and says so.
 Confirming a licence is current is a manual eZ Check lookup. `/admin` links
 straight to it and records who checked and when.
 
+## Sharing a build
+
+A spec encodes as the option codes that already exist, joined by dashes:
+
+```
+/custom-rifles?b=3WM-MA-CF-26-SGE-450-SUP-CB
+```
+
+Twenty-seven characters, readable, and short enough to text. Changing any option
+rewrites the URL with `replaceState`, so the address bar always holds the current
+spec without filling the back button. Opening such a link restores it and says
+so; editing anything dismisses that notice.
+
+Decoding is deliberately forgiving — an unrecognised segment falls through to
+the default rather than throwing, so a truncated or mangled link still produces
+a valid rifle. `?b=3WM` alone sets the chambering and leaves the rest.
+
+**Save build** keeps a spec in `localStorage` (twelve at most), named by
+chambering, barrel, and finish so two rows never read the same. **Copy link**
+uses the native share sheet where there is one and the clipboard otherwise, with
+a `textarea` fallback for older browsers.
+
+To add a step to the code, append its key to `CODE_ORDER`. Existing links keep
+working — a missing trailing segment just takes the default.
+
 ## Stock and confirmations
 
 Adding to the cart raises a confirmation in an `aria-live` region with a link
