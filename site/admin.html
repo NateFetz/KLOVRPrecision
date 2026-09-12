@@ -108,6 +108,16 @@ td.r{text-align:right}
 .linerow{display:flex;justify-content:space-between;gap:var(--s3);padding:9px 0;border-bottom:1px dotted var(--rule);font-size:.85rem}
 .panel-acts{display:flex;gap:var(--s2);flex-wrap:wrap}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55;border:0}
+/* Sits above the slide-over, so a failure while editing a product is still
+   readable. Errors stay until dismissed; confirmations time out. */
+.note{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));
+ z-index:80;max-width:min(560px,92vw);display:flex;align-items:flex-start;gap:14px;
+ padding:13px 15px;background:var(--raised);border:1px solid var(--line);
+ box-shadow:0 14px 40px rgba(0,0,0,.5);font-size:.84rem;line-height:1.5;color:var(--ink)}
+.note.bad{border-left:3px solid var(--stop)}
+.note.good{border-left:3px solid var(--clover-2)}
+.note-x{flex:none;background:none;border:0;color:var(--muted);font-size:1.1rem;line-height:1;cursor:pointer;padding:0 2px}
+.note-x:hover{color:var(--ink)}
 .fields{display:flex;flex-direction:column;gap:var(--s3)}
 .fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
 .hint{font-family:var(--mono);font-size:.66rem;color:var(--muted);line-height:1.6}
@@ -195,6 +205,7 @@ td.r{text-align:right}
 </div>
 <div class="scrim" id="scrim" hidden onclick="closePanel()"></div>
 <div class="panel" id="panel" hidden></div>
+<div class="note" id="note" role="status" aria-live="polite" hidden></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
@@ -369,10 +380,32 @@ async function boot(){
  document.getElementById('whoName').textContent=who.name||who.email;
  document.getElementById('whoRole').textContent=who.role||'Staff';
  try{ await DB.load(); }
- catch(e){ alert('Could not load data: '+(e.message||e)); return; }
+ catch(e){
+  /* Nothing loaded, so the screen behind this is empty — say so where the
+     records would have been, not in a toast that disappears. */
+  document.getElementById('pgTitle').textContent='Could not load';
+  document.getElementById('pgBody').innerHTML='<p class="warnbox" style="border-color:var(--stop);background:var(--stop-soft);color:var(--ink-2)"></p>';
+  document.querySelector('#pgBody .warnbox').textContent=
+    (e.message||e)+' — check the Supabase keys and reload.';
+  return;
+ }
  document.getElementById('navNew').textContent=ORDERS.filter(o=>o.status==='new').length;
  show(LS.get('page','orders'));
 }
+/* A staff tool gets told what happened in the page, not in a browser modal a
+   mis-click dismisses. Failures are sticky; you have to read them. */
+let noteTimer;
+function note(msg,kind){
+ const el=document.getElementById('note');
+ el.className='note '+(kind==='good'?'good':'bad');
+ el.innerHTML='<span></span><button class="note-x" onclick="clearNote()" aria-label="Dismiss">&times;</button>';
+ el.firstChild.textContent=msg;
+ el.hidden=false;
+ clearTimeout(noteTimer);
+ if(kind==='good')noteTimer=setTimeout(clearNote,2600);
+}
+function clearNote(){clearTimeout(noteTimer);document.getElementById('note').hidden=true}
+
 /* ---------------- navigation ---------------- */
 const PAGES={
  orders:{t:'Orders',s:'Everything that has come through the storefront.',r:renderOrders},
@@ -475,14 +508,14 @@ async function saveTracking(id){
  await DB.patchOrder(id,{local:{tracking:trk,status},remote:{tracking:trk,status:toStatus(status)}});
  renderOrders();openOrder(id);}
 async function pushQB(id){
- if(!QB.connected){alert('Connect QuickBooks first — see the QuickBooks page.');return;}
+ if(!QB.connected){note('Connect QuickBooks first — the QuickBooks page has the button.');return;}
  const o=ORDERS.find(x=>x.id===id);
  if(LIVE){
   const {data:{session}}=await sbc.auth.getSession();
   const r=await fetch('/.netlify/functions/qb-sync',{method:'POST',
     headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
     body:JSON.stringify({orderId:o.uid})});
-  if(!r.ok){alert('QuickBooks: '+await r.text());return}
+  if(!r.ok){note('QuickBooks refused that: '+await r.text());return}
   await DB.load(); renderOrders(); openOrder(id); return;
  }
  o.qb='INV-'+(2042+ORDERS.filter(x=>x.qb).length);
@@ -493,11 +526,11 @@ async function pushQB(id){
 /* eZ Check cannot be automated — ATF publishes no API — so a person confirms
    the licence and records that they did. */
 async function markVerified(licence,orderRef){
- if(!LIVE){alert('Connect Supabase to record verifications.');return}
+ if(!LIVE){note('Verifications are only recorded once Supabase is connected.');return}
  if(!confirm('Record that you have confirmed '+licence+' is current on eZ Check?'))return;
  const who=document.getElementById('whoName').textContent;
  const {error}=await sbc.rpc('mark_ffl_verified',{p_licence:licence,p_by:who});
- if(error){alert('Could not record it: '+error.message);return}
+ if(error){note('Could not record that: '+error.message);return}
  await DB.load(); renderOrders(); openOrder(orderRef);
 }
 
@@ -553,7 +586,7 @@ async function publish(){
   btn.textContent='Build started';
   SITE.published=new Date().toISOString();
   setTimeout(()=>renderProducts(),2500);
- }catch(e){btn.disabled=false;btn.textContent='Publish to storefront';alert('Could not publish: '+e.message)}
+ }catch(e){btn.disabled=false;btn.textContent='Publish to storefront';note('Could not publish: '+e.message)}
 }
 
 function renderProducts(){
@@ -615,14 +648,15 @@ async function saveProduct(sku){
  const del=g('pDel');
  const rec={sku:g('pSku'),name:g('pName'),cat:g('pCat'),price:parseFloat(g('pPrice'))||0,
    stock:parseInt(g('pStock'),10)||0,ffl:del!=='door',nfa:del==='nfa',live:g('pLive')==='1'};
- if(!rec.sku||!rec.name){alert('A product needs a SKU and a name.');return}
- try{ await DB.saveProduct(rec,sku); }catch(e){ alert('Could not save: '+(e.message||e)); return; }
+ if(!rec.sku||!rec.name){note('A product needs both a SKU and a name before it can be saved.');return}
+ try{ await DB.saveProduct(rec,sku); }catch(e){ note('Could not save: '+(e.message||e)); return; }
  renderProducts();
+ clearNote();
  const m=document.getElementById('pSaved'); if(m){m.hidden=false;setTimeout(()=>m.hidden=true,1600)}
 }
 async function deleteProduct(sku){
  if(!confirm('Remove '+sku+' from the catalogue?'))return;
- try{ await DB.deleteProduct(sku); }catch(e){ alert('Could not delete: '+(e.message||e)); return; }
+ try{ await DB.deleteProduct(sku); }catch(e){ note('Could not delete: '+(e.message||e)); return; }
  closePanel(); renderProducts();
 }
 

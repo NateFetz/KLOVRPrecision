@@ -456,6 +456,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 .costep-h{font-size:.88rem;letter-spacing:.12em;color:var(--clover);margin:26px 0 12px}
 .fields{display:flex;flex-direction:column;gap:13px}
 .fieldrow{display:grid;grid-template-columns:2fr 1fr 1fr;gap:11px}
+.coerr{margin-top:var(--s5)}
 .conav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--rule)}
 
 .fflsearch{display:flex;gap:9px;margin-bottom:15px}
@@ -738,7 +739,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
   /* interface that means nothing on paper */
   .skip,.util,header.head,.mainnav,.scrim,.promo,.carousel,.toast,.buybar,.mobtotal,
   .evpanel,.lbox,.suggest,.filters,.sharerow,.savedbuilds,.heart,.pdpthumbs,.zoomhint,
-  .related,.foot ul,.social,.conav,.steps-co,.nf-links,.nf-search,.searchbox,
+  .related,.foot ul,.social,.conav,.coerr,.steps-co,.nf-links,.nf-search,.searchbox,
   .btn,.linkbtn,.cartqty,.panel,.opts,.swatches,.cal-grid,.calnav,#savedWrap{display:none!important}
   .printhead{display:flex!important}
   #buildForm,.sheet-ft .btn{display:none!important}
@@ -777,9 +778,9 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 <a class="skip" href="#main">Skip to content</a>
 <div class="printhead" aria-hidden="true"><b>KLOVR</b> Precision<span>klovrprecision.com</span></div>
 <div class="util"><div class="wrap">
-  <a href="#" onclick="return false">Dealer login</a>
-  <a href="#" onclick="return false">Warranty</a>
-  <a href="#" onclick="return false">Track an order</a>
+  <a href="#" onclick="soon.dealer();return false">Dealer login</a>
+  <a href="#" onclick="soon.warranty();return false">Warranty</a>
+  <a href="#" onclick="soon.tracking();return false">Track an order</a>
   <span class="lab">Phone <span class="ph-num num">(000)&nbsp;000‑0000</span></span>
 </div></div>
 
@@ -801,7 +802,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
     <button class="tool searchtog" onclick="toggleSearch()" aria-label="Search" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
     </button>
-    <button class="acct" onclick="mock()" aria-label="Account">
+    <button class="acct" onclick="soon.account()" aria-label="Account">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
     </button>
     <button class="tool wish" onclick="go('wishlist')" aria-label="Wishlist">
@@ -1150,7 +1151,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
     <div>
       <span class="on-dark"><svg aria-label="KLOVR Precision" role="img" id="vd-root" xmlns="http://www.w3.org/2000/svg" viewBox="41.76 49.2 260.15 228.77"><defs><style>.vdb{fill:#759e77;}.vdc{fill:#d1a75f;}.vdd{fill:#edeced;}</style></defs><polygon class="vdb" points="153.97 110.87 127.99 84.53 115.05 84.36 102.38 97.04 102.37 104.73 108.9 111.17 153.97 110.87"/><polygon class="vdb" points="216.62 84.38 203.84 84.41 177.68 110.89 223.11 111.03 229.44 104.4 229.24 97.02 216.62 84.38"/><path class="vdb" d="M137.86,150.31c-.22,4.45-.22,9.29-.04,13.65l12.08,11.91c8.45.96,8.91-.36,14.31-6.21l-.28-44.95-26.08,25.59Z"/><polygon class="vdb" points="167.73 124.71 167.42 169.67 173.7 175.98 181.9 175.82 193.97 163.72 193.95 150.54 167.73 124.71"/><path class="vdb" d="M164.03,100.43l.22-44.66-6.46-6.41c-2.03-.26-5.56-.16-7.69-.04l-12.42,12.47v12.7s26.36,25.93,26.36,25.93Z"/><polygon class="vdb" points="194.08 74.36 193.95 61.78 181.55 49.31 173.85 49.3 167.4 55.78 167.67 100.6 194.08 74.36"/><polygon class="vdb" points="108.79 114.32 102.36 120.82 102.44 128.51 114.86 140.87 127.82 140.65 153.79 114.44 108.79 114.32"/><polygon class="vdb" points="222.86 114.32 177.88 114.52 204.05 140.79 216.94 140.75 229.31 128.39 229.28 120.82 222.86 114.32"/><path class="vdc" d="M171.02,110.13c-1.26-2.6-4.68-4-7.8-2.51-3.41,1.62-3.99,5.61-2.17,8.14,1.66,2.32,4.81,3.24,7.18,2.02,3.08-1.58,4.16-4.85,2.79-7.65Z"/><path class="vdd" d="M288.49,228.25l2.31-.34c5.05-1.15,8.51-5.9,8.22-11.21.19-5.78-3.43-10.29-9.42-11.52l-33.65.16-4.67,6.47h6.73l.93-.05,29.8.04c1.68,0,3.16,1.6,3.35,3.03.16,1.17.17,2.56.02,3.73-.38,2.99-3.6,3.22-4.58,3.22l-35.34-.09v19.99h6.72v-13.32s20.25.1,20.25.1l13.47,13.29,9.28-.07-13.43-13.42Z"/><path class="vdd" d="M90.87,205.43l-2.76-.16c-2.71-.16-4.92-.14-7.58-.13h-.29s-20.76,14.41-20.76,14.41h-11.08s-.02-14.45-.02-14.45l-6.62.08v36.52l6.62-.02v-15.52s10.45-.03,10.45-.03l21.95,15.57h.72c.92.02,1.82.04,2.73.04,1.47,0,2.99-.03,4.69-.15l2.67-.18-26.09-18.42,25.36-17.55Z"/><polygon class="vdd" points="221.2 234.11 202.18 205.16 194.29 205.14 218.21 241.72 224.2 241.71 248.13 205.21 240.19 205.18 221.2 234.11"/><path class="vdd" d="M136.16,235.15h-33.65s0-29.93,0-29.93l-.92-.03c-1.92-.06-3.42-.05-5,.04l-.9.05v36.45h40.53s.07-.87.07-.87c.16-1.83.15-3.28-.04-4.86l-.1-.84Z"/><path class="vdd" d="M181.32,204.6h-30c-5.07,0-9.19,4.11-9.19,9.19v19.2c0,5.08,4.12,9.19,9.19,9.19h30c5.07,0,9.19-4.11,9.19-9.19v-19.2c0-5.08-4.12-9.19-9.19-9.19ZM183.82,231.39c0,2.46-2.17,4.43-4.84,4.43h-25.33c-2.67,0-4.84-1.97-4.84-4.43v-16c0-2.46,2.17-4.43,4.84-4.43h25.33c2.67,0,4.84,1.97,4.84,4.43v16Z"/><path class="vdd" d="M65.33,277.77c-.12-.13-.18-.3-.18-.51v-12.09c0-.28.07-.5.22-.64.15-.14.35-.21.61-.21h10.93c.69,0,1.29.14,1.82.42.52.28.92.67,1.21,1.18.28.51.42,1.1.42,1.76v1.95c0,1.09-.31,1.94-.93,2.53s-1.51.88-2.66.88h-8.79c-.15,0-.26.04-.35.13s-.13.2-.13.35v3.72c0,.22-.06.4-.18.53-.12.13-.29.19-.5.19h-.96c-.22,0-.39-.06-.52-.19ZM77.57,270.54c.29-.27.44-.62.44-1.05v-1.66c0-.41-.17-.74-.5-1.01-.33-.27-.74-.41-1.22-.41h-8.33c-.15,0-.26.04-.35.13s-.13.2-.13.35v3.59c0,.15.04.26.13.34.09.08.2.12.35.12h8.33c.55,0,.98-.13,1.27-.41Z"/><path class="vdd" d="M92.24,277.78c-.12-.12-.18-.29-.18-.52v-12.09c0-.28.07-.5.22-.64.15-.14.35-.21.61-.21h11.02c.64,0,1.21.14,1.72.42s.92.66,1.22,1.14.45,1.04.45,1.65v1.66c0,.57-.1,1.08-.31,1.55-.21.47-.51.85-.89,1.14-.39.29-.84.49-1.35.57-.12.05-.21.09-.25.14s-.06.11-.06.19c-.01.03,0,.05,0,.08.02.03.03.06.05.08.01.04.02.06.04.07.01.01.02.03.04.05l2.34,4.04s.04.06.04.07c0,.01.02.04.05.07.01.04.03.08.05.12s.03.09.03.14c0,.12-.06.23-.17.31-.11.09-.27.13-.46.13h-1.09c-.17,0-.33-.04-.47-.11-.14-.07-.26-.19-.36-.35l-2.78-4.59c-.06-.11-.14-.19-.24-.24-.1-.05-.21-.07-.33-.07h-6.29c-.15,0-.26.04-.35.12-.09.08-.13.19-.13.34v4.2c0,.22-.06.39-.18.52s-.29.18-.51.18h-.96c-.22,0-.39-.06-.52-.18ZM104.22,270.35c.23-.13.42-.31.54-.54.13-.23.19-.49.19-.78v-1.14c0-.31-.07-.57-.21-.78-.14-.21-.33-.38-.57-.51-.24-.12-.51-.18-.8-.18h-8.5c-.15,0-.26.04-.35.13-.09.09-.13.2-.13.35v3.15c0,.15.04.27.13.36.09.09.2.14.35.14h8.5c.33,0,.62-.06.85-.19Z"/><path class="vdd" d="M119.23,277.74c-.15-.15-.23-.36-.23-.62v-11.94c0-.27.08-.48.23-.63s.35-.22.6-.22h12.51c.22,0,.4.07.53.19s.19.3.19.53v.66c0,.21-.07.38-.19.51s-.3.19-.53.19h-10.5c-.15,0-.27.04-.35.13-.09.09-.13.2-.13.35v2.6c0,.15.04.26.13.35.08.09.2.13.35.13h8.62c.22,0,.39.06.52.17.12.12.19.29.19.53v.66c0,.22-.06.4-.19.53s-.29.19-.52.19h-8.62c-.15,0-.27.04-.35.13-.09.09-.13.2-.13.35v2.89c0,.15.04.26.13.34.08.08.2.12.35.12h10.5c.22,0,.4.06.53.19s.19.3.19.51v.66c0,.22-.07.4-.19.53-.13.13-.3.19-.53.19h-12.51c-.25,0-.45-.08-.6-.23Z"/><path class="vdd" d="M146.33,277.54c-.58-.28-1.03-.69-1.36-1.23-.33-.54-.49-1.16-.49-1.89v-6.45c0-.74.16-1.38.48-1.93.32-.55.76-.98,1.34-1.27.57-.29,1.23-.44,1.98-.44h9.77c.22,0,.39.07.52.19.12.13.18.3.18.53v.66c0,.22-.06.39-.18.52s-.29.18-.52.18h-9.07c-.74,0-1.29.18-1.64.55-.36.37-.54.87-.54,1.49v5.42c0,.64.18,1.13.54,1.48.36.35.87.53,1.52.53h9.18c.22,0,.39.06.52.19.12.13.18.3.18.51v.66c0,.22-.06.4-.18.53-.12.13-.29.19-.52.19h-9.69c-.77,0-1.45-.14-2.03-.42Z"/><path class="vdd" d="M170.7,277.78c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52.12-.12.29-.18.52-.18h.94c.23,0,.41.06.53.18.12.12.17.29.17.52v12.24c0,.22-.06.39-.17.52s-.29.18-.53.18h-.94c-.22,0-.39-.06-.52-.18Z"/><path class="vdd" d="M185.08,277.77c-.13-.13-.19-.3-.19-.51v-.66c0-.22.06-.4.19-.53.13-.13.3-.19.51-.19h10.32c.47,0,.81-.1,1.04-.3.23-.2.34-.49.34-.86v-.85c0-.23-.07-.44-.22-.62-.15-.18-.36-.3-.63-.36l-.15-.06-9.03-1.33c-.06-.01-.12-.02-.18-.04-.8-.13-1.42-.43-1.86-.88s-.66-1.05-.66-1.8v-1.58c0-.61.13-1.14.39-1.57.26-.43.62-.76,1.1-.99s1.03-.34,1.67-.34h10.52c.22,0,.39.07.52.19.12.13.18.3.18.51v.68c0,.21-.06.38-.19.51s-.3.19-.51.19h-9.95c-.43,0-.75.11-.98.32-.22.22-.33.48-.33.8v.88c0,.27.09.51.27.72.18.21.43.34.76.39l9.22,1.35c.79.12,1.4.42,1.83.88.44.47.65,1.08.65,1.83v1.62c0,.57-.13,1.05-.4,1.46-.27.41-.65.73-1.14.96-.49.23-1.05.34-1.68.34h-10.88c-.22,0-.4-.06-.53-.19Z"/><path class="vdd" d="M211.59,277.78c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52s.29-.18.52-.18h.94c.23,0,.41.06.53.18.12.12.18.29.18.52v12.24c0,.22-.06.39-.18.52-.12.12-.29.18-.53.18h-.94c-.22,0-.39-.06-.52-.18Z"/><path class="vdd" d="M227.3,277.53c-.58-.29-1.03-.7-1.36-1.23-.33-.54-.49-1.17-.49-1.91v-6.41c0-.76.16-1.42.47-1.96.31-.55.76-.96,1.33-1.25.57-.29,1.25-.43,2.04-.43h7.52c.77,0,1.45.14,2.02.42.57.28,1.02.7,1.34,1.24.32.55.48,1.21.48,1.98v6.41c0,.74-.16,1.38-.48,1.92-.32.54-.76.95-1.34,1.24-.57.28-1.25.42-2.04.42h-7.48c-.76,0-1.43-.14-2.01-.43ZM237.8,275.4c.33-.34.5-.84.5-1.5v-5.46c0-.66-.17-1.17-.52-1.52-.34-.35-.87-.53-1.58-.53h-6.32c-.72,0-1.26.18-1.59.54-.34.36-.51.86-.51,1.5v5.46c0,.63.18,1.12.55,1.47.37.36.86.53,1.47.53h6.53c.65,0,1.14-.17,1.47-.51Z"/><path class="vdd" d="M252.53,277.78c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52s.29-.18.52-.18h.98c.17,0,.33.03.46.08.13.06.27.14.41.27l9.97,9.31c.13.14.27.18.4.14.13-.04.19-.18.19-.4v-8.7c0-.22.06-.39.17-.52.12-.12.28-.18.49-.18h.9c.22,0,.39.06.52.18.12.12.18.29.18.52v12.24c0,.22-.06.39-.18.52s-.29.18-.52.18h-.9c-.17,0-.33-.03-.47-.08-.14-.06-.27-.14-.4-.27l-10.04-9.38c-.1-.1-.19-.15-.28-.16-.09,0-.16.03-.21.09-.06.07-.08.17-.08.3v8.79c0,.22-.06.39-.17.52-.12.12-.29.18-.53.18h-.88c-.22,0-.39-.06-.52-.18Z"/></svg></span>
       <p class="lab" style="letter-spacing:.2em">Machined in&#8209;house</p>
-      <div class="social"><a href="#" onclick="mock();return false" aria-label="Instagram — add the real link" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a><a href="#" onclick="mock();return false" aria-label="YouTube — add the real link" title="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.2l5.2 2.8L10 14.8z" fill="currentColor" stroke="none"/></svg></a><a href="#" onclick="mock();return false" aria-label="Facebook — add the real link" title="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M14 8.5h2.2V5.6h-2.4c-2.2 0-3.6 1.4-3.6 3.6v1.6H8v3h2.2V21h3.1v-7.2h2.3l.4-3h-2.7V9.6c0-.7.3-1.1 1.1-1.1z" fill="currentColor" stroke="none"/></svg></a><a href="#" onclick="mock();return false" aria-label="X — add the real link" title="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 4l7.2 9.3L4.4 20h1.9l5.6-5.8 4.5 5.8H20l-7.5-9.7L19.4 4h-1.9l-5.2 5.4L8.2 4z" fill="currentColor" stroke="none"/></svg></a></div>
+      <div class="social"><a href="#" onclick="soon.social('Instagram');return false" aria-label="Instagram — not linked yet" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a><a href="#" onclick="soon.social('YouTube');return false" aria-label="YouTube — not linked yet" title="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.2l5.2 2.8L10 14.8z" fill="currentColor" stroke="none"/></svg></a><a href="#" onclick="soon.social('Facebook');return false" aria-label="Facebook — not linked yet" title="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M14 8.5h2.2V5.6h-2.4c-2.2 0-3.6 1.4-3.6 3.6v1.6H8v3h2.2V21h3.1v-7.2h2.3l.4-3h-2.7V9.6c0-.7.3-1.1 1.1-1.1z" fill="currentColor" stroke="none"/></svg></a><a href="#" onclick="soon.social('X');return false" aria-label="X — not linked yet" title="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 4l7.2 9.3L4.4 20h1.9l5.6-5.8 4.5 5.8H20l-7.5-9.7L19.4 4h-1.9l-5.2 5.4L8.2 4z" fill="currentColor" stroke="none"/></svg></a></div>
     </div>
     <div><h4>Products</h4><ul>
       <li><a href="#" onclick="go('shop');return false">Actions</a></li>
@@ -1165,8 +1166,8 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
     <div><h4>Support</h4><ul>
       <li><a href="#" onclick="go('contact');return false">FFL transfers</a></li>
       <li><a href="#" onclick="go('contact');return false">Contact</a></li>
-      <li><a href="#" onclick="mock();return false">Warranty</a></li>
-      <li><a href="#" onclick="mock();return false">Shipping &amp; returns</a></li></ul></div>
+      <li><a href="#" onclick="soon.warranty();return false">Warranty</a></li>
+      <li><a href="#" onclick="soon.returns();return false">Shipping &amp; returns</a></li></ul></div>
   </div>
   <p class="legal">Federal Firearms Licensee. All sales comply with federal, state, and local law. Firearms ship to a licensed dealer for transfer &mdash; never direct to a residence. Must be 18 to purchase a long gun, 21 for a handgun. We reserve the right to refuse any sale.</p>
 </div></footer>
@@ -1175,7 +1176,19 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 /* Set by build.js when Supabase is configured. Until then checkout posts a
    Netlify Form and we confirm by hand. */
 const ORDERS_API='__ORDERS_API__'==='1';
-const mock=()=>alert('This part of the site is not live yet.');
+/* Nothing here uses alert(). A modal steals focus, cannot be styled, and on a
+   phone it reads like the browser is broken. Each unfinished control says what
+   is actually going on and, where there is one, offers somewhere to go. */
+const notYet=(msg,action)=>toast(msg,'warn',action);
+const ASK={label:'Contact us',run:"go('contact')"};
+const soon={
+ account:()=>notYet('Accounts are not open yet. Orders are confirmed by email, and you do not need one to buy.'),
+ dealer:()=>notYet('Dealer accounts are not open yet. Get in touch and we will set you up directly.',ASK),
+ tracking:()=>notYet('Order tracking is not live yet. Your tracking number comes by email when it ships.',ASK),
+ warranty:()=>notYet('The warranty page is still being written. Ask us and we will tell you exactly where you stand.',ASK),
+ returns:()=>notYet('The shipping and returns page is still being written. Ask us in the meantime.',ASK),
+ social:(where)=>notYet('Our '+where+' is not linked yet.')
+};
 
 function fillSpec(){
  const g=id=>document.getElementById(id).textContent;
@@ -1569,7 +1582,7 @@ function addToCart(id,btn){
  if(have>=max){toast('That is all we have — '+max+' of '+i.n+' already in your cart.','warn');return}
  if(l)l.qty++; else CART.push({id,qty:1});
  saveCart();
- toast(i.n+' added to your cart.','ok',true);
+ toast(i.n+' added to your cart.','ok',{label:'View cart',run:"go('cart')"});
  if(btn){const t=btn.textContent;btn.textContent='Added';btn.classList.add('ok');
   setTimeout(()=>{btn.textContent=t;btn.classList.remove('ok')},1100);}
 }
@@ -1863,7 +1876,7 @@ const SAMPLE_FFLS=[
 let FFLS=SAMPLE_FFLS, fflState='idle', fflMsg='';
 async function searchFFL(){
  const zip=(CO.fflZip||'').replace(/\D/g,'');
- if(zip.length!==5){fflState='error';fflMsg='Enter a five digit ZIP code.';renderCheckout();return}
+ if(zip.length!==5){fflState='error';fflMsg='That does not look like a five digit ZIP code.';renderCheckout();return}
  if(!ORDERS_API){fflState='sample';renderCheckout();return}
  fflState='loading';fflMsg='';renderCheckout();
  try{
@@ -1900,6 +1913,7 @@ function renderCheckout(){
    ${CO.ref?`<p class="lab" style="letter-spacing:.2em">Reference <b class="num" style="color:var(--gold);font-size:1.1rem">${CO.ref}</b></p>`:''}
    <p>Thanks — we have your order${CO.ffl?' and the dealer you picked':''}. We will confirm stock and come back to you with payment before anything ships. Nothing has been charged.</p>
    <button class="btn" onclick="go('shop')">Keep looking</button></div>`;return;}
+ /* a message from the previous attempt must not survive the next render */
  el.innerHTML=`<ol class="steps-co">${STEPS_CO.map((s,n)=>
    `<li class="${n+1===CO.step?'now':n+1<CO.step?'done':''}"><span class="num">${n+1}</span>${s}</li>`).join('')}</ol>
   <div class="cologout">${[step1,step2,step3,step4][CO.step-1]()}${coSummary()}</div>`;
@@ -1910,7 +1924,15 @@ const coSummary=()=>`<aside class="summary">
   <div class="srow total"><span>Subtotal</span><span class="num">${usd(subtotal())}</span></div>
   <p class="fineprint">Nothing is charged here. Card processing goes live once the merchant account is approved; until then this sends us a request and we confirm by phone or email.</p>
 </aside>`;
-const nav=(back,next,label)=>`<div class="conav">
+/* Checkout says no next to the controls that caused it, not in a modal: the
+   answer stays on screen while you fix it, and role=alert reads it out. */
+function coFail(msg){
+ const box=document.getElementById('coErr');
+ if(!box){toast(msg,'warn');return}
+ box.textContent=msg; box.hidden=false;
+ box.scrollIntoView({behavior:'smooth',block:'center'});
+}
+const nav=(back,next,label)=>`<p class="blockbox coerr" id="coErr" role="alert" hidden></p><div class="conav">
   ${back?`<button class="btn ghost" onclick="CO.step--;renderCheckout()">Back</button>`:'<span></span>'}
   ${next?`<button class="btn" onclick="${next}">${label||'Continue'}</button>`:''}</div>`;
 
@@ -1921,7 +1943,7 @@ function step1(){return `<div class="costep"><h2>Who are we shipping to?</h2>
   <label><span class="lab">Phone</span><input value="${CO.phone}" oninput="co('phone',this.value)" placeholder="(000) 000-0000"></label>
  </div>
  <p class="fineprint">Your name must match the ID you present to the receiving dealer.</p>
- ${nav(false,"if(CO.name&&CO.email){CO.step=2;renderCheckout()}else alert('Name and email are needed to continue.')")}</div>`;}
+ ${nav(false,"if(CO.name&&CO.email){CO.step=2;renderCheckout()}else coFail('We need a name and an email address to go on.')")}</div>`;}
 
 function step2(){
  const door=needDoor()?`<h3 class="costep-h">Delivery address</h3>
@@ -1955,7 +1977,7 @@ function step2(){
   ${note}`:'';
  const ok=(!needDoor()||CO.st)&&(!needFFL()||CO.ffl);
  return `<div class="costep"><h2>Where is it going?</h2>${door}${ffl}
-  ${nav(true,ok?"CO.step=3;renderCheckout()":"alert('Pick a destination first — a state for direct shipping, a dealer for firearms.')")}</div>`;
+  ${nav(true,ok?"CO.step=3;renderCheckout()":"coFail('Choose where this is going first — a state for anything shipping direct, a dealer for the firearms.')")}</div>`;
 }
 
 function step3(){
@@ -1973,7 +1995,7 @@ function step3(){
      <span>I understand the firearm will be transferred to me in person by the receiving dealer after ATF Form 4473 and a background check, and that a denial cancels the sale and refunds me in full.</span></label>
   </div>
   ${hasNFA()?`<p class="fineprint">The suppressor in this order requires ATF Form 4, fingerprints, and a $200 stamp. It stays in our safe until approval, which is currently running 20–45 days on eForms.</p>`:''}
-  ${nav(true,(!b.length&&CO.age&&CO.truth)?"CO.step=4;renderCheckout()":"alert('Tick both statements — and clear any blocked items — to continue.')")}</div>`;
+  ${nav(true,(!b.length&&CO.age&&CO.truth)?"CO.step=4;renderCheckout()":"coFail('Tick both statements to go on, and clear anything the check flagged above.')")}</div>`;
 }
 
 function step4(){
@@ -1987,15 +2009,12 @@ function step4(){
   </dl>
   <div class="okbox" style="margin-top:20px"><b>No payment is taken here</b>
    Card processing is not live yet. Sending this gives us your order and your dealer; we confirm stock and arrange payment with you directly.</div>
-  <p class="blockbox" id="coErr" hidden style="margin-top:16px"></p>
   ${nav(true,"placeOrder(this)","Send order request")}</div>`;
 }
 
 async function placeOrder(btn){
  btn.disabled=true;btn.textContent='Sending…';
- const fail=m=>{btn.disabled=false;btn.textContent='Try again';
-   const box=document.getElementById('coErr');
-   if(box){box.textContent=m;box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'center'})}else alert(m)};
+ const fail=m=>{btn.disabled=false;btn.textContent='Try again';coFail(m)};
  try{
   if(ORDERS_API){
    /* Send what we want, never what it costs. The server prices it. */
@@ -2121,11 +2140,11 @@ function mountBuyBar(i){
 
 /* ---------------- confirmations ---------------- */
 let toastTimer=null;
-function toast(msg,kind,cartLink){
+function toast(msg,kind,action){
  const el=document.getElementById('toast');
  el.className='toast'+(kind?' '+kind:'');
  el.innerHTML=`<span>${esc(msg)}</span>`
-  +(cartLink?`<button class="btn sm" onclick="closeToast();go('cart')">View cart</button>`:'')
+  +(action?`<button class="btn sm" onclick="closeToast();${action.run}">${esc(action.label)}</button>`:'')
   +`<button class="toast-x" onclick="closeToast()" aria-label="Dismiss">&times;</button>`;
  el.hidden=false;
  clearTimeout(toastTimer);
