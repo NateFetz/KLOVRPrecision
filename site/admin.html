@@ -1,0 +1,515 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>KLOVR Precision — Staff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* %TOKENS% — injected from site/index.html at build time, single source of truth */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:.94rem;line-height:1.55;-webkit-font-smoothing:antialiased;margin:0}
+h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.09em;font-weight:500;margin:0;line-height:1.15}
+p{margin:0} img{display:block;max-width:100%}
+:focus-visible{outline:2px solid var(--clover-2);outline-offset:2px}
+.lab{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:500}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input,select,textarea{font-family:var(--body);font-size:.9rem;padding:10px 12px;background:var(--surface);
+ border:1px solid var(--rule);color:var(--ink);width:100%;border-radius:0}
+input:focus,select:focus,textarea:focus{border-color:var(--clover);outline:none}
+label{display:flex;flex-direction:column;gap:5px}
+.btn{font-family:var(--disp);text-transform:uppercase;letter-spacing:.13em;font-weight:500;font-size:.72rem;
+ padding:11px 18px;border:1px solid var(--clover);background:var(--clover);color:#0D0D0D;cursor:pointer}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--clover)}
+.btn.sm{padding:7px 12px;font-size:.66rem}
+.btn.danger{background:none;color:var(--stop);border-color:var(--stop)}
+
+/* the honesty bar — this is a prototype holding shaped data, not a real system */
+.demobar{background:var(--gold-soft);border-bottom:1px solid var(--warn);padding:9px max(var(--s4),var(--safe-l));
+ display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:.8rem;color:var(--ink-2)}
+.demobar b{font-family:var(--mono);font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--warn)}
+
+/* ---- sign in ---- */
+.signin{min-height:100dvh;display:grid;place-items:center;padding:var(--s7) var(--s4)}
+.signin-card{width:100%;max-width:400px;border:1px solid var(--rule);background:var(--surface);padding:var(--s7) var(--pad-box)}
+.signin-card svg{height:56px;width:auto;margin:0 auto var(--s6);display:block}
+.signin-card h1{font-size:1.05rem;text-align:center;margin-bottom:var(--s2)}
+.signin-card .sub{text-align:center;color:var(--muted);font-size:.84rem;margin-bottom:var(--s6)}
+.signin-card form{display:flex;flex-direction:column;gap:var(--s3)}
+.signin-card .btn{margin-top:var(--s2);text-align:center}
+.warnbox{border-left:2px solid var(--warn);background:var(--gold-soft);padding:var(--s3);font-size:.78rem;
+ line-height:1.6;color:var(--ink-2);margin-top:var(--s5)}
+.warnbox b{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+ color:var(--warn);margin-bottom:4px}
+
+/* ---- shell ---- */
+.shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100dvh}
+.side{background:var(--surface);border-right:1px solid var(--rule);display:flex;flex-direction:column;
+ padding-left:var(--safe-l);position:sticky;top:0;height:100dvh;overflow-y:auto}
+.side-hd{padding:var(--s5) var(--s4) var(--s4);border-bottom:1px solid var(--rule)}
+.side-hd svg{height:38px;width:auto}
+.side nav{display:flex;flex-direction:column;padding:var(--s2) 0;flex:1}
+.side nav button{display:flex;align-items:center;gap:11px;background:none;border:0;color:var(--ink-2);
+ text-align:left;padding:12px var(--s4);cursor:pointer;font-family:var(--body);font-size:.9rem;
+ border-left:2px solid transparent}
+.side nav button:hover{color:var(--ink);background:var(--raised)}
+.side nav button[aria-current="page"]{color:var(--ink);background:var(--raised);border-left-color:var(--clover)}
+.side nav button .pill{margin-left:auto;font-family:var(--mono);font-size:.62rem;background:var(--clover);
+ color:#0D0D0D;padding:2px 6px}
+.side-ft{border-top:1px solid var(--rule);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s2)}
+.side-ft .who{font-size:.82rem}
+.side-ft .who b{display:block;font-weight:500}
+.main{min-width:0;padding-right:var(--safe-r)}
+.main-hd{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;
+ padding:var(--s6) var(--pad-box) var(--s5);border-bottom:1px solid var(--rule)}
+.main-hd h2{font-size:1.35rem}
+.main-hd p{color:var(--muted);font-size:.84rem;margin-top:5px}
+.main-body{padding:var(--s6) var(--pad-box) calc(var(--s8) + var(--safe-b))}
+
+/* ---- data ---- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--rule);
+ border:1px solid var(--rule);margin-bottom:var(--s6)}
+.stat{background:var(--ground);padding:var(--s4)}
+.stat b{display:block;font-family:var(--mono);font-size:1.5rem;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
+.stat.good b{color:var(--clover-2)} .stat.warn b{color:var(--warn)} .stat.money b{color:var(--gold)}
+.tablewrap{border:1px solid var(--rule);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{text-align:left;padding:11px var(--s3);border-bottom:1px solid var(--rule-2);white-space:nowrap}
+thead th{font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+ font-weight:500;background:var(--surface);border-bottom:1px solid var(--rule);position:sticky;top:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--raised)}
+tbody tr:last-child td{border-bottom:0}
+td.wrap{white-space:normal;min-width:200px}
+td.r{text-align:right}
+.pill{display:inline-block;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
+ padding:3px 7px;border:1px solid currentColor}
+.pill.new{color:var(--gold)} .pill.paid{color:var(--clover-2)} .pill.ffl{color:var(--stop)}
+.pill.ship{color:var(--clover)} .pill.done{color:var(--muted)} .pill.hold{color:var(--warn)}
+.dot{width:7px;height:7px;display:inline-block;background:currentColor;margin-right:7px;vertical-align:middle}
+
+/* ---- detail panel ---- */
+.panel{position:fixed;top:0;right:0;bottom:0;width:min(92vw,520px);background:var(--surface);
+ border-left:1px solid var(--rule);z-index:60;display:flex;flex-direction:column;
+ box-shadow:-20px 0 60px -24px rgba(0,0,0,.9);padding-right:var(--safe-r)}
+.panel-hd{padding:var(--s5) var(--pad-box);border-bottom:1px solid var(--rule);display:flex;
+ justify-content:space-between;align-items:flex-start;gap:var(--s3)}
+.panel-hd h3{font-size:1.05rem}
+.panel-x{background:none;border:0;color:var(--ink-2);font-size:1.6rem;line-height:1;cursor:pointer;padding:0 4px}
+.panel-body{padding:var(--s5) var(--pad-box) calc(var(--s7) + var(--safe-b));overflow-y:auto;flex:1;
+ display:flex;flex-direction:column;gap:var(--s5)}
+.panel-body h4{font-size:.76rem;letter-spacing:.14em;color:var(--clover);margin-bottom:var(--s3)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:7px var(--s4);font-size:.86rem}
+.kv dt{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding-top:3px}
+.kv dd{margin:0;color:var(--ink-2)}
+.linerow{display:flex;justify-content:space-between;gap:var(--s3);padding:9px 0;border-bottom:1px dotted var(--rule);font-size:.85rem}
+.panel-acts{display:flex;gap:var(--s2);flex-wrap:wrap}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55;border:0}
+.fields{display:flex;flex-direction:column;gap:var(--s3)}
+.fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+.hint{font-family:var(--mono);font-size:.66rem;color:var(--muted);line-height:1.6}
+
+/* ---- quickbooks ---- */
+.qb{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--s4);margin-bottom:var(--s6)}
+.qbcard{border:1px solid var(--rule);background:var(--surface);padding:var(--pad-box);display:flex;flex-direction:column;gap:var(--s3)}
+.qbcard h3{font-size:.88rem;letter-spacing:.12em}
+.qbcard p{font-size:.84rem;color:var(--ink-2);line-height:1.6}
+.qbstatus{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.qbstatus.off{color:var(--muted)} .qbstatus.on{color:var(--clover-2)}
+.maprow{display:grid;grid-template-columns:1fr auto 1fr;gap:var(--s3);align-items:center;padding:10px 0;
+ border-bottom:1px dotted var(--rule);font-size:.84rem}
+.maprow span:nth-child(2){color:var(--muted);font-family:var(--mono)}
+.toolbar{display:flex;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s4);align-items:center}
+.toolbar input{max-width:260px}
+.chip{font-family:var(--mono);font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;padding:7px 11px;
+ border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--clover);color:#0D0D0D;border-color:var(--clover)}
+.savedmsg{font-family:var(--mono);font-size:.7rem;color:var(--clover-2);letter-spacing:.08em}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;gap:var(--s3);
+    border-right:0;border-bottom:1px solid var(--rule);overflow-x:auto;padding:0 var(--s3)}
+  .side-hd{border-bottom:0;padding:var(--s3) var(--s3) var(--s3) 0;flex:0 0 auto}
+  .side-hd svg{height:30px}
+  .side nav{flex-direction:row;padding:0;flex:0 0 auto}
+  .side nav button{white-space:nowrap;border-left:0;border-bottom:2px solid transparent;padding:14px var(--s3)}
+  .side nav button[aria-current="page"]{border-left:0;border-bottom-color:var(--clover)}
+  .side-ft{border-top:0;flex-direction:row;align-items:center;margin-left:auto;flex:0 0 auto;padding:var(--s3) 0}
+  .side-ft .who{display:none}
+  .main-hd,.main-body{padding-left:var(--s4);padding-right:var(--s4)}
+  .fieldrow{grid-template-columns:1fr}
+}
+</style>
+
+<div class="demobar">
+  <b>Prototype</b>
+  <span>Interface only. Sign-in is not real, nothing is stored on a server, and the records below are made up. A working staff area needs a backend — see the README.</span>
+</div>
+
+<!-- ===== SIGN IN ===== -->
+<div class="signin" id="signin">
+  <div class="signin-card">
+    <!-- %LOGO% -->
+    <h1>Staff sign in</h1>
+    <p class="sub">KLOVR Precision</p>
+    <form onsubmit="return signIn(event)">
+      <label><span class="lab">Work email</span><input type="email" id="suEmail" value="shawn@klovrprecision.com" required></label>
+      <label><span class="lab">Password</span><input type="password" id="suPass" value="demo" required></label>
+      <button class="btn" type="submit">Sign in</button>
+    </form>
+    <div class="warnbox"><b>Not a real login</b>
+      Any details are accepted and nothing is checked. A login enforced in the browser is no login at all &mdash; anyone can read past it. Real staff accounts need server-side authentication before this holds a single customer record.</div>
+  </div>
+</div>
+
+<!-- ===== SHELL ===== -->
+<div class="shell" id="shell" hidden>
+  <aside class="side">
+    <div class="side-hd"><!-- %LOGO% --></div>
+    <nav id="adminNav">
+      <button data-v="orders" aria-current="page">Orders <span class="pill" id="navNew">0</span></button>
+      <button data-v="shipments">Shipments</button>
+      <button data-v="products">Products</button>
+      <button data-v="quickbooks">QuickBooks</button>
+    </nav>
+    <div class="side-ft">
+      <div class="who"><b id="whoName">—</b><span class="lab" id="whoRole">Staff</span></div>
+      <button class="btn ghost sm" onclick="signOut()">Sign out</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="main-hd"><div><h2 id="pgTitle">Orders</h2><p id="pgSub"></p></div><div id="pgActions"></div></div>
+    <div class="main-body" id="pgBody"></div>
+  </main>
+</div>
+<div class="scrim" id="scrim" hidden onclick="closePanel()"></div>
+<div class="panel" id="panel" hidden></div>
+
+<script>
+const LS={get:(k,d)=>{try{const v=localStorage.getItem('klovradmin.'+k);return v?JSON.parse(v):d}catch(e){return d}},
+         set:(k,v)=>{try{localStorage.setItem('klovradmin.'+k,JSON.stringify(v))}catch(e){}}};
+const usd=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
+
+/* ---- shaped sample records. None of this is real. ---- */
+const SEED_ORDERS=[
+ {id:'KP-1058',date:'2026-09-11',cust:{name:'Dale Whitaker',email:'dwhitaker@example.com',phone:'(406) 555-0142'},
+  dest:'ffl',ffl:{name:'Cedar Creek Arms',lic:'1-XX-XXX-XX-XX-00412',addr:'118 Mill Street, Bozeman, MT 59715'},
+  lines:[{sku:'rifle-cm',name:'KLOVR Complete Rifle — 6.5 Creedmoor',qty:1,price:4850}],status:'new',tracking:'',qb:''},
+ {id:'KP-1057',date:'2026-09-11',cust:{name:'Marisol Reyes',email:'m.reyes@example.com',phone:'(307) 555-0188'},
+  dest:'door',addr:'4402 Jackrabbit Lane, Belgrade, MT 59714',
+  lines:[{sku:'act-short',name:'KLOVR Short Action — Burnt Bronze',qty:1,price:1395},
+         {sku:'rings-34',name:'34 mm rings — burnt bronze',qty:1,price:189}],status:'paid',tracking:'',qb:''},
+ {id:'KP-1056',date:'2026-09-10',cust:{name:'Owen Brandt',email:'obrandt@example.com',phone:'(208) 555-0119'},
+  dest:'ffl',ffl:{name:'Bridger Firearms & Supply',lic:'1-XX-XXX-XX-XX-02275',addr:'7 North Rouse Avenue, Bozeman, MT 59715'},
+  lines:[{sku:'sup-65',name:'Titanium suppressor — 6.5 mm',qty:1,price:949}],status:'hold',tracking:'',qb:'INV-2041',
+  note:'NFA. Form 4 submitted 3 Sep, awaiting stamp. Held in safe.'},
+ {id:'KP-1055',date:'2026-09-09',cust:{name:'Priya Raman',email:'praman@example.com',phone:'(406) 555-0164'},
+  dest:'door',addr:'910 Cottonwood Road, Bozeman, MT 59718',
+  lines:[{sku:'chs-bronze',name:'KLOVR Chassis — Burnt Bronze',qty:1,price:1150}],status:'shipped',tracking:'1Z999AA10123456784',qb:'INV-2039'},
+ {id:'KP-1054',date:'2026-09-08',cust:{name:'Hank Osgood',email:'hosgood@example.com',phone:'(406) 555-0177'},
+  dest:'ffl',ffl:{name:'Gallatin Valley Outfitters',lic:'1-XX-XXX-XX-XX-01188',addr:'4402 Jackrabbit Lane, Belgrade, MT 59714'},
+  lines:[{sku:'rifle-wm',name:'KLOVR Complete Rifle — .300 Win Magnum',qty:1,price:5290}],status:'ffl',tracking:'1Z999AA10123456712',qb:'INV-2038'},
+ {id:'KP-1053',date:'2026-09-06',cust:{name:'Tomas Lindqvist',email:'tlind@example.com',phone:'(541) 555-0133'},
+  dest:'door',addr:'22 Bear Canyon Road, Bozeman, MT 59715',
+  lines:[{sku:'bbl-65',name:'Pre-fit barrel — 6.5 CM, 22″ fluted',qty:1,price:520},
+         {sku:'bolt-sa',name:'Spare bolt assembly',qty:1,price:385}],status:'complete',tracking:'1Z999AA10123456701',qb:'INV-2036'},
+ {id:'KP-1052',date:'2026-09-05',cust:{name:'Rachel Nkemdirim',email:'rnk@example.com',phone:'(720) 555-0155'},
+  dest:'ffl',ffl:{name:'Cedar Creek Arms',lic:'1-XX-XXX-XX-XX-00412',addr:'118 Mill Street, Bozeman, MT 59715'},
+  lines:[{sku:'rifle-cm',name:'KLOVR Complete Rifle — 6.5 Creedmoor',qty:1,price:4850}],status:'complete',tracking:'1Z999AA10123456698',qb:'INV-2034'},
+ {id:'KP-1051',date:'2026-09-04',cust:{name:'Gus Pelletier',email:'gpell@example.com',phone:'(406) 555-0102'},
+  dest:'door',addr:'88 Sourdough Road, Bozeman, MT 59715',
+  lines:[{sku:'bipod-carb',name:'Carbon bipod, 7–10″',qty:1,price:379}],status:'complete',tracking:'1Z999AA10123456677',qb:'INV-2033'}
+];
+const SEED_PRODUCTS=[
+ {sku:'act-short',name:'KLOVR Short Action — Burnt Bronze',cat:'Actions',price:1395,stock:8,ffl:false,nfa:false,live:true},
+ {sku:'act-magnum',name:'KLOVR Magnum Action — Burnt Bronze',cat:'Actions',price:1495,stock:3,ffl:false,nfa:false,live:true},
+ {sku:'chs-bronze',name:'KLOVR Chassis — Burnt Bronze',cat:'Chassis',price:1150,stock:5,ffl:false,nfa:false,live:true},
+ {sku:'chs-skel',name:'KLOVR Chassis — Skeletonized',cat:'Chassis',price:1150,stock:0,ffl:false,nfa:false,live:true},
+ {sku:'rifle-cm',name:'KLOVR Complete Rifle — 6.5 Creedmoor',cat:'Rifles',price:4850,stock:0,ffl:true,nfa:false,live:true},
+ {sku:'rifle-wm',name:'KLOVR Complete Rifle — .300 Win Magnum',cat:'Rifles',price:5290,stock:0,ffl:true,nfa:false,live:true},
+ {sku:'bbl-65',name:'Pre-fit barrel — 6.5 CM, 22″ fluted',cat:'Barrels',price:520,stock:11,ffl:false,nfa:false,live:true},
+ {sku:'bolt-sa',name:'Spare bolt assembly',cat:'Barrels',price:385,stock:6,ffl:false,nfa:false,live:true},
+ {sku:'opt-3510',name:'3.5–10×40 hunting scope',cat:'Optics',price:649,stock:6,ffl:false,nfa:false,live:true},
+ {sku:'opt-41650',name:'4–16×50 long-range scope',cat:'Optics',price:1199,stock:2,ffl:false,nfa:false,live:true},
+ {sku:'rings-34',name:'34 mm rings — burnt bronze',cat:'Mounts',price:189,stock:9,ffl:false,nfa:false,live:true},
+ {sku:'ammo-65',name:'6.5 Creedmoor — 140 gr match',cat:'Ammunition',price:41.5,stock:34,ffl:false,nfa:false,live:true},
+ {sku:'bipod-carb',name:'Carbon bipod, 7–10″',cat:'Gear',price:379,stock:7,ffl:false,nfa:false,live:true},
+ {sku:'case-48',name:'Takedown rifle case, 48″',cat:'Gear',price:189,stock:4,ffl:false,nfa:false,live:true},
+ {sku:'sup-65',name:'Titanium suppressor — 6.5 mm',cat:'Suppressors',price:949,stock:1,ffl:true,nfa:true,live:true}
+];
+let ORDERS=LS.get('orders',SEED_ORDERS), PRODUCTS=LS.get('products',SEED_PRODUCTS);
+let QB=LS.get('qb',{connected:false,realm:'',lastSync:'',log:[]});
+const saveO=()=>LS.set('orders',ORDERS), saveP=()=>LS.set('products',PRODUCTS), saveQ=()=>LS.set('qb',QB);
+const STATUS={new:['new','New'],paid:['paid','Paid'],hold:['hold','On hold'],ffl:['ffl','At dealer'],
+              ship:['ship','Shipped'],shipped:['ship','Shipped'],complete:['done','Complete']};
+const pill=s=>{const [c,t]=STATUS[s]||['done',s];return `<span class="pill ${c}"><i class="dot"></i>${t}</span>`};
+const total=o=>o.lines.reduce((n,l)=>n+l.price*l.qty,0);
+
+/* ---------------- session (prototype only) ---------------- */
+function signIn(e){
+ e.preventDefault();
+ const email=document.getElementById('suEmail').value.trim();
+ LS.set('who',{email,name:email.split('@')[0].replace(/(^|\.)([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace('.',' '),role:'Staff'});
+ boot(); return false;
+}
+function signOut(){LS.set('who',null);location.reload()}
+function boot(){
+ const who=LS.get('who',null);
+ document.getElementById('signin').hidden=!!who;
+ document.getElementById('shell').hidden=!who;
+ if(!who)return;
+ document.getElementById('whoName').textContent=who.name||who.email;
+ document.getElementById('whoRole').textContent=who.role||'Staff';
+ document.getElementById('navNew').textContent=ORDERS.filter(o=>o.status==='new').length;
+ show(LS.get('page','orders'));
+}
+/* ---------------- navigation ---------------- */
+const PAGES={
+ orders:{t:'Orders',s:'Everything that has come through the storefront.',r:renderOrders},
+ shipments:{t:'Shipments',s:'Firearms go to a dealer; everything else goes to the customer.',r:renderShipments},
+ products:{t:'Products',s:'Pricing, stock, and how each item is allowed to be delivered.',r:renderProducts},
+ quickbooks:{t:'QuickBooks',s:'Sync customers, invoices, and payments.',r:renderQB}
+};
+function show(v){
+ if(!PAGES[v])v='orders';
+ LS.set('page',v);
+ document.querySelectorAll('#adminNav button').forEach(b=>
+   b.dataset.v===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+ document.getElementById('pgTitle').textContent=PAGES[v].t;
+ document.getElementById('pgSub').textContent=PAGES[v].s;
+ document.getElementById('pgActions').innerHTML='';
+ closePanel();
+ PAGES[v].r();
+}
+document.getElementById('adminNav').addEventListener('click',e=>{
+ const b=e.target.closest('button'); if(b)show(b.dataset.v);});
+
+/* ---------------- detail panel ---------------- */
+function openPanel(html){
+ document.getElementById('panel').innerHTML=html;
+ document.getElementById('panel').hidden=false;
+ document.getElementById('scrim').hidden=false;
+}
+function closePanel(){
+ document.getElementById('panel').hidden=true;
+ document.getElementById('scrim').hidden=true;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel()});
+
+/* ---------------- orders ---------------- */
+function renderOrders(){
+ const mtd=ORDERS.filter(o=>o.date>='2026-09-01').reduce((n,o)=>n+total(o),0);
+ document.getElementById('pgBody').innerHTML=`
+  <div class="stats">
+   <div class="stat"><span class="lab">New</span><b>${ORDERS.filter(o=>o.status==='new').length}</b></div>
+   <div class="stat warn"><span class="lab">On hold</span><b>${ORDERS.filter(o=>o.status==='hold').length}</b></div>
+   <div class="stat"><span class="lab">At a dealer</span><b>${ORDERS.filter(o=>o.status==='ffl').length}</b></div>
+   <div class="stat money"><span class="lab">September</span><b>${usd(mtd)}</b></div>
+  </div>
+  <div class="tablewrap"><table><thead><tr>
+    <th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Status</th><th class="r">Total</th></tr></thead>
+   <tbody>${ORDERS.map(o=>`<tr onclick="openOrder('${o.id}')">
+     <td class="num">${o.id}</td><td class="num">${o.date}</td>
+     <td class="wrap">${o.cust.name}</td>
+     <td class="wrap">${o.lines.map(l=>l.qty+'× '+l.name).join('<br>')}</td>
+     <td>${o.dest==='ffl'?'<span class="pill ffl">To dealer</span>':'<span class="pill ship">To door</span>'}</td>
+     <td>${pill(o.status)}</td><td class="r num">${usd(total(o))}</td></tr>`).join('')}</tbody></table></div>`;
+}
+const NEXT={new:'paid',paid:'ffl',ffl:'complete',hold:'paid',ship:'complete',shipped:'complete'};
+const NEXTLABEL={new:'Mark paid',paid:'Mark sent to dealer',ffl:'Mark transferred',hold:'Release hold',ship:'Mark complete',shipped:'Mark complete'};
+function openOrder(id){
+ const o=ORDERS.find(x=>x.id===id); if(!o)return;
+ openPanel(`
+  <div class="panel-hd"><div><h3>${o.id}</h3><p class="lab">${o.date} · ${pill(o.status)}</p></div>
+   <button class="panel-x" onclick="closePanel()" aria-label="Close">&times;</button></div>
+  <div class="panel-body">
+   ${o.note?`<div class="warnbox"><b>Note</b>${o.note}</div>`:''}
+   <div><h4>Customer</h4><dl class="kv">
+     <dt>Name</dt><dd>${o.cust.name}</dd><dt>Email</dt><dd>${o.cust.email}</dd><dt>Phone</dt><dd class="num">${o.cust.phone}</dd></dl></div>
+   <div><h4>${o.dest==='ffl'?'Receiving dealer':'Delivery address'}</h4>
+    ${o.dest==='ffl'
+      ? `<dl class="kv"><dt>Dealer</dt><dd>${o.ffl.name}</dd><dt>Address</dt><dd>${o.ffl.addr}</dd>
+         <dt>FFL</dt><dd class="num">${o.ffl.lic}</dd></dl>
+         <p class="hint" style="margin-top:10px">Verify the licence is current on ATF eZ Check before shipping.</p>`
+      : `<p>${o.addr}</p>`}</div>
+   <div><h4>Items</h4>
+    ${o.lines.map(l=>`<div class="linerow"><span>${l.qty}× ${l.name}</span><span class="num">${usd(l.price*l.qty)}</span></div>`).join('')}
+    <div class="linerow" style="border-bottom:0"><b>Total</b><b class="num" style="color:var(--gold)">${usd(total(o))}</b></div></div>
+   <div><h4>Shipping</h4>
+    <label><span class="lab">Tracking number</span><input id="trk" value="${o.tracking||''}" placeholder="Add when it ships"></label>
+    <div class="panel-acts" style="margin-top:12px"><button class="btn sm" onclick="saveTracking('${o.id}')">Save tracking</button></div></div>
+   <div><h4>QuickBooks</h4><dl class="kv"><dt>Invoice</dt><dd>${o.qb?'<span class="num">'+o.qb+'</span>':'Not synced'}</dd></dl>
+    ${!o.qb?`<div class="panel-acts" style="margin-top:12px"><button class="btn ghost sm" onclick="pushQB('${o.id}')">Create invoice</button></div>`:''}</div>
+   <div class="panel-acts">
+    ${NEXT[o.status]?`<button class="btn" onclick="advance('${o.id}')">${NEXTLABEL[o.status]}</button>`:''}
+    ${o.status!=='hold'&&o.status!=='complete'?`<button class="btn ghost" onclick="holdOrder('${o.id}')">Put on hold</button>`:''}
+   </div>
+  </div>`);
+}
+function advance(id){const o=ORDERS.find(x=>x.id===id);o.status=NEXT[o.status]||o.status;saveO();renderOrders();openOrder(id);
+ document.getElementById('navNew').textContent=ORDERS.filter(x=>x.status==='new').length;}
+function holdOrder(id){const o=ORDERS.find(x=>x.id===id);o.status='hold';saveO();renderOrders();openOrder(id);}
+function saveTracking(id){const o=ORDERS.find(x=>x.id===id);o.tracking=document.getElementById('trk').value.trim();
+ if(o.tracking&&o.status==='paid')o.status=o.dest==='ffl'?'ffl':'ship';
+ saveO();renderOrders();openOrder(id);}
+function pushQB(id){
+ if(!QB.connected){alert('Connect QuickBooks first — see the QuickBooks page.');return;}
+ const o=ORDERS.find(x=>x.id===id);
+ o.qb='INV-'+(2042+ORDERS.filter(x=>x.qb).length);
+ QB.log.unshift({t:new Date().toISOString().slice(0,16).replace('T',' '),m:'Invoice '+o.qb+' created for '+o.id});
+ saveO();saveQ();openOrder(id);
+}
+
+/* ---------------- shipments ---------------- */
+function renderShipments(){
+ const open=ORDERS.filter(o=>o.status!=='complete');
+ document.getElementById('pgBody').innerHTML=`
+  <div class="stats">
+   <div class="stat warn"><span class="lab">Awaiting despatch</span><b>${ORDERS.filter(o=>!o.tracking&&o.status!=='complete'&&o.status!=='hold').length}</b></div>
+   <div class="stat"><span class="lab">In transit</span><b>${ORDERS.filter(o=>o.tracking&&o.status!=='complete').length}</b></div>
+   <div class="stat good"><span class="lab">Delivered</span><b>${ORDERS.filter(o=>o.status==='complete').length}</b></div>
+   <div class="stat"><span class="lab">Held</span><b>${ORDERS.filter(o=>o.status==='hold').length}</b></div>
+  </div>
+  <div class="tablewrap"><table><thead><tr>
+   <th>Order</th><th>Goes to</th><th>Destination</th><th>Tracking</th><th>Status</th></tr></thead>
+   <tbody>${open.map(o=>`<tr onclick="openOrder('${o.id}')">
+    <td class="num">${o.id}</td>
+    <td>${o.dest==='ffl'?'<span class="pill ffl">Licensed dealer</span>':'<span class="pill ship">Customer</span>'}</td>
+    <td class="wrap">${o.dest==='ffl'
+      ? `<b>${o.ffl.name}</b><br><span class="hint">${o.ffl.addr}<br>FFL ${o.ffl.lic}</span>`
+      : `${o.cust.name}<br><span class="hint">${o.addr}</span>`}</td>
+    <td class="num">${o.tracking||'<span class="hint">—</span>'}</td>
+    <td>${pill(o.status)}</td></tr>`).join('')}</tbody></table></div>
+  <p class="hint" style="margin-top:16px">A firearm may only be despatched to the licensed dealer on the order. Check the licence on ATF eZ Check before it leaves the bench.</p>`;
+}
+
+/* ---------------- products ---------------- */
+let pFilter='';
+function renderProducts(){
+ document.getElementById('pgActions').innerHTML=`<button class="btn" onclick="editProduct(null)">Add product</button>`;
+ const rows=PRODUCTS.filter(p=>!pFilter||(p.name+p.sku+p.cat).toLowerCase().includes(pFilter.toLowerCase()));
+ document.getElementById('pgBody').innerHTML=`
+  <div class="toolbar">
+   <input placeholder="Search products" value="${pFilter}" oninput="pFilter=this.value;renderProducts()">
+   <span class="hint">${rows.length} of ${PRODUCTS.length}</span>
+  </div>
+  <div class="tablewrap"><table><thead><tr>
+   <th>Product</th><th>SKU</th><th>Category</th><th class="r">Price</th><th class="r">Stock</th><th>Delivery</th><th>Status</th></tr></thead>
+   <tbody>${rows.map(p=>`<tr onclick="editProduct('${p.sku}')">
+    <td class="wrap">${p.name}</td><td class="num">${p.sku}</td><td>${p.cat}</td>
+    <td class="r num" style="color:var(--gold)">${usd(p.price)}</td>
+    <td class="r num">${p.stock||'<span class="hint">built to order</span>'}</td>
+    <td>${p.nfa?'<span class="pill hold">NFA</span>':p.ffl?'<span class="pill ffl">Dealer</span>':'<span class="pill ship">Door</span>'}</td>
+    <td>${p.live?'<span class="pill paid">Live</span>':'<span class="pill done">Hidden</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function editProduct(sku){
+ const p=sku?PRODUCTS.find(x=>x.sku===sku):{sku:'',name:'',cat:'',price:0,stock:0,ffl:false,nfa:false,live:false};
+ const isNew=!sku;
+ openPanel(`
+  <div class="panel-hd"><div><h3>${isNew?'New product':p.name}</h3>
+   <p class="lab">${isNew?'Adds to the catalogue':'SKU '+p.sku}</p></div>
+   <button class="panel-x" onclick="closePanel()" aria-label="Close">&times;</button></div>
+  <div class="panel-body">
+   <div class="fields">
+    <label><span class="lab">Name</span><input id="pName" value="${p.name}"></label>
+    <div class="fieldrow">
+     <label><span class="lab">SKU</span><input id="pSku" value="${p.sku}" ${isNew?'':'readonly'}></label>
+     <label><span class="lab">Category</span><input id="pCat" value="${p.cat}"></label>
+    </div>
+    <div class="fieldrow">
+     <label><span class="lab">Price, USD</span><input id="pPrice" class="num" inputmode="decimal" value="${p.price}"></label>
+     <label><span class="lab">Stock on hand</span><input id="pStock" class="num" inputmode="numeric" value="${p.stock}"></label>
+    </div>
+    <label><span class="lab">Delivery</span>
+     <select id="pDel">
+      <option value="door" ${!p.ffl?'selected':''}>Ships to the customer</option>
+      <option value="ffl" ${p.ffl&&!p.nfa?'selected':''}>Must go to a licensed dealer</option>
+      <option value="nfa" ${p.nfa?'selected':''}>NFA — dealer plus stamp</option>
+     </select></label>
+    <label><span class="lab">Visibility</span>
+     <select id="pLive"><option value="1" ${p.live?'selected':''}>Live on the site</option>
+      <option value="0" ${!p.live?'selected':''}>Hidden</option></select></label>
+   </div>
+   <p class="hint">Delivery is not a label — it drives checkout. Anything marked for a dealer cannot be sent to a home address, and the cart enforces it.</p>
+   <div class="panel-acts">
+    <button class="btn" onclick="saveProduct('${sku||''}')">${isNew?'Add product':'Save changes'}</button>
+    ${isNew?'':`<button class="btn danger sm" onclick="deleteProduct('${p.sku}')">Delete</button>`}
+   </div>
+   <p class="savedmsg" id="pSaved" hidden>Saved</p>
+  </div>`);
+}
+function saveProduct(sku){
+ const g=id=>document.getElementById(id).value.trim();
+ const del=g('pDel');
+ const rec={sku:g('pSku'),name:g('pName'),cat:g('pCat'),price:parseFloat(g('pPrice'))||0,
+   stock:parseInt(g('pStock'),10)||0,ffl:del!=='door',nfa:del==='nfa',live:g('pLive')==='1'};
+ if(!rec.sku||!rec.name){alert('A product needs a SKU and a name.');return}
+ const i=PRODUCTS.findIndex(x=>x.sku===(sku||rec.sku));
+ if(i>-1)PRODUCTS[i]=rec; else PRODUCTS.push(rec);
+ saveP(); renderProducts();
+ const m=document.getElementById('pSaved'); if(m){m.hidden=false;setTimeout(()=>m.hidden=true,1600)}
+}
+function deleteProduct(sku){
+ if(!confirm('Remove '+sku+' from the catalogue?'))return;
+ PRODUCTS=PRODUCTS.filter(x=>x.sku!==sku); saveP(); closePanel(); renderProducts();
+}
+
+/* ---------------- quickbooks ---------------- */
+function renderQB(){
+ document.getElementById('pgActions').innerHTML=QB.connected
+   ? `<button class="btn" onclick="syncQB()">Sync now</button>` : '';
+ document.getElementById('pgBody').innerHTML=`
+  <div class="qb">
+   <div class="qbcard">
+    <h3>Connection</h3>
+    <div class="qbstatus ${QB.connected?'on':'off'}"><i class="dot"></i>${QB.connected?'Connected':'Not connected'}</div>
+    ${QB.connected
+      ? `<dl class="kv"><dt>Company</dt><dd class="num">${QB.realm}</dd><dt>Last sync</dt><dd class="num">${QB.lastSync||'never'}</dd></dl>
+         <button class="btn ghost sm" onclick="disconnectQB()">Disconnect</button>`
+      : `<p>Link the QuickBooks Online company so orders become invoices and payments reconcile themselves.</p>
+         <button class="btn" onclick="connectQB()">Connect to QuickBooks</button>`}
+   </div>
+   <div class="qbcard">
+    <h3>What syncs</h3>
+    <dl class="kv">
+     <dt>Customers</dt><dd>Created from orders, matched on email</dd>
+     <dt>Items</dt><dd>Mapped by SKU, see below</dd>
+     <dt>Invoices</dt><dd>One per order, raised when it is marked paid</dd>
+     <dt>Payments</dt><dd>Applied against the invoice from the processor</dd>
+    </dl>
+   </div>
+   <div class="qbcard">
+    <h3>Needs a backend</h3>
+    <p>QuickBooks uses OAuth 2.0 with refresh tokens that must be held and renewed on a server. A browser cannot hold them safely, so this panel is the interface only &mdash; the connection itself is not real.</p>
+   </div>
+  </div>
+  <h3 style="font-size:.86rem;letter-spacing:.13em;color:var(--clover);margin:0 0 12px">Item mapping</h3>
+  <div class="tablewrap" style="margin-bottom:28px"><table><thead><tr>
+   <th>KLOVR SKU</th><th>Product</th><th>QuickBooks item</th><th>Income account</th></tr></thead>
+   <tbody>${PRODUCTS.slice(0,8).map(p=>`<tr>
+    <td class="num">${p.sku}</td><td class="wrap">${p.name}</td>
+    <td class="num">${QB.connected?'QB:'+p.sku.toUpperCase():'<span class="hint">—</span>'}</td>
+    <td>${QB.connected?(p.ffl?'Firearm sales':'Parts &amp; accessories'):'<span class="hint">—</span>'}</td></tr>`).join('')}</tbody></table></div>
+  <h3 style="font-size:.86rem;letter-spacing:.13em;color:var(--clover);margin:0 0 12px">Activity</h3>
+  <div class="tablewrap"><table><thead><tr><th>When</th><th>Event</th></tr></thead>
+   <tbody>${QB.log.length?QB.log.map(l=>`<tr><td class="num">${l.t}</td><td class="wrap">${l.m}</td></tr>`).join('')
+     :'<tr><td colspan="2" class="hint">Nothing yet.</td></tr>'}</tbody></table></div>`;
+}
+function connectQB(){
+ QB.connected=true; QB.realm='9341 4520 1188 7723';
+ QB.log.unshift({t:new Date().toISOString().slice(0,16).replace('T',' '),m:'Connected to QuickBooks Online (prototype — no real authorisation took place)'});
+ saveQ(); renderQB();
+}
+function disconnectQB(){QB.connected=false;QB.realm='';saveQ();renderQB();}
+function syncQB(){
+ const n=ORDERS.filter(o=>!o.qb&&o.status!=='new').length;
+ QB.lastSync=new Date().toISOString().slice(0,16).replace('T',' ');
+ QB.log.unshift({t:QB.lastSync,m:n?`Sync finished — ${n} order${n>1?'s':''} ready to invoice`:'Sync finished — nothing to send'});
+ saveQ(); renderQB();
+}
+boot();
+</script>

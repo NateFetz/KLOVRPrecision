@@ -88,6 +88,39 @@ sips -Z  820 -s formatOptions 68 site/web/hero-rifle.jpg --out site/web/hero-rif
 
 Widths in use: hero 1800/820 · gallery 1400/700 · cards 900/520 · portraits 1100/620.
 
+## Staff area — `/admin`
+
+**Interface prototype only. There is no authentication.** Sign-in accepts
+anything, records live in `localStorage`, and the QuickBooks connection is
+simulated. It is `noindex` and disallowed in robots.txt, but that is not
+security — do not put a real customer record near it as it stands.
+
+Built as its own document (`site/admin.html`) so it never ships in the bundle
+public visitors download. Design tokens and the logo are injected from
+`site/index.html` at build time, so the two cannot drift.
+
+What it covers: orders with a status pipeline and per-order detail, shipments
+split by whether they go to a dealer or a customer, product management
+(pricing, stock, delivery rules, visibility), and a QuickBooks panel with item
+mapping and an activity log.
+
+### To make it real
+
+| Need | Why the browser cannot do it |
+|---|---|
+| Staff accounts | A login enforced in JavaScript can be read straight past |
+| Orders, products | Must be a database the public site reads from, not `localStorage` |
+| QuickBooks | OAuth 2.0 refresh tokens must be held and renewed server-side |
+
+Recommended: **Supabase** (Postgres, auth, row-level security) for data and
+sign-in, plus a **Netlify Function** to hold the QuickBooks token exchange. The
+public site stays static; only the staff area talks to the API. The data shapes
+in `site/admin.html` — `SEED_ORDERS`, `SEED_PRODUCTS` — are deliberately close
+to what those tables should look like.
+
+QuickBooks target is **QuickBooks Online**; Desktop would need the Web Connector
+instead and is materially more limited.
+
 ## Spacing
 
 One 4px scale, exposed as tokens. Use these rather than inventing values:

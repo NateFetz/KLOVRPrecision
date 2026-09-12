@@ -157,6 +157,36 @@ ${b}
   fs.writeFileSync(path.join(dir, 'index.html'), doc);
 }
 
+
+/* ---- staff area: its own document, not part of the public bundle ---- */
+{
+  const adminSrc = fs.readFileSync('site/admin.html', 'utf8');
+  // single source of truth: tokens and the logo come from the public page
+  const tokens = src.match(/:root\{[\s\S]*?\n\}/)[0];
+  const logo   = src.match(/<span class="on-dark">([\s\S]*?)<\/span>/)[1];
+
+  const cut  = adminSrc.indexOf('<div class="demobar">');
+  let head   = adminSrc.slice(0, cut).replace(/\/\* %TOKENS%[^\n]*\*\//, tokens);
+  const body = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
+  head = head.replace(/<meta charset="utf-8">\n?/, '').replace(/<meta name="viewport"[^>]*>\n?/, '');
+
+  const doc = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D0D0D">
+${head}
+</head>
+<body>
+${body}
+</body>
+</html>`;
+  fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
+  fs.writeFileSync(path.join(OUT, 'admin', 'index.html'), doc);
+  console.log('  /admin  (staff prototype, noindex)');
+}
+
 // sitemap + robots so the new routes get found
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
 `<?xml version="1.0" encoding="UTF-8"?>
@@ -164,7 +194,8 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
 ${ROUTES.filter(r => !r.noindex).map(r => `  <url><loc>${SITE}/${r.path}</loc></url>`).join('\n')}
 </urlset>
 `);
-fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
+fs.writeFileSync(path.join(OUT, 'robots.txt'),
+  `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nDisallow: /wishlist\nSitemap: ${SITE}/sitemap.xml\n`);
 
 console.log(`built ${ROUTES.length} routes into ${OUT}/ against ${SITE}`);
 console.log(ROUTES.map(r => '  /' + r.path).join('\n'));
