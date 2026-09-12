@@ -79,5 +79,8 @@ CSS padding rather than baked into the file.
 
 Pricing, address, phone, FFL number, inventory counts, and the dealer catalogue
 (optics, mounts, ammunition, gear, suppressors) are stand-ins. Every KLOVR-made
-product uses real photography. A short disclosure to this effect sits in the
-page footer — remove it when the real details go in.
+product uses real photography.
+
+There is no longer any on-page notice saying so, so treat the site as if a
+customer will read those numbers as real — swap them before it goes anywhere
+public-facing.
