@@ -40,6 +40,9 @@
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:var(--fs-body);line-height:1.6;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em;font-weight:500;text-wrap:balance;margin:0;line-height:1.12}
 p{margin:0} a{color:inherit} img{display:block;max-width:100%}
+/* <picture> exists only to offer the AVIF; it must not become a box, or the
+   rules that size an image against its container would be measuring it. */
+picture{display:contents}
 :focus-visible{outline:2px solid var(--clover-2);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gut),var(--safe-l));padding-right:max(var(--gut),var(--safe-r))}
 .nf-search{max-width:420px;margin-bottom:var(--s7)}
@@ -868,7 +871,7 @@ footer{padding:var(--s7) 0 calc(var(--s8) + var(--safe-b))}
 <div class="lbox" id="lbox" hidden role="dialog" aria-modal="true" aria-label="Product photograph">
   <button class="lbox-x" onclick="closeLightbox()" aria-label="Close">&times;</button>
   <button class="lbox-nav prev" onclick="stepLightbox(-1)" aria-label="Previous photograph">&#8249;</button>
-  <figure class="lbox-fig"><img id="lboxImg" alt=""></figure>
+  <figure class="lbox-fig"><picture><source id="lboxSrc" type="image/avif"><img id="lboxImg" alt=""></picture></figure>
   <button class="lbox-nav next" onclick="stepLightbox(1)" aria-label="Next photograph">&#8250;</button>
   <p class="lbox-count" id="lboxCount"></p>
 </div>
@@ -1542,6 +1545,27 @@ function toggleSearch(){
  if(on)h.querySelector('.searchbox input').focus();
  measureStack();
 }
+/* Every photo ships as AVIF and as JPEG. <picture> offers the AVIF and lets
+   anything that cannot decode it fall back to the <img>, which is unchanged —
+   so this wraps a tag rather than changing how images are written.
+   build.js applies the identical rule to the static markup. */
+const avifOf=list=>list.replace(/\.jpg\b/g,'.avif');
+function pic(tag){
+ const ss=tag.match(/srcset="([^"]*)"/), sz=tag.match(/sizes="([^"]*)"/);
+ const src=tag.match(/src="([^"]*)"/);
+ const list=ss?ss[1]:(src?src[1]:'');
+ if(!/\.jpg\b/.test(list))return tag;
+ return `<picture><source type="image/avif" srcset="${avifOf(list)}"`
+  +(sz?` sizes="${sz[1]}"`:'')+`>${tag}</picture>`;
+}
+/* Swapping the photo means swapping both halves of the <picture>. src stays the
+   base rendition, not the smallest one — it is the fallback for a browser with
+   no srcset at all, and that browser should still get a usable size. */
+function setPic(img,src,srcset){
+ const source=img.parentElement&&img.parentElement.querySelector('source');
+ if(source)source.srcset=avifOf(srcset);
+ img.srcset=srcset; img.src=src;
+}
 const money=n=>'$'+Math.round(n).toLocaleString('en-US');
 const lbs=w=>{const t=Math.round(w*16);return Math.floor(t/16)+' lb '+(t%16)+' oz';};
 
@@ -1833,7 +1857,7 @@ function shop(){
 }
 function card(i){
  const plate=i.img
-   ? `<div class="plate"><img src="${i.img}" srcset="${i.img.replace('.jpg','-sm.jpg')} 520w, ${i.img} 900w" sizes="(max-width:420px) 46vw, (max-width:900px) 30vw, 290px" alt="${i.n}" loading="lazy" decoding="async"></div>`
+   ? `<div class="plate">${pic(`<img src="${i.img}" srcset="${i.img.replace('.jpg','-sm.jpg')} 520w, ${i.img} 900w" sizes="(max-width:420px) 46vw, (max-width:900px) 30vw, 290px" alt="${i.n}" loading="lazy" decoding="async">`)}</div>`
    : `<div class="plate empty"><span>${i.cat||'Photography pending'}</span></div>`;
  const w=inWish(i.id);
  return `<article class="card">
@@ -1865,7 +1889,7 @@ const GAL=[
  ['Engraved forend','KLOVR roll mark, burnt bronze · Aug 2025','web/gal-5.jpg'],
  ['Bench proof','Every complete rifle leaves with its target · 2025','web/gal-6.jpg']];
 document.getElementById('galGrid').innerHTML=GAL.map(g=>`
- <figure><div class="ph r32"><img src="${g[2]}" srcset="${g[2].replace('.jpg','-sm.jpg')} 700w, ${g[2]} 1400w" sizes="(max-width:900px) 94vw, 33vw" alt="${g[0]}" loading="lazy" decoding="async"></div>
+ <figure><div class="ph r32">${pic(`<img src="${g[2]}" srcset="${g[2].replace('.jpg','-sm.jpg')} 700w, ${g[2]} 1400w" sizes="(max-width:900px) 94vw, 33vw" alt="${g[0]}" loading="lazy" decoding="async">`)}</div>
  <figcaption><b>${g[0]}</b><span>${g[1]}</span></figcaption></figure>`).join('');
 
 /* ---------------- cart + wishlist (device-local) ---------------- */
@@ -2075,7 +2099,7 @@ function openProduct(id){PID=id;go('product');}
 function setHero(src,el){
  pdpIdx=Math.max(0,PDPGAL.indexOf(src));
  const h=document.getElementById('pdpHero');
- h.src=src; h.srcset=src.replace('.jpg','-sm.jpg')+' 700w, '+src+' 1800w';
+ setPic(h, src, src.replace('.jpg','-sm.jpg')+' 700w, '+src+' 1800w');
  [...el.parentElement.children].forEach(b=>b.classList.toggle('on',b===el));
 }
 function renderProduct(){
@@ -2085,13 +2109,13 @@ function renderProduct(){
  PDPGAL=gal; pdpIdx=0;
  const w=inWish(i.id);
  const hero=gal.length?`<button class="herozoom" onclick="openLightbox(PDPGAL,pdpIdx)" aria-label="Enlarge photograph">
-     <img id="pdpHero" src="${gal[0]}" srcset="${gal[0].replace('.jpg','-sm.jpg')} 700w, ${gal[0]} 1800w" sizes="(max-width:900px) 94vw, 52vw" alt="${i.n}">
+     ${pic(`<img id="pdpHero" src="${gal[0]}" srcset="${gal[0].replace('.jpg','-sm.jpg')} 700w, ${gal[0]} 1800w" sizes="(max-width:900px) 94vw, 52vw" alt="${i.n}">`)}
      <span class="zoomhint" aria-hidden="true">
        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/></svg>
      </span></button>`
    :`<span class="lab">${i.cat||'Photography pending'}</span>`;
  const thumbs=gal.length>1?`<div class="pdpthumbs">${gal.map((g,n)=>
-   `<button class="${n?'':'on'}" onclick="setHero('${g}',this)" aria-label="View image ${n+1}"><img src="${g.replace('.jpg','-sm.jpg')}" alt="" loading="lazy"></button>`).join('')}</div>`:'';
+   `<button class="${n?'':'on'}" onclick="setHero('${g}',this)" aria-label="View image ${n+1}">${pic(`<img src="${g.replace('.jpg','-sm.jpg')}" alt="" loading="lazy">`)}</button>`).join('')}</div>`:'';
  const fulfil=i.nfa
    ? `<div class="fulfil nfa"><b>NFA item — stamp required</b>Sold through an SOT. Needs ATF Form 4, fingerprints, and a $200 transfer stamp. It stays in our safe until your stamp clears.</div>`
    : i.ffl
@@ -2159,7 +2183,7 @@ function renderCart(){
   </aside></div>`;
 }
 const cartLine=l=>`<div class="cartline">
-  <div class="cartthumb">${l.i.img?`<img src="${l.i.img.replace('.jpg','-sm.jpg')}" alt="" loading="lazy">`:`<span class="lab">${l.i.cat||''}</span>`}</div>
+  <div class="cartthumb">${l.i.img?pic(`<img src="${l.i.img.replace('.jpg','-sm.jpg')}" alt="" loading="lazy">`):`<span class="lab">${l.i.cat||''}</span>`}</div>
   <div class="cartinfo"><h4>${l.i.n}</h4><p class="meta">${l.i.m}</p>
     ${!l.i.made&&l.qty>=maxQty(l.i)?`<p class="note-state">All ${maxQty(l.i)} of our stock</p>`:''}
     ${l.i.note?`<p class="note-state">${l.i.note}</p>`:''}</div>
@@ -2374,6 +2398,9 @@ function paintLightbox(){
  const img=document.getElementById('lboxImg'), src=lbGal[lbIdx];
  img.classList.remove('zoomed'); img.style.transformOrigin='center';
  lbZoom=false;
+ /* -xl only, and only now the lightbox is open — the page itself never pays
+    for these. */
+ document.getElementById('lboxSrc').srcset=avifOf(xl(src));
  img.src=xl(src);
  img.alt='Photograph '+(lbIdx+1)+' of '+lbGal.length;
  document.getElementById('lboxCount').textContent=lbGal.length>1?(lbIdx+1)+' / '+lbGal.length:'';

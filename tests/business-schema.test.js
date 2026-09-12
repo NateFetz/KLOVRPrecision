@@ -25,7 +25,10 @@ const ok = (name, cond, detail) => {
 function build(mutate) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'klovr-biz-'));
   const site = path.join(tmp, 'site');
-  fs.mkdirSync(path.join(site, 'web'), { recursive: true });
+  fs.mkdirSync(site, { recursive: true });
+  /* Symlink rather than copy: build.js checks that every photo has an AVIF
+     beside it, and 11MB per build would make this suite crawl. */
+  fs.symlinkSync(path.join(ROOT, 'site', 'web'), path.join(site, 'web'), 'dir');
   let src = fs.readFileSync(path.join(ROOT, 'site/index.html'), 'utf8');
   const block = src.match(/const BIZ=\{[\s\S]*?\n\};/)[0];
   const next = mutate(block);

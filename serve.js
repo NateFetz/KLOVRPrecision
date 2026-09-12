@@ -1,7 +1,7 @@
 /* Local preview of the built site: node build.js && node serve.js */
 const http=require('http'),fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'dist');
-const T={'.html':'text/html; charset=utf-8','.jpg':'image/jpeg','.png':'image/png','.svg':'image/svg+xml',
+const T={'.html':'text/html; charset=utf-8','.jpg':'image/jpeg','.png':'image/png','.avif':'image/avif','.svg':'image/svg+xml',
          '.xml':'application/xml','.txt':'text/plain; charset=utf-8'};
 http.createServer((req,res)=>{
   let f=decodeURIComponent(req.url.split('?')[0]);

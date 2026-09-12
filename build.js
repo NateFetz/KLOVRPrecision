@@ -271,7 +271,60 @@ function applyBusiness(html) {
   return html;
 }
 
-const bodyBase = applyBusiness(bodyRaw);
+/* Every photo ships twice: AVIF for anything that can decode it, JPEG for
+   anything that cannot. The AVIFs are produced by scripts/make-avif.js and
+   committed, because they are made with macOS `sips` and Netlify builds on
+   Linux. This is the same rule the page's own pic() applies to the images it
+   renders at runtime — one written here for the static markup, so a crawler
+   and a no-JS visitor get it too.
+
+   A <picture> whose <source> 404s shows nothing at all — the fallback is by
+   format support, not by whether the file loaded — so every AVIF referenced is
+   checked to exist before anything is written. */
+const avifOf = list => list.replace(/\.jpg\b/g, '.avif');
+const missingAvif = new Set();
+
+function offerAvif(html) {
+  let wrapped = 0;
+  html = html.replace(/<img\b[^>]*>/g, tag => {
+    /* Skip the tags inside <script>: those carry ${…} and are wrapped at
+       runtime by pic() instead. */
+    if (tag.includes('${')) return tag;
+    const ss  = tag.match(/srcset="([^"]*)"/);
+    const src = tag.match(/src="([^"]*)"/);
+    const list = ss ? ss[1] : (src ? src[1] : '');
+    if (!/\.jpg\b/.test(list)) return tag;
+    for (const ref of avifOf(list).split(',').map(x => x.trim().split(/\s+/)[0])) {
+      if (!fs.existsSync(path.join(path.dirname(SRC), ref.replace(/^web\//, 'web/'))))
+        missingAvif.add(ref);
+    }
+    const sz = tag.match(/sizes="([^"]*)"/);
+    wrapped++;
+    return `<picture><source type="image/avif" srcset="${avifOf(list)}"`
+         + (sz ? ` sizes="${sz[1]}"` : '') + `>${tag}</picture>`;
+  });
+  if (!wrapped) throw new Error('offerAvif() wrapped nothing — the static <img> markup has changed shape');
+  return html;
+}
+
+/* The catalogue's own images are referenced by the page at runtime, so they are
+   checked here too rather than waiting for a browser to find the hole. */
+for (const i of SHOP) {
+  for (const f of [i.img, ...(i.gal || [])].filter(Boolean)) {
+    for (const v of [f, f.replace(/\.jpg$/, '-sm.jpg'), f.replace(/\.jpg$/, '-xl.jpg')]) {
+      const ref = avifOf(v);
+      if (!fs.existsSync(path.join(path.dirname(SRC), ref))) missingAvif.add(ref);
+    }
+  }
+}
+
+const bodyBase = offerAvif(applyBusiness(bodyRaw));
+
+if (missingAvif.size) throw new Error(
+  `${missingAvif.size} AVIF rendition(s) missing:\n  ` +
+  [...missingAvif].sort().slice(0, 12).join('\n  ') +
+  (missingAvif.size > 12 ? `\n  …and ${missingAvif.size - 12} more` : '') +
+  '\nRun: node scripts/make-avif.js');
 
 function page(r, b, url) {
   return `<!doctype html>

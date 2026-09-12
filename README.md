@@ -375,9 +375,54 @@ Not wired up yet. Two options:
 ```sh
 sips -Z 1800 -s formatOptions 72 photos/DSC01746.jpg --out site/web/hero-rifle.jpg
 sips -Z  820 -s formatOptions 68 site/web/hero-rifle.jpg --out site/web/hero-rifle-sm.jpg
+node scripts/make-avif.js
 ```
 
 Widths in use: hero 1800/820 · gallery 1400/700 · cards 900/520 · portraits 1100/620.
+`photos/MANIFEST.tsv` maps every web filename back to the camera original.
+
+**Run `node scripts/make-avif.js` after touching any photo.** The build refuses
+to run if a `.jpg` has no `.avif` beside it.
+
+## AVIF
+
+Every photo ships twice. `<picture>` offers the AVIF; the `<img>` inside it
+still points at the JPEG, so anything that cannot decode AVIF gets the JPEG
+without a round trip. What a visitor actually downloads:
+
+| | JPEG | AVIF | |
+|---|---|---|---|
+| homepage, phone widths | 343KB | 100KB | 71% less |
+| homepage, desktop widths | 1167KB | 259KB | 78% less |
+| all 60 renditions | 9.1MB | 2.0MB | 78% less |
+
+Quality is 55 (`AVIF_Q` overrides it). At that setting the burnt bronze keeps
+its surface gradient and the bolt fluting stays crisp, which is the point —
+these photos are the product.
+
+Three things to know:
+
+- **The AVIFs are committed.** They are made with macOS `sips`, and Netlify
+  builds on Linux where there is no encoder. `scripts/make-avif.js` only
+  re-encodes what has changed, so re-running it is cheap.
+- **`sips` cannot write WebP** — it can write AVIF, which compresses harder and
+  is supported everywhere that matters now. If you ever need WebP too,
+  `brew install webp` and add a `cwebp` pass.
+- **A `<picture>` whose `<source>` 404s shows nothing at all.** Format fallback
+  is decided by what the browser supports, not by whether the fetch worked. So
+  `build.js` verifies every AVIF it is about to reference — including the ones
+  the catalogue names for images rendered at runtime — and fails with the
+  command to run if any are missing.
+
+Static markup is wrapped at build time by `offerAvif()`; images the page renders
+at runtime go through `pic()` in the page script, which applies the identical
+rule. `setPic()` moves both halves together when a thumbnail swaps the hero.
+`picture{display:contents}` keeps the wrapper out of layout, so every rule that
+sizes an image against its container still measures the container.
+
+`node tests/avif.test.js` checks the lot: a rendition for every photo, real AVIF
+headers, matching dimensions, srcset widths that agree between the two lists,
+nothing left unwrapped, and the guard firing when a file is missing.
 
 ## Staff area — `/admin`
 
