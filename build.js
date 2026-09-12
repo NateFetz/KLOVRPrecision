@@ -1,0 +1,110 @@
+/* Generates a real, separately-indexable HTML file per route from one source.
+   Client-side navigation still runs; this just means crawlers and no-JS visitors
+   get a complete page, and each route can carry its own title and preview card. */
+const fs = require('fs'), path = require('path');
+
+const SRC  = 'site/index.html';
+const OUT  = 'dist';
+const SITE = (process.env.URL || process.env.DEPLOY_PRIME_URL || 'https://klovrprecision.netlify.app').replace(/\/$/, '');
+const PLAUSIBLE = process.env.PLAUSIBLE_DOMAIN || '';
+
+const ROUTES = [
+  { path: '',              view: 'home',
+    title: 'KLOVR Precision — Rifle Actions, Chassis & Custom Rifles',
+    desc : 'Precision rifle actions and billet chassis machined in-house, finished in burnt bronze. Complete rifles built to order and proofed sub-MOA. FFL transfers and gunsmithing.',
+    img  : 'web/hero-rifle.jpg' },
+  { path: 'shop',          view: 'shop',
+    title: 'Shop Actions, Chassis & Complete Rifles — KLOVR Precision',
+    desc : 'KLOVR actions with integral 20 MOA rail, skeletonized billet chassis, pre-fit barrels, and complete rifles. Components ship to your door; rifles ship to your FFL.',
+    img  : 'web/p-action-short.jpg' },
+  { path: 'custom-rifles', view: 'build',
+    title: 'Build a Custom Rifle — KLOVR Precision',
+    desc : 'Spec chambering, action, chassis, barrel, and finish and get a priced build sheet. Sub-MOA guarantee, 10–14 week lead time, no deposit until we have talked it through.',
+    img  : 'web/cfg-stage.jpg' },
+  { path: 'gallery',       view: 'gallery',
+    title: 'Recent Builds — KLOVR Precision',
+    desc : 'Rifles and components that went home. Every complete rifle is photographed before it ships and leaves with its target card.',
+    img  : 'web/gal-1.jpg' },
+  { path: 'contact',       view: 'contact',
+    title: 'Contact, Hours & FFL Transfers — KLOVR Precision',
+    desc : 'Shop hours, service pricing, and what to bring to an FFL transfer. Incoming transfers processed the day they land.',
+    img  : 'web/feat-profile.jpg' },
+];
+
+const src   = fs.readFileSync(SRC, 'utf8');
+const split = src.indexOf('<div class="util">');
+if (split < 0) throw new Error('could not find start of body content');
+let head = src.slice(0, split);
+const body = src.slice(split);
+
+head = head.replace(/<title>[\s\S]*?<\/title>\n?/, '');           // per-route title instead
+head = head.replace(/<meta charset="utf-8">\n?/, '')
+           .replace(/<meta name="viewport"[^>]*>\n?/, '');
+
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+const rm = (dir) => fs.existsSync(dir) && fs.rmSync(dir, { recursive: true });
+const copy = (from, to) => {
+  fs.mkdirSync(to, { recursive: true });
+  for (const e of fs.readdirSync(from, { withFileTypes: true }))
+    e.isDirectory() ? copy(path.join(from, e.name), path.join(to, e.name))
+                    : fs.copyFileSync(path.join(from, e.name), path.join(to, e.name));
+};
+
+rm(OUT);
+fs.mkdirSync(OUT, { recursive: true });
+copy('site/web', path.join(OUT, 'web'));
+
+for (const r of ROUTES) {
+  const url = SITE + '/' + r.path;
+  // mark this route's view as the visible one in the delivered HTML
+  let b = body.replace('id="home" class="view on"', 'id="home" class="view"');
+  b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
+  if (r.view !== 'home') b = b.replace('<button data-v="home" aria-current="page">', '<button data-v="home">');
+
+  const doc = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(r.title)}</title>
+<meta name="description" content="${esc(r.desc)}">
+<link rel="canonical" href="${url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KLOVR Precision">
+<meta property="og:title" content="${esc(r.title)}">
+<meta property="og:description" content="${esc(r.desc)}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${SITE}/${r.img}">
+<meta property="og:image:width" content="1800">
+<meta property="og:image:height" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(r.title)}">
+<meta name="twitter:description" content="${esc(r.desc)}">
+<meta name="twitter:image" content="${SITE}/${r.img}">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230D0D0D'/%3E%3Cg fill='%23769F76'%3E%3Ccircle cx='34' cy='34' r='17'/%3E%3Ccircle cx='66' cy='34' r='17'/%3E%3Ccircle cx='34' cy='66' r='17'/%3E%3Ccircle cx='66' cy='66' r='17'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='8' fill='%23D2A85F'/%3E%3C/svg%3E">
+${PLAUSIBLE ? `<script defer data-domain="${PLAUSIBLE}" src="https://plausible.io/js/script.js"></script>` : ''}
+${head}
+</head>
+<body data-view="${r.view}">
+${b}
+</body>
+</html>`;
+
+  const dir = r.path ? path.join(OUT, r.path) : OUT;
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'index.html'), doc);
+}
+
+// sitemap + robots so the new routes get found
+fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
+`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${ROUTES.map(r => `  <url><loc>${SITE}/${r.path}</loc></url>`).join('\n')}
+</urlset>
+`);
+fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
+
+console.log(`built ${ROUTES.length} routes into ${OUT}/ against ${SITE}`);
+console.log(ROUTES.map(r => '  /' + r.path).join('\n'));

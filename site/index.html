@@ -37,10 +37,6 @@ p{margin:0} a{color:inherit} img{display:block;max-width:100%}
 .view{display:none} .view.on{display:block}
 section{padding:clamp(44px,6.5vw,84px) 0}
 
-.notice{background:var(--surface);border-bottom:1px solid var(--rule);padding:9px 0}
-.notice .wrap{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
-.notice b{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.16em;text-transform:uppercase;color:var(--clover);font-weight:600;border-left:2px solid var(--clover);padding-left:10px}
-.notice span{font-size:var(--fs-sm);color:var(--muted)}
 
 /* logo lock-up — supplied vector, never restyled; clear space held by padding */
 header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--ground) 94%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
@@ -210,6 +206,10 @@ body:not([data-view="home"]) .carousel{display:none}
 .sheet-ft{padding:15px 17px;display:flex;flex-direction:column;gap:9px;border-top:1px solid var(--rule)}
 .sheet-ft .btn{text-align:center}
 .fineprint{font-family:var(--mono);font-size:.64rem;line-height:1.65;color:var(--muted)}
+.formmsg{font-size:var(--fs-sm);line-height:1.55;color:var(--clover-2);border-left:2px solid var(--clover);padding:10px 13px;background:var(--clover-soft)}
+.formmsg.err{color:var(--stop);border-color:var(--stop);background:var(--stop-soft)}
+#buildForm{gap:11px}
+#buildForm .btn{align-self:stretch;text-align:center}
 .flagbox{margin:0 17px 14px;padding:10px 13px;border-left:2px solid var(--warn);background:var(--gold-soft);font-size:var(--fs-xs);line-height:1.55;color:var(--ink-2)}
 .flagbox b{font-family:var(--mono);letter-spacing:.11em;text-transform:uppercase;font-size:.62rem;color:var(--warn);display:block;margin-bottom:3px}
 
@@ -372,11 +372,6 @@ footer{padding:44px 0 56px}
   .slide .art{margin-top:0}
 }
 </style>
-
-<div class="notice"><div class="wrap">
-  <b>Design mockup</b>
-  <span>Real KLOVR logo, brand colours, and product photography. Pricing, addresses, inventory, and the dealer catalogue are still placeholders.</span>
-</div></div>
 
 <div class="util"><div class="wrap">
   <a href="#" onclick="return false">Dealer login</a>
@@ -586,13 +581,25 @@ footer{padding:44px 0 56px}
         <div class="trow big"><span>Estimate</span><span class="num" id="tPrice">&mdash;</span></div>
       </div>
       <div class="sheet-ft">
-        <button class="btn" onclick="mock()">Request this build</button>
-        <button class="btn ghost" onclick="mock()">Email me the build sheet</button>
+        <button class="btn" id="reqOpen" onclick="openReq()">Request this build</button>
+        <form id="buildForm" name="build-request" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" hidden onsubmit="return sendForm(event,this)">
+          <input type="hidden" name="form-name" value="build-request">
+          <input type="hidden" name="build-code" id="fCode">
+          <input type="hidden" name="specification" id="fSpec">
+          <input type="hidden" name="estimate" id="fEst">
+          <p hidden><label>Leave this blank <input name="bot-field"></label></p>
+          <label><span class="lab">Name</span><input name="name" required placeholder="Your name"></label>
+          <label><span class="lab">Email</span><input name="email" type="email" required placeholder="you@example.com"></label>
+          <label><span class="lab">Phone, optional</span><input name="phone" placeholder="(000) 000-0000"></label>
+          <label><span class="lab">Anything else</span><textarea name="notes" rows="3" placeholder="What you hunt or shoot with it"></textarea></label>
+          <button class="btn" type="submit">Send build sheet</button>
+          <p class="formmsg" hidden></p>
+        </form>
         <p class="fineprint">50% deposit schedules the bench. Balance due at transfer. Estimate excludes tax, the transfer fee, and any NFA stamp. Rifle ships to your FFL.</p>
       </div>
     </aside>
   </div>
-  <div class="mobtotal"><div><span class="lab">Estimate</span><b class="num" id="mobPrice">&mdash;</b></div><button class="btn sm" onclick="mock()">Request build</button></div>
+  <div class="mobtotal"><div><span class="lab">Estimate</span><b class="num" id="mobPrice">&mdash;</b></div><button class="btn sm" onclick="openReq(1)">Request build</button></div>
 </section></div>
 
 <!-- ===== CONTACT ===== -->
@@ -628,13 +635,16 @@ footer{padding:44px 0 56px}
     <div>
       <div class="ph r32" data-shot="Map embed — Google Maps iframe goes here"></div>
       <h3 style="margin:30px 0 14px;font-size:var(--fs-h3)">Send a message</h3>
-      <form onsubmit="event.preventDefault();mock()">
-        <label><span class="lab">Name</span><input required placeholder="Your name"></label>
-        <label><span class="lab">Email</span><input type="email" required placeholder="you@example.com"></label>
+      <form id="contactForm" name="contact" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="return sendForm(event,this)">
+        <input type="hidden" name="form-name" value="contact">
+        <p hidden><label>Leave this blank <input name="bot-field"></label></p>
+        <label><span class="lab">Name</span><input name="name" required placeholder="Your name"></label>
+        <label><span class="lab">Email</span><input name="email" type="email" required placeholder="you@example.com"></label>
         <label><span class="lab">What do you need</span>
-          <select><option>A custom build</option><option>An action or chassis</option><option>An incoming transfer</option><option>Gunsmithing work</option><option>Something else</option></select></label>
-        <label><span class="lab">Details</span><textarea rows="5" placeholder="Chambering, action length, what you hunt or shoot with it"></textarea></label>
+          <select name="topic"><option>A custom build</option><option>An action or chassis</option><option>An incoming transfer</option><option>Gunsmithing work</option><option>Something else</option></select></label>
+        <label><span class="lab">Details</span><textarea name="details" rows="5" placeholder="Chambering, action length, what you hunt or shoot with it"></textarea></label>
         <button class="btn" type="submit" style="align-self:flex-start">Send</button>
+        <p class="formmsg" hidden></p>
       </form>
     </div>
   </div>
@@ -666,7 +676,44 @@ footer{padding:44px 0 56px}
 </div></footer>
 
 <script>
-const mock=()=>alert('Design mockup — this control is not wired up yet.');
+const mock=()=>alert('This part of the site is not live yet.');
+
+function fillSpec(){
+ const g=id=>document.getElementById(id).textContent;
+ document.getElementById('fCode').value=g('buildCode');
+ document.getElementById('fEst').value=g('tPrice');
+ document.getElementById('fSpec').value=
+   STEPS.map(s=>s.t+': '+pick(s.k,S[s.k]).nm).join('\n')
+   +'\nBare weight: '+g('tWeight')+'\nOverall length: '+g('tLen')+'\nLead time: '+g('tLead');
+}
+function openReq(scroll){
+ const f=document.getElementById('buildForm');
+ document.getElementById('reqOpen').hidden=true;
+ f.hidden=false; fillSpec();
+ if(scroll)f.scrollIntoView({behavior:'smooth',block:'center'});
+ f.querySelector('input[name=name]').focus({preventScroll:!scroll});
+}
+async function sendForm(e,form){
+ e.preventDefault();
+ if(form.id==='buildForm')fillSpec();
+ const msg=form.querySelector('.formmsg'),btn=form.querySelector('button[type=submit]');
+ btn.disabled=true; btn.textContent='Sending…';
+ try{
+  const res=await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams(new FormData(form)).toString()});
+  if(!res.ok)throw new Error(res.status);
+  form.querySelectorAll('label,button[type=submit]').forEach(el=>el.hidden=true);
+  msg.hidden=false; msg.classList.remove('err');
+  msg.textContent=form.id==='buildForm'
+    ? 'Build sheet received. We will read it over and come back to you with questions before any deposit.'
+    : 'Thanks — that came through. We will be in touch.';
+ }catch(err){
+  btn.disabled=false; btn.textContent='Try again';
+  msg.hidden=false; msg.classList.add('err');
+  msg.textContent='That did not send. Email shop@klovrprecision.com and we will pick it up there.';
+ }
+ return false;
+}
 function toggleSearch(){
  const h=document.querySelector('.head'),t=document.querySelector('.searchtog');
  const on=h.classList.toggle('search-open');
@@ -805,6 +852,11 @@ document.getElementById('galGrid').innerHTML=GAL.map(g=>`
  <figure><div class="ph r32"><img src="${g[2]}" srcset="${g[2].replace('.jpg','-sm.jpg')} 700w, ${g[2]} 1400w" sizes="(max-width:900px) 94vw, 33vw" alt="${g[0]}" loading="lazy" decoding="async"></div>
  <figcaption><b>${g[0]}</b><span>${g[1]}</span></figcaption></figure>`).join('');
 
+/* ---------------- routing ---------------- */
+const ROUTE={home:'/',shop:'/shop',build:'/custom-rifles',gallery:'/gallery',contact:'/contact'};
+const VIEW=Object.fromEntries(Object.entries(ROUTE).map(([v,u])=>[u,v]));
+const pathView=()=>VIEW[(location.pathname.replace(/\/+$/,'')||'/')]||'home';
+
 /* ---------------- nav + dropdowns ---------------- */
 const navEl=document.getElementById('mainnav'),scrim=document.getElementById('scrim'),burger=document.getElementById('burger');
 function drawer(open){
@@ -818,7 +870,7 @@ burger.addEventListener('click',()=>drawer(!navEl.classList.contains('open')));
 scrim.addEventListener('click',()=>drawer(false));
 document.getElementById('drawerX').addEventListener('click',()=>drawer(false));
 
-function go(v,f){
+function go(v,f,push){
  drawer(false);
  document.body.dataset.view=v;
  document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id===v));
@@ -826,8 +878,10 @@ function go(v,f){
   if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
  if(f)setFilter(f);
  document.querySelectorAll('.navitem.open').forEach(n=>close(n));
+ if(push!==false){const u=ROUTE[v]||'/'; if(location.pathname.replace(/\/+$/,'')!==u.replace(/\/+$/,''))history.pushState({v},'',u);}
  window.scrollTo({top:0,behavior:'instant'});
 }
+window.addEventListener('popstate',()=>go(pathView(),null,false));
 const close=n=>{n.classList.remove('open');n.querySelector('button').setAttribute('aria-expanded','false');};
 document.getElementById('nav').addEventListener('click',e=>{
  const b=e.target.closest('button'); if(!b)return;
@@ -867,6 +921,6 @@ function start(){ if(matchMedia('(prefers-reduced-motion:reduce)').matches)retur
  timer=setInterval(()=>slide(1),7000);}
 
 /* ---------------- init ---------------- */
-document.body.dataset.view='home';
+go(pathView(),null,false);
 render(); shop(); start();
 </script>
