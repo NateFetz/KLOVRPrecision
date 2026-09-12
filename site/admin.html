@@ -269,7 +269,9 @@ const fromRow=o=>({
  dest:o.destination,
  addr:o.ship_address?[o.ship_address.line1,o.ship_address.city,o.ship_address.state,o.ship_address.zip].filter(Boolean).join(', '):'',
  ffl:o.ffl_dealers?{name:o.ffl_dealers.business_name,lic:o.ffl_dealers.licence,
-   addr:[o.ffl_dealers.address1,o.ffl_dealers.city,o.ffl_dealers.state,o.ffl_dealers.zip].filter(Boolean).join(', ')}:null,
+   addr:[o.ffl_dealers.address1,o.ffl_dealers.city,o.ffl_dealers.state,o.ffl_dealers.zip].filter(Boolean).join(', '),
+   verified:o.ffl_dealers.verified_at||null, verifiedBy:o.ffl_dealers.verified_by||'',
+   expires:o.ffl_dealers.expires_on||null}:null,
  lines:(o.order_lines||[]).map(l=>({sku:l.sku,name:l.name,qty:l.qty,price:fromCents(l.unit_price_cents)})),
  status:({at_dealer:'ffl'}[o.status])||o.status, tracking:o.tracking||'', qb:o.qb_invoice_no||'', note:o.note||''
 });
@@ -437,8 +439,16 @@ function openOrder(id){
    <div><h4>${o.dest==='ffl'?'Receiving dealer':'Delivery address'}</h4>
     ${o.dest==='ffl'
       ? `<dl class="kv"><dt>Dealer</dt><dd>${o.ffl.name}</dd><dt>Address</dt><dd>${o.ffl.addr}</dd>
-         <dt>FFL</dt><dd class="num">${o.ffl.lic}</dd></dl>
-         <p class="hint" style="margin-top:10px">Verify the licence is current on ATF eZ Check before shipping.</p>`
+         <dt>FFL</dt><dd class="num">${o.ffl.lic}</dd>
+         ${o.ffl.expires?`<dt>Expires</dt><dd class="num">${o.ffl.expires}</dd>`:''}
+         <dt>Checked</dt><dd>${o.ffl.verified
+            ? `<span class="pill paid"><i class="dot"></i>${o.ffl.verified.slice(0,10)}${o.ffl.verifiedBy?' · '+o.ffl.verifiedBy:''}</span>`
+            : '<span class="pill hold"><i class="dot"></i>Not yet verified</span>'}</dd></dl>
+         <div class="panel-acts" style="margin-top:12px">
+           <a class="btn ghost sm" href="https://fflezcheck.atf.gov/FFLEzCheck/" target="_blank" rel="noopener">Open eZ Check</a>
+           ${o.ffl.verified?'':`<button class="btn sm" onclick="markVerified('${o.ffl.lic}','${o.id}')">Record as verified</button>`}
+         </div>
+         <p class="hint" style="margin-top:10px">ATF has no API for eZ Check, so this is a manual check. Confirm the licence is current there, then record it here.</p>`
       : `<p>${o.addr}</p>`}</div>
    <div><h4>Items</h4>
     ${o.lines.map(l=>`<div class="linerow"><span>${l.qty}× ${l.name}</span><span class="num">${usd(l.price*l.qty)}</span></div>`).join('')}
@@ -478,6 +488,17 @@ async function pushQB(id){
  o.qb='INV-'+(2042+ORDERS.filter(x=>x.qb).length);
  QB.log.unshift({t:new Date().toISOString().slice(0,16).replace('T',' '),m:'Invoice '+o.qb+' created for '+o.id});
  saveO();saveQ();openOrder(id);
+}
+
+/* eZ Check cannot be automated — ATF publishes no API — so a person confirms
+   the licence and records that they did. */
+async function markVerified(licence,orderRef){
+ if(!LIVE){alert('Connect Supabase to record verifications.');return}
+ if(!confirm('Record that you have confirmed '+licence+' is current on eZ Check?'))return;
+ const who=document.getElementById('whoName').textContent;
+ const {error}=await sbc.rpc('mark_ffl_verified',{p_licence:licence,p_by:who});
+ if(error){alert('Could not record it: '+error.message);return}
+ await DB.load(); renderOrders(); openOrder(orderRef);
 }
 
 /* ---------------- shipments ---------------- */

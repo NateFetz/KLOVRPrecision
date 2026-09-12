@@ -23,6 +23,7 @@ Dashboard → **SQL Editor** → paste and run each file in order:
 4. `supabase/migrations/0004_create_order.sql` — order creation
 5. `supabase/migrations/0005_storefront_fields.sql` — fields the shop renders
 6. `supabase/migrations/0006_catalogue_content.sql` — descriptions, specs, images
+7. `supabase/migrations/0007_ffl_directory.sql` — dealer directory and search
 
 Or, with the CLI: `supabase db push`.
 
@@ -87,7 +88,47 @@ why it is a button rather than a database trigger.
 > If you would rather it were automatic, Supabase **Database Webhooks** can POST
 > the hook on any change to `products`. Expect a build per edit.
 
-## 6 · QuickBooks (optional, do it last)
+## 6 · The dealer directory
+
+Checkout needs to offer real licensed dealers. That list comes from ATF, and it
+has to be imported — **there is no API.** ATF has confirmed eZ Check does not
+offer one.
+
+Two different things, often confused:
+
+| | What it is | Automatable |
+|---|---|---|
+| **FFL listing** | A file of all active licensees, published monthly | Yes — import it |
+| **eZ Check** | A web form confirming one licence is currently valid | No — a person does it |
+
+**Get the file.** Sign in to [fflezcheck.atf.gov](https://fflezcheck.atf.gov)
+with your licence and use the download option, or take the monthly state
+listings from
+[atf.gov](https://www.atf.gov/firearms/listing-federal-firearms-licensees).
+
+**Import it:**
+
+```sh
+node scripts/import-ffl-list.js ~/Downloads/ffl-list.csv --dry-run   # check the parse
+SUPABASE_URL=… SUPABASE_SERVICE_KEY=… node scripts/import-ffl-list.js ~/Downloads/ffl-list.csv
+```
+
+It keeps only licence types that can actually receive a transfer — 01 dealer,
+02 pawnbroker, 07 manufacturer, 08 importer, 09/10/11 destructive devices — and
+drops type 03 collectors and type 06 ammunition manufacturers, neither of which
+can take one.
+
+**Re-run it monthly.** Licences expire and dealers close. Expired records drop
+out of search automatically, but only new imports bring in new dealers.
+
+### Verifying a licence
+
+Before a firearm ships, someone confirms the receiving dealer's licence is
+current. The order panel in `/admin` has an **Open eZ Check** link and a
+**Record as verified** button that stamps who checked and when. That is a
+deliberate human step, not an oversight.
+
+## 7 · QuickBooks (optional, do it last)
 
 Create an app at [developer.intuit.com](https://developer.intuit.com), then add:
 
@@ -109,9 +150,8 @@ browser cannot read it even when signed in as staff. Only the functions can.
 
 ## What is still to build
 
-- **FFL lookup.** Checkout lists three example dealers. Replace with a query
-  against ATF FFL eZ Check, cached into `ffl_dealers` with `verified_at`.
-That is everything. The remaining item is FFL lookup, above.
+Payments. Everything else is wired — see `docs/` for the processor work.
+That is everything.
 
 ## Rollback
 

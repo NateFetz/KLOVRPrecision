@@ -42,6 +42,26 @@ browser.
 `node tests/build-from-supabase.test.js` proves the loop against a fake
 PostgREST — no real project needed.
 
+## Dealer directory
+
+Checkout searches real licensed dealers by ZIP. The directory is the ATF listing
+of active FFLs, imported by `scripts/import-ffl-list.js` — **eZ Check has no
+API**, so nothing here contacts ATF at request time.
+
+Only licence types that can receive a transfer are kept (01, 02, 07, 08, 09, 10,
+11). Types 03 collector and 06 ammunition manufacturer are dropped, because
+neither can take one. Expired licences fall out of search on their own.
+
+Proximity without geocoding: exact ZIP beats a shared 4-digit prefix, which
+beats a shared 3-digit prefix, which beats same state.
+
+`find_ffls()` is security-definer and returns only the columns a customer needs;
+`ffl_dealers` itself stays staff-only. Until the directory is imported, checkout
+shows example dealers and says so.
+
+Confirming a licence is current is a manual eZ Check lookup. `/admin` links
+straight to it and records who checked and when.
+
 ## Ordering
 
 Checkout posts SKUs, quantities, and a destination to

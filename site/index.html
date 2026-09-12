@@ -1268,12 +1268,29 @@ const cartLine=l=>`<div class="cartline">
 
 /* ---------------- checkout ---------------- */
 const STATES='AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
-/* Example dealers. At launch this queries the ATF FFL eZ Check list. */
-const FFLS=[
+/* Shown when the dealer directory is not configured. Once it is, results come
+   from the ATF listing of active FFLs via /.netlify/functions/ffl-search. */
+const SAMPLE_FFLS=[
  {n:'Cedar Creek Arms',l:'1‑XX‑XXX‑XX‑XX‑00412',a:'118 Mill Street',c:'Bozeman',s:'MT',z:'59715',f:35},
  {n:'Gallatin Valley Outfitters',l:'1‑XX‑XXX‑XX‑XX‑01188',a:'4402 Jackrabbit Lane',c:'Belgrade',s:'MT',z:'59714',f:30},
  {n:'Bridger Firearms & Supply',l:'1‑XX‑XXX‑XX‑XX‑02275',a:'7 North Rouse Avenue',c:'Bozeman',s:'MT',z:'59715',f:40}
 ];
+let FFLS=SAMPLE_FFLS, fflState='idle', fflMsg='';
+async function searchFFL(){
+ const zip=(CO.fflZip||'').replace(/\D/g,'');
+ if(zip.length!==5){fflState='error';fflMsg='Enter a five digit ZIP code.';renderCheckout();return}
+ if(!ORDERS_API){fflState='sample';renderCheckout();return}
+ fflState='loading';fflMsg='';renderCheckout();
+ try{
+  const r=await fetch('/.netlify/functions/ffl-search?zip='+zip+(CO.st?'&state='+CO.st:''));
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||'Search failed');
+  FFLS=(d.dealers||[]).map(x=>({n:x.name,l:x.licence,a:x.address1,c:x.city,s:x.state,z:x.zip,phone:x.phone,near:x.near}));
+  fflState=FFLS.length?'done':'empty';
+  if(!FFLS.length)fflMsg='No dealers found near '+zip+'. Try a nearby ZIP, or call us and we will find one.';
+ }catch(e){fflState='error';fflMsg=e.message||'Dealer search failed. Call the shop and we will sort it.'}
+ renderCheckout();
+}
 let CO={step:1,name:'',email:'',phone:'',addr:'',city:'',st:'',zip:'',fflZip:'',ffl:null,age:false,truth:false,sent:false};
 const needFFL=()=>lines().some(l=>l.i.ffl);
 const needDoor=()=>lines().some(l=>!l.i.ffl);
@@ -1333,16 +1350,24 @@ function step2(){
    </div>
   </div>
   <p class="fineprint">For the items that ship direct.</p>`:'';
+ const list=fflState==='loading'
+   ? '<p class="hint">Searching the dealer directory…</p>'
+   : (fflState==='empty'||fflState==='error')
+   ? `<div class="blockbox">${fflMsg}</div>`
+   : `<div class="ffllist">${FFLS.map((d,n)=>`
+      <label class="fflcard${CO.ffl&&CO.ffl.l===d.l?' on':''}">
+        <input type="radio" name="ffl" ${CO.ffl&&CO.ffl.l===d.l?'checked':''} onchange="CO.ffl=FFLS[${n}];renderCheckout()">
+        <span><b>${d.n}</b><em>${[d.a,d.c,d.s,d.z].filter(Boolean).join(', ')}</em>
+        <i class="num">FFL ${d.l}${d.phone?' · '+d.phone:''}</i></span></label>`).join('')}</div>`;
+ const note=ORDERS_API
+   ? '<p class="fineprint">From the ATF listing of active Federal Firearms Licensees. We confirm the licence is current before anything ships.</p>'
+   : '<p class="fineprint">Example dealers. The live site searches the ATF listing of active licensees by ZIP.</p>';
  const ffl=needFFL()?`<h3 class="costep-h">Receiving dealer</h3>
   <p class="prose" style="font-size:var(--fs-sm);margin-bottom:14px">Firearms are delivered to a licensed dealer, never to a home. Choose one near you — you will complete Form 4473 and the background check there.</p>
-  <div class="fflsearch"><input placeholder="Your ZIP code" value="${CO.fflZip}" inputmode="numeric" oninput="co('fflZip',this.value)">
-    <button class="btn sm" onclick="renderCheckout()">Find dealers</button></div>
-  <div class="ffllist">${FFLS.map((d,n)=>`
-    <label class="fflcard${CO.ffl&&CO.ffl.n===d.n?' on':''}">
-      <input type="radio" name="ffl" ${CO.ffl&&CO.ffl.n===d.n?'checked':''} onchange="CO.ffl=FFLS[${n}];renderCheckout()">
-      <span><b>${d.n}</b><em>${d.a}, ${d.c}, ${d.s} ${d.z}</em>
-      <i class="num">FFL ${d.l} · transfer fee ${usd(d.f)}</i></span></label>`).join('')}</div>
-  <p class="fineprint">Example dealers. At launch this searches the ATF FFL eZ Check list by ZIP and verifies the licence is current.</p>`:'';
+  <div class="fflsearch"><input placeholder="Your ZIP code" value="${CO.fflZip}" inputmode="numeric" maxlength="5" oninput="co('fflZip',this.value)">
+    <button class="btn sm" onclick="searchFFL()">Find dealers</button></div>
+  ${list}
+  ${note}`:'';
  const ok=(!needDoor()||CO.st)&&(!needFFL()||CO.ffl);
  return `<div class="costep"><h2>Where is it going?</h2>${door}${ffl}
   ${nav(true,ok?"CO.step=3;renderCheckout()":"alert('Pick a destination first — a state for direct shipping, a dealer for firearms.')")}</div>`;
