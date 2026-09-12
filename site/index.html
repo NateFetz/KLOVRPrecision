@@ -1,0 +1,872 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KLOVR Precision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Palette taken from the supplied vector logo files:
+   dark green #003513 · sage #769F76 · gold #D2A85F · ivory #EDECED       */
+:root{
+  --ground:#0D0D0D; --surface:#151515; --raised:#1C1C1C; --stage:#1A1A1A; --code:#070707;
+  --ink:#EDECED; --ink-2:#B2B2B0; --muted:#7C7C7A; --rule:#2A2A2A; --rule-2:#1E1E1E;
+  --clover:#769F76; --clover-2:#8FB88F; --clover-soft:rgba(118,159,118,.13);
+  --gold:#D2A85F; --gold-2:#E4BE79; --gold-soft:rgba(210,168,95,.12);
+  --stop:#C9776A; --stop-soft:rgba(201,119,106,.13); --warn:#D2A85F;
+  --m-bronze:#A8783F; --m-black:#565659; --glass:#6E7F86;
+  --fs-display:clamp(2.4rem,6vw,4.7rem); --fs-h1:clamp(1.8rem,3.6vw,2.7rem);
+  --fs-h2:clamp(1.22rem,2vw,1.6rem); --fs-h3:1rem;
+  --fs-body:1rem; --fs-sm:.875rem; --fs-xs:.75rem; --fs-label:.675rem;
+  --disp:"Jost","Century Gothic",Futura,system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --gut:clamp(16px,4vw,34px); --maxw:1260px;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:var(--fs-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em;font-weight:500;text-wrap:balance;margin:0;line-height:1.12}
+p{margin:0} a{color:inherit} img{display:block;max-width:100%}
+:focus-visible{outline:2px solid var(--clover-2);outline-offset:3px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
+.lab{font-family:var(--mono);font-size:var(--fs-label);text-transform:uppercase;letter-spacing:.17em;color:var(--muted);font-weight:500}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.prose{color:var(--ink-2);max-width:62ch}
+.eyebrow{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--rule)}
+.eyebrow .lab{color:var(--clover)}
+.view{display:none} .view.on{display:block}
+section{padding:clamp(44px,6.5vw,84px) 0}
+
+.notice{background:var(--surface);border-bottom:1px solid var(--rule);padding:9px 0}
+.notice .wrap{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.notice b{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.16em;text-transform:uppercase;color:var(--clover);font-weight:600;border-left:2px solid var(--clover);padding-left:10px}
+.notice span{font-size:var(--fs-sm);color:var(--muted)}
+
+/* logo lock-up — supplied vector, never restyled; clear space held by padding */
+header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--ground) 94%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
+.bar{display:flex;align-items:center;gap:clamp(12px,3vw,32px);height:78px}
+.brand{background:none;border:0;padding:14px 20px;cursor:pointer;flex:0 0 auto;display:block}
+.brand svg{height:64px;width:auto;display:block}
+.brand .on-dark{display:block}
+.on-dark{display:block}
+nav{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+nav button{font-family:var(--disp);text-transform:uppercase;letter-spacing:.15em;font-size:.74rem;font-weight:500;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:8px 12px;cursor:pointer}
+nav button:hover{color:var(--ink)}
+nav button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--clover)}
+
+.btn{font-family:var(--disp);text-transform:uppercase;letter-spacing:.15em;font-weight:500;font-size:.74rem;padding:13px 21px;border:1px solid var(--clover);background:var(--clover);color:#0D0D0D;cursor:pointer;text-decoration:none;display:inline-block;transition:filter .15s}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{background:var(--clover-soft);border-color:var(--clover);filter:none}
+.btn.sm{padding:10px 16px;font-size:.7rem}
+
+/* hero */
+.hero{padding-top:clamp(32px,5vw,58px);padding-bottom:0}
+.hero h1{font-size:var(--fs-display);font-weight:300;letter-spacing:.08em}
+.hero h1 b{font-weight:600;display:block}
+.hero .sub{font-size:clamp(1rem,1.5vw,1.18rem);color:var(--ink-2);max-width:48ch;margin-top:20px}
+.acts{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+.specstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));border:1px solid var(--rule);border-top:0}
+.specstrip div{padding:17px 19px;border-right:1px solid var(--rule)}
+.specstrip div:last-child{border-right:0}
+.specstrip b{display:block;font-family:var(--disp);text-transform:uppercase;font-size:1rem;letter-spacing:.08em;font-weight:500;margin-top:6px}
+
+/* photo frames — real shots drop in, placeholder shows until they do */
+.ph{position:relative;background:var(--stage);border:1px solid var(--rule);overflow:hidden;display:grid;place-items:center}
+.ph::after{content:attr(data-shot);font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.13em;text-transform:uppercase;color:var(--muted);text-align:center;padding:16px;line-height:1.7;max-width:30ch}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph.r32{aspect-ratio:3/2} .ph.r23{aspect-ratio:2/3} .ph.r11{aspect-ratio:1/1}
+.hero-photo{margin-top:34px}
+
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(246px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.trio article{background:var(--ground);padding:27px 25px}
+.trio h3{font-size:var(--fs-h3);margin-bottom:10px}
+.trio p{font-size:var(--fs-sm);color:var(--ink-2)}
+.trio .n{font-family:var(--mono);font-size:var(--fs-label);color:var(--clover);letter-spacing:.15em;display:block;margin-bottom:13px;text-transform:uppercase}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(298px,1fr));gap:clamp(24px,4vw,52px);align-items:start}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;font-size:var(--fs-sm)}
+.dl dt{font-family:var(--mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.11em;color:var(--muted);padding-top:2px}
+.dl dd{margin:0}
+.stage{display:none;background:linear-gradient(172deg,color-mix(in srgb,var(--stage) 60%,var(--surface)),var(--stage));border:1px solid var(--rule);padding:clamp(8px,2vw,20px)}
+.stage svg{display:block;width:100%;height:auto}
+
+/* ---------- storefront chrome (structure after altusshooting.com) ---------- */
+.util{background:var(--code);border-bottom:1px solid var(--rule);font-size:var(--fs-xs)}
+.util .wrap{display:flex;justify-content:flex-end;gap:22px;align-items:center;height:36px}
+.util a{color:var(--muted);text-decoration:none;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;font-size:var(--fs-label)}
+.util a:hover{color:var(--ink)}
+.util .ph-num{color:var(--ink);font-weight:600}
+
+.head{border-bottom:1px solid var(--rule);background:var(--ground)}
+.head .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding-top:16px;padding-bottom:16px}
+.searchbox{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:9px;border-bottom:1px solid var(--rule);max-width:330px;padding-bottom:6px}
+.searchbox:focus-within{border-color:var(--clover)}
+.searchbox svg{width:15px;height:15px;flex:0 0 auto;color:var(--muted)}
+.searchbox input{flex:1;background:none;border:0;color:var(--ink);font-family:var(--body);font-size:var(--fs-sm);padding:3px 0;min-width:0}
+.searchbox input::placeholder{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:var(--fs-xs)}
+.searchbox button{background:none;border:0;color:var(--clover);font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;cursor:pointer;padding:0 2px}
+.head .brand{justify-self:center;padding:0}
+.tools{display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.tool{display:flex;align-items:center;gap:7px;background:none;border:0;color:var(--ink-2);cursor:pointer;padding:9px 11px;font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.12em;text-transform:uppercase}
+.tool:hover{color:var(--ink)}
+.tool svg{width:17px;height:17px}
+.tool .cnt{color:var(--gold)}
+.acct{display:flex;align-items:center;gap:7px;background:none;border:0;color:var(--ink-2);cursor:pointer;padding:9px 0}
+.tools .searchtog{display:none}
+.acct svg{width:18px;height:18px}
+
+.mainnav{background:var(--surface);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:50}
+.mainnav .wrap{display:flex;justify-content:center;flex-wrap:wrap;gap:2px}
+.navitem{position:relative}
+.navitem>button{font-family:var(--disp);text-transform:uppercase;letter-spacing:.1em;font-size:.75rem;font-weight:500;white-space:nowrap;background:none;border:0;color:var(--ink-2);padding:16px 13px;cursor:pointer;display:flex;align-items:center;gap:7px;border-bottom:2px solid transparent}
+.navitem>button:hover,.navitem.open>button{color:var(--ink);background:var(--raised)}
+.navitem>button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--clover)}
+.caret{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;opacity:.65}
+.drop{position:absolute;top:100%;left:0;min-width:236px;background:var(--raised);border:1px solid var(--rule);border-top:2px solid var(--clover);padding:8px 0;display:none;z-index:60;box-shadow:0 18px 40px -20px rgba(0,0,0,.8)}
+.navitem.open .drop{display:block}
+.drop button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink-2);font-family:var(--body);font-size:var(--fs-sm);padding:9px 18px;cursor:pointer}
+.drop button:hover{background:var(--clover-soft);color:var(--ink)}
+.drop .gr{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:9px 18px 5px}
+
+.promo{background:var(--code);color:var(--clover);border-bottom:1px solid var(--rule);text-align:center;padding:12px 16px;font-family:var(--disp);text-transform:uppercase;letter-spacing:.14em;font-size:.79rem;font-weight:500}
+.promo b{font-weight:600;color:var(--gold)}
+
+/* hero carousel */
+body:not([data-view="home"]) .carousel{display:none}
+.carousel{position:relative;background:var(--code);border-bottom:1px solid var(--rule);overflow:hidden}
+.slides{position:relative}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .5s ease}
+.slide.on{opacity:1;visibility:visible;position:relative}
+.slide .inner{min-height:clamp(300px,42vw,540px);max-width:var(--maxw);margin:0 auto;padding:clamp(30px,4vw,56px) clamp(48px,7vw,76px) clamp(52px,6vw,64px);display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-content:center;min-height:clamp(340px,46vw,560px)}
+.slide .kicker{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.slide h2{font-family:var(--disp);font-weight:300;letter-spacing:.1em;font-size:clamp(2rem,5.4vw,4.4rem);line-height:1.02;color:var(--ink)}
+.slide h2 b{display:block;font-weight:600}
+.slide p{color:var(--ink-2);max-width:44ch;font-size:var(--fs-sm)}
+.slide .art{margin-top:6px}
+.cfgshot{margin:0}
+.cfgshot figcaption{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);line-height:1.65;margin-top:11px;max-width:62ch}
+.slide .acts{margin-top:4px}
+.car-btn{position:absolute;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--ink-2);font-size:2rem;line-height:1;padding:14px 12px;cursor:pointer;z-index:5;font-family:var(--disp);font-weight:300}
+.car-btn:hover{color:var(--gold)}
+.car-btn.prev{left:4px} .car-btn.next{right:4px}
+.dots{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:5}
+.dots button{width:11px;height:11px;border:1px solid var(--muted);background:none;padding:0;cursor:pointer}
+.dots button[aria-current="true"]{background:var(--gold);border-color:var(--gold)}
+
+/* product grid */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;align-items:center}
+.chip{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;padding:7px 12px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--clover);color:#0D0D0D;border-color:var(--clover)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:22px}
+.card{background:var(--surface);border:1px solid var(--rule);display:flex;flex-direction:column}
+.card .plate{background:var(--stage);border-bottom:1px solid var(--rule);aspect-ratio:4/3;display:grid;place-items:center;position:relative;overflow:hidden}
+.card .plate.empty{background:repeating-linear-gradient(135deg,var(--stage) 0 9px,var(--rule-2) 9px 10px)}
+.card .plate.empty span{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.15em;text-transform:uppercase;color:var(--muted);background:var(--surface);border:1px solid var(--rule);padding:7px 13px}
+.card .plate img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.card .body{padding:15px 16px 17px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card h3{font-size:.92rem;letter-spacing:.07em;line-height:1.28}
+.card .meta{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);letter-spacing:.03em;line-height:1.5}
+.card .price{font-family:var(--mono);font-size:1.05rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--gold);margin-top:auto;padding-top:6px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 7px;border:1px solid currentColor;font-weight:500}
+.tag.ffl{color:var(--stop)} .tag.door{color:var(--clover)} .tag.nfa{color:var(--warn)}
+.tag.stock{color:var(--muted);border-color:var(--rule);background:var(--raised)}
+.note-state{font-size:var(--fs-xs);color:var(--warn);font-family:var(--mono);letter-spacing:.02em;line-height:1.5}
+.card .add{margin-top:2px}
+
+/* configurator */
+.cfg{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:26px;align-items:start}
+.steps{border-top:1px solid var(--rule);margin-top:24px}
+.step{border-bottom:1px solid var(--rule);padding:19px 0}
+.step-head{display:flex;align-items:baseline;gap:12px;margin-bottom:13px}
+.step-head .idx{font-family:var(--mono);font-size:var(--fs-label);color:var(--clover);letter-spacing:.15em;font-weight:600}
+.step-head h3{font-size:.96rem;letter-spacing:.11em}
+.step-head .picked{margin-left:auto;font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);text-align:right}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(166px,1fr));gap:8px}
+.opt{text-align:left;background:var(--surface);border:1px solid var(--rule);padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font-family:var(--body);color:var(--ink)}
+.opt:hover{border-color:var(--ink-2)}
+.opt[aria-pressed="true"]{border-color:var(--clover);background:var(--clover-soft);box-shadow:inset 2px 0 0 var(--clover)}
+.opt .nm{font-size:.88rem;line-height:1.3}
+.opt .dt{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.sw{width:58px;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;font-family:var(--mono);font-size:.57rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.sw i{display:block;width:46px;height:46px;border:1px solid var(--rule);border-radius:50%}
+.sw[aria-pressed="true"] i{outline:2px solid var(--gold);outline-offset:2px}
+.sw[aria-pressed="true"]{color:var(--ink)}
+
+.sheet{border:1px solid var(--clover);background:var(--raised);position:sticky;top:78px}
+.sheet-hd{padding:15px 17px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sheet-hd h3{font-size:.88rem;letter-spacing:.13em}
+.sheet-hd .code{font-family:var(--mono);font-size:var(--fs-xs);color:var(--gold);letter-spacing:.06em;font-weight:600}
+.lines{padding:7px 17px 11px;display:flex;flex-direction:column}
+.line{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted var(--rule);font-size:.82rem}
+.line .k{color:var(--muted);font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;flex:0 0 82px}
+.line .v{flex:1;line-height:1.35}
+.line .p{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:var(--fs-xs);color:var(--ink-2);white-space:nowrap}
+.totals{padding:13px 17px;border-top:1px solid var(--rule);background:var(--surface);display:flex;flex-direction:column;gap:5px}
+.trow{display:flex;justify-content:space-between;font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.trow.big{font-size:1.24rem;text-transform:none;letter-spacing:0;color:var(--gold);font-weight:600;align-items:baseline;padding-top:7px;margin-top:3px;border-top:1px solid var(--rule)}
+.trow.big span:first-child{font-family:var(--disp);text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;color:var(--ink)}
+.sheet-ft{padding:15px 17px;display:flex;flex-direction:column;gap:9px;border-top:1px solid var(--rule)}
+.sheet-ft .btn{text-align:center}
+.fineprint{font-family:var(--mono);font-size:.64rem;line-height:1.65;color:var(--muted)}
+.flagbox{margin:0 17px 14px;padding:10px 13px;border-left:2px solid var(--warn);background:var(--gold-soft);font-size:var(--fs-xs);line-height:1.55;color:var(--ink-2)}
+.flagbox b{font-family:var(--mono);letter-spacing:.11em;text-transform:uppercase;font-size:.62rem;color:var(--warn);display:block;margin-bottom:3px}
+
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:20px}
+.gal figure{margin:0;border:1px solid var(--rule);background:var(--surface)}
+.gal figcaption{padding:13px 15px 15px}
+.gal figcaption b{display:block;font-family:var(--disp);text-transform:uppercase;letter-spacing:.09em;font-size:.88rem;font-weight:500}
+.gal figcaption span{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted)}
+
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+th,td{text-align:left;padding:10px 11px;border-bottom:1px solid var(--rule)}
+th{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+form{display:flex;flex-direction:column;gap:13px}
+label{display:flex;flex-direction:column;gap:5px}
+input,textarea,select{font-family:var(--body);font-size:.93rem;padding:11px 13px;background:var(--surface);border:1px solid var(--rule);color:var(--ink);width:100%}
+input:hover,textarea:hover,select:hover{border-color:var(--ink-2)}
+
+.compliance{background:var(--surface);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.compliance .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(214px,1fr));gap:28px;padding-top:36px;padding-bottom:36px}
+.compliance h4{font-size:.8rem;letter-spacing:.12em;margin-bottom:8px;color:var(--clover)}
+.compliance p{font-size:var(--fs-xs);color:var(--muted);line-height:1.7;font-family:var(--mono)}
+footer{padding:44px 0 56px}
+.foot{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:30px;align-items:start}
+.foot h4{font-size:.76rem;letter-spacing:.14em;margin-bottom:12px}
+.foot ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:var(--fs-sm)}
+.foot ul a{color:var(--ink-2);text-decoration:none}
+.foot ul a:hover{color:var(--ink)}
+.foot svg{height:112px;width:auto;margin-bottom:18px;display:block}
+
+.legal{border-top:1px solid var(--rule);margin-top:36px;padding-top:22px;font-family:var(--mono);font-size:.66rem;line-height:1.85;color:var(--muted);max-width:76ch}
+
+/* ============ burger + off-canvas drawer (markup is shared with desktop nav) ============ */
+.burger{display:none;background:none;border:0;cursor:pointer;padding:12px 10px;flex-direction:column;gap:5px;justify-self:start}
+.burger span{display:block;width:23px;height:2px;background:var(--ink);transition:transform .25s,opacity .2s}
+.burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:150;border:0}
+.drawer-hd{display:none}
+.mobtotal{display:none}
+
+/* ============ tablet ============ */
+@media (max-width:1180px){
+  .mainnav .wrap{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .mainnav .wrap::-webkit-scrollbar{display:none}
+  .navitem>button{white-space:nowrap;padding:15px 12px}
+  .cfg{grid-template-columns:1fr}
+  .sheet{position:static}
+}
+@media (max-width:1060px){
+  .head .wrap{grid-template-columns:1fr auto 1fr;gap:16px}
+  .brand svg{height:52px}
+  .slide .inner{padding-left:clamp(20px,5vw,48px);padding-right:clamp(20px,5vw,48px)}
+}
+
+/* ============ mobile ============ */
+@media (max-width:900px){
+  body.nav-open{overflow:hidden}
+  .burger{display:flex}
+  .util .wrap{justify-content:center;gap:16px;height:auto;padding-top:8px;padding-bottom:8px;flex-wrap:wrap}
+  .util a:not(:last-of-type){display:none}
+
+  .head .wrap{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;padding-top:10px;padding-bottom:10px}
+  .head .brand{justify-self:center;padding:6px 2px}
+  .burger{justify-self:start}
+  .brand svg{height:36px}
+  .tools{justify-self:end;gap:0}
+  .tool{padding:11px 7px;gap:5px}
+  .tool span.cnt{display:inline}
+  .tool{font-size:0}                       /* icon-only; label returns on tablet up */
+  .tool svg{width:21px;height:21px}
+  .tool .cnt{font-size:.66rem}
+  .acct,.wish{display:none}
+  .tools .searchtog{display:flex}
+  .searchbox{grid-column:1/-1;order:4;max-width:none;margin-top:6px;display:none}
+  .head.search-open .searchbox{display:flex}
+
+  /* the desktop nav bar becomes the drawer — same DOM, same JS */
+  .mainnav{position:fixed;top:0;bottom:0;left:0;width:min(86vw,340px);transform:translateX(-100%);
+           transition:transform .28s ease;overflow-y:auto;z-index:200;border-bottom:0;border-right:1px solid var(--rule);
+           background:var(--surface);box-shadow:18px 0 50px -20px rgba(0,0,0,.9)}
+  .mainnav.open{transform:none}
+  .mainnav .wrap{flex-direction:column;align-items:stretch;overflow:visible;padding:0}
+  .drawer-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--rule)}
+  .drawer-x{background:none;border:0;color:var(--ink);font-size:1.9rem;line-height:1;cursor:pointer;padding:2px 8px}
+  .navitem{border-bottom:1px solid var(--rule-2)}
+  .navitem>button{width:100%;justify-content:space-between;padding:16px 20px;font-size:.92rem;letter-spacing:.11em;border-bottom:0}
+  .navitem>button[aria-current="page"]{border-bottom:0;color:var(--clover)}
+  .navitem.open>button{background:none;color:var(--ink)}
+  .navitem.open .caret{transform:rotate(180deg)}
+  .drop{position:static;display:none;min-width:0;border:0;border-top:1px solid var(--rule-2);
+        background:var(--raised);padding:4px 0 8px;box-shadow:none}
+  .navitem.open .drop{display:block}
+  .drop button{padding:13px 20px 13px 32px;font-size:.9rem}
+  .drop .gr{padding:12px 20px 4px}
+
+  .promo{font-size:.7rem;letter-spacing:.09em;padding:10px 14px;line-height:1.5}
+  .slide .inner{min-height:0;padding:26px clamp(18px,5vw,30px) 52px;gap:16px}
+  .slide h2{font-size:clamp(2.1rem,10vw,3.1rem)}
+  .slide p{font-size:.9rem}
+  .slide .acts{display:flex;gap:9px;flex-wrap:wrap}
+  .slide .acts .btn{flex:1 1 auto;text-align:center;min-width:44%}
+  .car-btn{display:none}                    /* swipe instead — arrows crowd the art */
+  .dots{bottom:16px}
+  .dots button{width:14px;height:14px}
+
+  section{padding:34px 0}
+  .trio article{padding:22px 20px}
+  .two{gap:26px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  .card h3{font-size:.86rem}
+  .card .body{padding:13px 13px 15px;gap:7px}
+  .card .price{font-size:.98rem}
+  .gal{grid-template-columns:1fr;gap:16px}
+  .filters{gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:6px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;padding:9px 13px}
+  .opts{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+  .step-head .picked{display:none}
+  .step-head h3{font-size:.92rem}
+  .opt{padding:12px 13px}
+  .sw i{width:52px;height:52px}
+  .sheet{margin-bottom:74px}
+
+  /* running total follows you down the configurator */
+  #build.on .mobtotal{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:120;
+    align-items:center;justify-content:space-between;gap:14px;padding:11px 16px;
+    background:var(--surface);border-top:1px solid var(--clover)}
+  .mobtotal b{font-size:1.2rem;color:var(--gold);display:block;line-height:1.2}
+  .mobtotal .btn{flex:0 0 auto}
+
+  footer{padding:32px 0 40px}
+  .foot{gap:26px}
+  .foot svg{height:88px}
+  th,td{padding:9px 8px}
+}
+@media (max-width:420px){
+  .grid{grid-template-columns:1fr 1fr;gap:11px}
+  .card .meta{font-size:.68rem}
+  .tag{font-size:.56rem;padding:2px 5px}
+  .slide h2{font-size:clamp(1.9rem,9.5vw,2.6rem)}
+  .opts{grid-template-columns:1fr 1fr}
+  .opt .dt{font-size:.66rem}
+}
+/* pointer-coarse: give every control a real touch target */
+@media (pointer:coarse){
+  .btn{padding:14px 22px}
+  .btn.sm{padding:12px 16px}
+  .dots button{width:15px;height:15px}
+  nav button,.drop button,.chip,.opt,.sw{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>
+@media (min-width:880px){
+  .slide .inner{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(24px,4vw,52px);align-items:center}
+  .slide .txt{display:flex;flex-direction:column;gap:14px}
+  .slide .art{margin-top:0}
+}
+</style>
+
+<div class="notice"><div class="wrap">
+  <b>Design mockup</b>
+  <span>Real KLOVR logo, brand colours, and product photography. Pricing, addresses, inventory, and the dealer catalogue are still placeholders.</span>
+</div></div>
+
+<div class="util"><div class="wrap">
+  <a href="#" onclick="return false">Dealer login</a>
+  <a href="#" onclick="return false">Warranty</a>
+  <a href="#" onclick="return false">Track an order</a>
+  <span class="lab">Phone <span class="ph-num num">(000)&nbsp;000‑0000</span></span>
+</div></div>
+
+<header class="head"><div class="wrap">
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mainnav"><span></span><span></span><span></span></button>
+  <form class="searchbox" onsubmit="event.preventDefault();alert('Mockup only — search is not wired up.')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input placeholder="Search actions, chassis, barrels" aria-label="Search">
+    <button type="submit">Go</button>
+  </form>
+  <button class="brand" onclick="go('home')" aria-label="KLOVR Precision — home">
+    <span class="on-dark"><svg aria-label="KLOVR Precision" role="img" id="pd-root" xmlns="http://www.w3.org/2000/svg" viewBox="40.33 53.1 355.34 113.68"><defs><style>.pdb{fill:#759e77;}.pdc{fill:#d1a75f;}.pdd{fill:#edeced;}</style></defs><path class="pdd" d="M377.32,103.86l3.15-.47c6.89-1.56,11.6-8.02,11.23-15.37.23-7.86-4.71-14.01-12.59-15.66l-.13-.03-46.09.21-6.37,8.84h9.19l1.27-.06,40.7.05c2.3,0,4.31,2.18,4.58,4.13.22,1.6.23,3.5.02,5.09-.51,4.08-4.92,4.39-6.25,4.39l-48.27-.12v27.3h9.18v-18.19s27.65.14,27.65.14l1.58,1.42,16.82,16.73,12.68-.09-18.34-18.32Z"/><path class="pdd" d="M107.41,72.69l-3.76-.22c-3.69-.22-6.69-.2-10.18-.17h-.58s-28.36,19.69-28.36,19.69h-15.13s-.03-19.74-.03-19.74l-9.04.11v49.89s9.04-.03,9.04-.03v-21.2s14.27-.05,14.27-.05l29.98,21.27h.99c1.26.03,2.49.05,3.74.05,2.01,0,4.07-.04,6.38-.2l3.65-.25-35.64-25.16,34.64-23.97Z"/><polygon class="pdd" points="285.42 111.86 259.45 72.32 248.66 72.29 281.34 122.26 289.52 122.24 322.2 72.39 311.36 72.35 285.42 111.86"/><path class="pdd" d="M169.27,113.28h-45.96s0-40.88,0-40.88l-1.26-.04c-2.62-.09-4.66-.07-6.83.06l-1.23.07v49.78s55.36,0,55.36,0l.1-1.19c.22-2.5.2-4.49-.05-6.64l-.13-1.15Z"/><path class="pdd" d="M107.43,166.59c-.12-.13-.18-.3-.18-.51v-12.09c0-.28.07-.49.22-.64.15-.14.35-.21.61-.21h10.93c.69,0,1.29.14,1.82.42s.92.67,1.21,1.18c.28.51.42,1.1.42,1.76v1.95c0,1.09-.31,1.94-.93,2.53s-1.51.88-2.66.88h-8.79c-.15,0-.26.04-.35.13-.09.09-.13.2-.13.35v3.72c0,.22-.06.4-.18.53-.12.13-.29.19-.5.19h-.96c-.22,0-.39-.06-.52-.19ZM119.67,159.35c.29-.27.44-.62.44-1.05v-1.66c0-.41-.17-.74-.5-1.01-.33-.27-.74-.41-1.22-.41h-8.33c-.15,0-.26.04-.35.13-.09.09-.13.2-.13.35v3.59c0,.15.04.26.13.34.09.08.2.12.35.12h8.33c.55,0,.98-.13,1.27-.41Z"/><path class="pdd" d="M134.34,166.6c-.12-.12-.18-.29-.18-.52v-12.09c0-.28.07-.49.22-.64.15-.14.35-.21.61-.21h11.02c.64,0,1.21.14,1.72.42s.92.66,1.22,1.14c.3.49.45,1.04.45,1.65v1.66c0,.56-.1,1.08-.31,1.55-.21.47-.51.85-.89,1.14-.39.29-.84.49-1.36.57-.12.05-.21.1-.25.14-.04.04-.06.11-.06.19-.01.02,0,.05,0,.08.02.03.03.06.05.08.01.04.02.06.04.07.01.01.02.03.04.06l2.34,4.04s.04.06.05.07c0,.01.02.04.05.07.01.04.03.08.05.12s.03.09.03.14c0,.12-.06.23-.17.31-.11.09-.26.13-.46.13h-1.09c-.17,0-.33-.04-.47-.11s-.26-.19-.36-.35l-2.78-4.59c-.06-.11-.14-.19-.24-.24-.1-.05-.21-.07-.33-.07h-6.29c-.15,0-.26.04-.35.12-.09.08-.13.19-.13.34v4.2c0,.22-.06.39-.18.52-.12.12-.29.18-.51.18h-.96c-.22,0-.39-.06-.52-.18ZM146.32,159.16c.23-.13.42-.31.54-.53.13-.23.19-.49.19-.78v-1.14c0-.31-.07-.57-.21-.78-.14-.21-.33-.38-.57-.51-.24-.12-.51-.18-.8-.18h-8.5c-.15,0-.26.04-.35.13-.09.09-.13.2-.13.35v3.15c0,.15.04.27.13.36.09.09.2.14.35.14h8.5c.33,0,.61-.06.85-.19Z"/><path class="pdd" d="M161.33,166.55c-.15-.15-.23-.36-.23-.62v-11.94c0-.27.08-.48.23-.63s.35-.22.6-.22h12.51c.22,0,.4.06.53.19s.19.3.19.53v.66c0,.21-.07.38-.19.51-.13.13-.3.19-.53.19h-10.5c-.15,0-.26.04-.35.13s-.13.2-.13.35v2.6c0,.15.04.26.13.35s.2.13.35.13h8.62c.22,0,.39.06.52.18.12.12.18.29.18.52v.66c0,.22-.06.4-.18.53-.12.13-.29.19-.52.19h-8.62c-.15,0-.26.04-.35.13s-.13.2-.13.35v2.89c0,.15.04.26.13.34.09.08.2.12.35.12h10.5c.22,0,.4.06.53.19s.19.3.19.51v.66c0,.22-.07.4-.19.53-.13.13-.3.19-.53.19h-12.51c-.25,0-.45-.08-.6-.23Z"/><path class="pdd" d="M188.44,166.36c-.58-.28-1.03-.69-1.35-1.23-.33-.53-.49-1.16-.49-1.89v-6.45c0-.74.16-1.38.48-1.94.32-.55.76-.98,1.34-1.27.57-.29,1.23-.44,1.98-.44h9.77c.22,0,.39.06.52.19.12.13.18.3.18.53v.66c0,.22-.06.39-.18.52-.12.12-.29.18-.52.18h-9.07c-.74,0-1.28.18-1.64.55s-.53.87-.53,1.49v5.42c0,.64.18,1.13.54,1.48s.87.53,1.52.53h9.18c.22,0,.39.06.52.19.12.13.18.3.18.51v.66c0,.22-.06.4-.18.53-.12.13-.29.19-.52.19h-9.69c-.77,0-1.45-.14-2.03-.42Z"/><path class="pdd" d="M212.8,166.6c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52.12-.12.29-.18.52-.18h.94c.23,0,.41.06.53.18.12.12.18.29.18.52v12.24c0,.22-.06.39-.18.52-.12.12-.29.18-.53.18h-.94c-.22,0-.39-.06-.52-.18Z"/><path class="pdd" d="M227.19,166.59c-.13-.13-.19-.3-.19-.51v-.66c0-.22.06-.4.19-.53s.3-.19.51-.19h10.32c.47,0,.81-.1,1.04-.3s.34-.49.34-.86v-.85c0-.23-.07-.44-.22-.62s-.36-.3-.63-.36l-.15-.06-9.03-1.33c-.06-.01-.12-.02-.18-.04-.8-.13-1.42-.43-1.86-.88-.44-.45-.66-1.05-.66-1.8v-1.58c0-.61.13-1.14.39-1.57.26-.43.62-.76,1.1-.99.47-.23,1.03-.34,1.67-.34h10.52c.22,0,.39.06.52.19.12.13.18.3.18.51v.68c0,.21-.06.38-.19.51-.13.13-.3.19-.51.19h-9.95c-.43,0-.75.11-.98.32-.22.22-.33.48-.33.8v.88c0,.27.09.51.27.72.18.21.43.34.76.39l9.22,1.35c.79.12,1.4.42,1.83.88.44.47.65,1.08.65,1.82v1.62c0,.57-.14,1.05-.41,1.47-.27.41-.65.73-1.14.96-.49.23-1.05.34-1.68.34h-10.87c-.22,0-.4-.06-.53-.19Z"/><path class="pdd" d="M253.7,166.6c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52.12-.12.29-.18.52-.18h.94c.23,0,.41.06.53.18.12.12.17.29.17.52v12.24c0,.22-.06.39-.17.52-.12.12-.29.18-.53.18h-.94c-.22,0-.39-.06-.52-.18Z"/><path class="pdd" d="M269.4,166.35c-.58-.29-1.03-.7-1.35-1.23-.33-.53-.49-1.17-.49-1.91v-6.41c0-.76.16-1.42.47-1.96.31-.55.76-.96,1.33-1.25.57-.29,1.25-.43,2.04-.43h7.52c.77,0,1.45.14,2.02.42s1.02.7,1.34,1.24c.32.55.48,1.21.48,1.98v6.41c0,.74-.16,1.38-.48,1.92-.32.54-.76.95-1.34,1.23s-1.25.42-2.04.42h-7.48c-.76,0-1.43-.14-2.01-.43ZM279.91,164.21c.33-.34.5-.84.5-1.5v-5.46c0-.66-.17-1.17-.52-1.52-.34-.35-.87-.53-1.58-.53h-6.32c-.72,0-1.26.18-1.59.54-.34.36-.51.86-.51,1.5v5.46c0,.63.18,1.12.55,1.47.37.36.86.53,1.47.53h6.52c.65,0,1.14-.17,1.47-.51Z"/><path class="pdd" d="M294.63,166.6c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52.12-.12.29-.18.52-.18h.98c.17,0,.33.03.46.08.13.06.27.14.41.27l9.97,9.31c.13.14.27.18.4.14.13-.04.19-.18.19-.4v-8.7c0-.22.06-.39.17-.52.12-.12.28-.18.49-.18h.9c.22,0,.39.06.52.18.12.12.18.29.18.52v12.24c0,.22-.06.39-.18.52-.12.12-.29.18-.52.18h-.9c-.17,0-.33-.03-.47-.08-.14-.06-.27-.14-.4-.27l-10.04-9.38c-.1-.1-.19-.15-.28-.16s-.16.02-.21.09c-.06.07-.08.17-.08.3v8.79c0,.22-.06.39-.17.52-.12.12-.29.18-.53.18h-.88c-.22,0-.39-.06-.52-.18Z"/><polygon class="pdb" points="173.59 92.67 169.42 88.56 169.43 83.64 177.52 75.55 185.78 75.66 202.37 92.48 173.59 92.67"/><polygon class="pdb" points="250.57 88.35 246.53 92.58 217.51 92.49 234.22 75.58 242.38 75.56 250.44 83.63 250.57 88.35"/><path class="pdb" d="M208.92,130.02c-3.45,3.74-3.75,4.58-9.14,3.97l-7.71-7.61c-.12-2.78-.12-5.87.02-8.72l16.65-16.34.18,28.7Z"/><polygon class="pdb" points="220.21 133.96 214.97 134.06 210.96 130.03 211.16 101.32 227.91 117.81 227.92 126.23 220.21 133.96"/><path class="pdb" d="M208.8,85.81l-16.83-16.56v-8.11s7.93-7.96,7.93-7.96c1.36-.08,3.61-.14,4.91.02l4.13,4.09-.14,28.52Z"/><polygon class="pdb" points="227.98 69.16 211.12 85.92 210.95 57.3 215.07 53.16 219.99 53.16 227.91 61.13 227.98 69.16"/><polygon class="pdb" points="177.4 111.64 169.46 103.74 169.41 98.83 173.52 94.68 202.26 94.76 185.67 111.49 177.4 111.64"/><polygon class="pdb" points="250.49 103.67 242.59 111.56 234.35 111.59 217.64 94.81 246.37 94.68 250.47 98.83 250.49 103.67"/><path class="pdc" d="M208.27,90.37c2.01-.96,4.22-.05,5.03,1.62.88,1.81.19,3.92-1.8,4.94-1.52.78-3.56.19-4.63-1.31-1.17-1.63-.79-4.21,1.4-5.25Z"/></svg></span>
+  </button>
+  <div class="tools">
+    <button class="tool searchtog" onclick="toggleSearch()" aria-label="Search" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    </button>
+    <button class="acct" onclick="mock()" aria-label="Account">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    </button>
+    <button class="tool wish" onclick="mock()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.6-7-9.4A4.1 4.1 0 0 1 12 7a4.1 4.1 0 0 1 7 3.6C19 15.4 12 20 12 20z"/></svg>
+      Wishlist
+    </button>
+    <button class="tool" onclick="mock()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h16l-1.6 10.4a2 2 0 0 1-2 1.6H7.6a2 2 0 0 1-2-1.6L4 6z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg>
+      Cart&nbsp;<span class="cnt num">(0)</span>
+    </button>
+  </div>
+</div></header>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="mainnav" id="mainnav"><div class="wrap" id="nav">
+  <div class="drawer-hd"><span class="lab">Menu</span><button class="drawer-x" id="drawerX" aria-label="Close menu">&#215;</button></div>
+  <div class="navitem"><button data-v="home" aria-current="page">Home</button></div>
+  <div class="navitem" data-drop>
+    <button aria-expanded="false">Products <i class="caret"></i></button>
+    <div class="drop">
+      <span class="gr">Machined in‑house</span>
+      <button data-v="shop" data-f="action">Actions</button>
+      <button data-v="shop" data-f="chassis">Chassis systems</button>
+      <button data-v="shop" data-f="rifle">Complete rifles</button>
+      <button data-v="shop" data-f="barrel">Barrels &amp; bolts</button>
+      <span class="gr">Everything</span>
+      <button data-v="shop" data-f="all">Shop all</button>
+    </div>
+  </div>
+  <div class="navitem" data-drop>
+    <button aria-expanded="false">Optics &amp; Gear <i class="caret"></i></button>
+    <div class="drop">
+      <button data-v="shop" data-f="optic">Optics</button>
+      <button data-v="shop" data-f="mount">Rings &amp; bases</button>
+      <button data-v="shop" data-f="gear">Bipods &amp; support</button>
+      <button data-v="shop" data-f="ammo">Ammunition</button>
+      <button data-v="shop" data-f="nfa">Suppressors</button>
+    </div>
+  </div>
+  <div class="navitem" data-drop>
+    <button aria-expanded="false">Custom Rifles <i class="caret"></i></button>
+    <div class="drop">
+      <button data-v="build">Build configurator</button>
+      <button data-v="gallery">Recent builds</button>
+      <button data-v="build">How it works</button>
+      <button data-v="build">Lead times</button>
+    </div>
+  </div>
+  <div class="navitem"><button data-v="gallery">Gallery</button></div>
+  <div class="navitem"><button data-v="contact">Transfers</button></div>
+  <div class="navitem"><button data-v="contact">Contact</button></div>
+</div></div>
+
+<div class="promo">Sub‑MOA guarantee on every complete rifle &mdash; <b>proof target ships in the case</b></div>
+
+<div class="carousel">
+  <div class="slides" id="slides">
+    <div class="slide on"><div class="inner">
+      <div class="txt">
+        <span class="kicker">Built to order · 10–14 weeks</span>
+        <h2>KLOVR<b>Custom Rifles</b></h2>
+        <p>Spec the action, chassis, barrel, and finish. You leave with a priced build sheet and a quote &mdash; no deposit until we have talked it through.</p>
+        <div class="acts"><button class="btn" onclick="go('build')">Start a build</button>
+        <button class="btn ghost" onclick="go('gallery')">See recent builds</button></div>
+      </div>
+      <div class="art"><div class="ph r32"><img fetchpriority="high" src="web/hero-rifle.jpg" srcset="web/hero-rifle-sm.jpg 820w, web/hero-rifle.jpg 1800w" sizes="(max-width:900px) 94vw, 52vw" decoding="async" alt="KLOVR barrelled action with bolt, on a cedar post"></div></div>
+    </div></div>
+    <div class="slide"><div class="inner">
+      <div class="txt">
+        <span class="kicker">The KLOVR action</span>
+        <h2>Machined<b>From Solid</b></h2>
+        <p>Integral recoil lug and 20 MOA rail, fluted bolt body, 70° throw, and a burnt bronze finish that is ours alone. Drops into any 700‑footprint chassis.</p>
+        <div class="acts"><button class="btn" onclick="go('shop')">Shop actions</button></div>
+      </div>
+      <div class="art"><div class="ph r32"><img src="web/hero-action.jpg" srcset="web/hero-action-sm.jpg 820w, web/hero-action.jpg 1800w" sizes="(max-width:900px) 94vw, 52vw" decoding="async" alt="KLOVR action, ejection port and fluted bolt" loading="lazy"></div></div>
+    </div></div>
+    <div class="slide"><div class="inner">
+      <div class="txt">
+        <span class="kicker">Chassis systems</span>
+        <h2>Skeletonized<b>And Rigid</b></h2>
+        <p>Billet aluminum, cut light where it does not carry load and left thick where it does. AICS magazines, M‑LOK forends, adjustable comb and length of pull.</p>
+        <div class="acts"><button class="btn" onclick="go('shop')">Shop chassis</button></div>
+      </div>
+      <div class="art"><div class="ph r32"><img src="web/hero-chassis.jpg" srcset="web/hero-chassis-sm.jpg 820w, web/hero-chassis.jpg 1800w" sizes="(max-width:900px) 94vw, 52vw" decoding="async" alt="KLOVR chassis, engraved forend" loading="lazy"></div></div>
+    </div></div>
+  </div>
+  <button class="car-btn prev" onclick="slide(-1)" aria-label="Previous slide">&#8249;</button>
+  <button class="car-btn next" onclick="slide(1)"  aria-label="Next slide">&#8250;</button>
+  <div class="dots" id="dots"></div>
+</div>
+
+<!-- ===== HOME ===== -->
+<main id="home" class="view on">
+  <section class="wrap">
+    <div class="eyebrow"><span class="lab">What we make</span></div>
+    <div class="trio">
+      <article><span class="n">Components</span><h3>Actions &amp; chassis</h3>
+        <p>Everything cut on our own machines, inspected in house, and finished in the bronze that started the company. Sold on their own or as a barreled action.</p></article>
+      <article><span class="n">Complete rifles</span><h3>Built to your spec</h3>
+        <p>Chambered, trued, and bedded on the bench. Every complete rifle leaves with a three‑shot group at 100 yards and the target in the case.</p></article>
+      <article><span class="n">Service</span><h3>Transfers &amp; gunsmithing</h3>
+        <p>Incoming FFL transfers processed the day they land. Threading, Cerakote, bedding, and scope mounting with a job tracker you can check online.</p></article>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-top:0">
+    <div class="eyebrow"><span class="lab">Featured</span></div>
+    <div class="two">
+      <div>
+        <h2 style="font-size:var(--fs-h1)">The bronze short action</h2>
+        <p class="prose" style="margin-top:16px">Cut from 416R stainless, nitrided, then finished in burnt bronze. Integral 20 MOA rail so there is no base to shoot loose, a fluted bolt body that sheds debris, and a 70&deg; throw that clears a 50&nbsp;mm objective without a cheek weld change.</p>
+        <div class="dl" style="margin-top:22px">
+          <dt>Footprint</dt><dd>Remington 700 &mdash; short, long, and magnum bolt faces</dd>
+          <dt>Rail</dt><dd>Integral, 20 MOA</dd>
+          <dt>Bolt</dt><dd>Fluted body, 70&deg; throw, M16‑style extractor</dd>
+          <dt>Finish</dt><dd>Burnt bronze Cerakote over nitride</dd>
+          <dt>Weight</dt><dd class="num">31.4 oz bare</dd>
+        </div>
+        <div class="acts"><button class="btn" onclick="go('shop')">Shop the action</button>
+        <button class="btn ghost" onclick="go('build')">Build on it</button></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="ph r23"><img src="web/feat-profile.jpg" srcset="web/feat-profile-sm.jpg 620w, web/feat-profile.jpg 1100w" sizes="(max-width:900px) 46vw, 28vw" decoding="async" alt="KLOVR action in profile" loading="lazy"></div>
+        <div class="ph r23"><img src="web/feat-muzzle.jpg" srcset="web/feat-muzzle-sm.jpg 620w, web/feat-muzzle.jpg 1100w" sizes="(max-width:900px) 46vw, 28vw" decoding="async" alt="Muzzle end of the KLOVR action, clover mark" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="compliance"><div class="wrap">
+    <div><h4>How a rifle purchase works</h4><p>You pay here. The rifle ships to a licensed dealer near you, never to your door. You complete ATF Form 4473 and the background check in person at that dealer.</p></div>
+    <div><h4>Where we can ship</h4><p>Checkout checks your destination state for magazine, feature, and roster restrictions before it will take payment. Some configurations cannot ship to CA, MA, NY, NJ, HI, WA, IL, CO.</p></div>
+    <div><h4>Age requirements</h4><p>21 to purchase a handgun or handgun ammunition, 18 for long guns. Verified at checkout and again in person by the receiving dealer.</p></div>
+    <div><h4>Suppressors and NFA</h4><p>Sold through an SOT and requiring ATF Form 4, fingerprints, and a $200 stamp. The can stays in our safe until your stamp clears.</p></div>
+  </div></div>
+</main>
+
+<!-- ===== SHOP ===== -->
+<div id="shop" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Shop</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:14px">In stock and ready to ship</h2>
+  <p class="prose" style="margin-bottom:26px">Items marked <span class="tag ffl" style="display:inline-block">Ships to FFL</span> go to a licensed dealer near you for the background check &mdash; never to your door.</p>
+  <div class="filters" id="filters">
+    <span class="lab" style="margin-right:4px">Filter</span>
+    <button class="chip" data-f="all" aria-pressed="true">All</button>
+    <button class="chip" data-f="action">Actions</button>
+    <button class="chip" data-f="chassis">Chassis</button>
+    <button class="chip" data-f="rifle">Rifles</button>
+    <button class="chip" data-f="barrel">Barrels &amp; bolts</button>
+    <button class="chip" data-f="optic">Optics</button>
+    <button class="chip" data-f="mount">Mounts</button>
+    <button class="chip" data-f="ammo">Ammo</button>
+    <button class="chip" data-f="gear">Gear</button>
+    <button class="chip" data-f="nfa">NFA</button>
+  </div>
+  <div class="grid" id="shopGrid"></div>
+</section></div>
+
+<!-- ===== GALLERY ===== -->
+<div id="gallery" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Gallery</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:14px">Recent builds</h2>
+  <p class="prose" style="margin-bottom:30px">Every build is photographed before it ships and again with its target card.</p>
+  <div class="gal" id="galGrid"></div>
+</section></div>
+
+<!-- ===== BUILD ===== -->
+<div id="build" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Custom rifles</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:12px">Spec your rifle</h2>
+  <p class="prose" style="margin-bottom:30px">Pick the parts and the build sheet prices, weighs, and measures the rifle as you go. Nothing here is a purchase &mdash; you finish with a quote request, and we talk it through before anyone takes a deposit.</p>
+  <div class="cfg">
+    <div>
+      <figure class="cfgshot"><div class="ph r32"><img src="web/cfg-stage.jpg" srcset="web/cfg-stage-sm.jpg 820w, web/cfg-stage.jpg 1600w" sizes="(max-width:1180px) 94vw, 58vw" decoding="async" alt="KLOVR rifle on a cedar post" loading="lazy"></div><figcaption>Photographed example. A live visual preview of your own spec arrives once the studio part photography is shot &mdash; the build sheet updates now.</figcaption></figure>
+      <div class="steps" id="steps"></div>
+    </div>
+    <aside class="sheet">
+      <div class="sheet-hd"><h3>Build sheet</h3><span class="code num" id="buildCode">&mdash;</span></div>
+      <div class="lines" id="sheetLines"></div>
+      <div id="flags"></div>
+      <div class="totals">
+        <div class="trow"><span>Bare weight</span><span id="tWeight">&mdash;</span></div>
+        <div class="trow"><span>Overall length</span><span id="tLen">&mdash;</span></div>
+        <div class="trow"><span>Lead time</span><span id="tLead">&mdash;</span></div>
+        <div class="trow big"><span>Estimate</span><span class="num" id="tPrice">&mdash;</span></div>
+      </div>
+      <div class="sheet-ft">
+        <button class="btn" onclick="mock()">Request this build</button>
+        <button class="btn ghost" onclick="mock()">Email me the build sheet</button>
+        <p class="fineprint">50% deposit schedules the bench. Balance due at transfer. Estimate excludes tax, the transfer fee, and any NFA stamp. Rifle ships to your FFL.</p>
+      </div>
+    </aside>
+  </div>
+  <div class="mobtotal"><div><span class="lab">Estimate</span><b class="num" id="mobPrice">&mdash;</b></div><button class="btn sm" onclick="mock()">Request build</button></div>
+</section></div>
+
+<!-- ===== CONTACT ===== -->
+<div id="contact" class="view"><section class="wrap">
+  <div class="eyebrow"><span class="lab">Contact</span></div>
+  <h2 style="font-size:var(--fs-h1);margin-bottom:30px">Talk to the shop</h2>
+  <div class="two">
+    <div>
+      <div class="dl">
+        <dt>Address</dt><dd>0000 Placeholder Road<br>Town, ST 00000</dd>
+        <dt>Phone</dt><dd class="num">(000)&nbsp;000‑0000</dd>
+        <dt>Email</dt><dd>shop@klovrprecision.com</dd>
+        <dt>FFL</dt><dd class="num">5‑XX‑XXX‑XX‑XX‑XXXXX</dd>
+      </div>
+      <h3 style="margin:30px 0 12px;font-size:var(--fs-h3)">Hours</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Tue – Fri</th><td class="n">10:00 – 6:00</td></tr>
+        <tr><th>Saturday</th><td class="n">9:00 – 4:00</td></tr>
+        <tr><th>Sun – Mon</th><td class="n">Closed</td></tr>
+      </table></div>
+      <h3 style="margin:30px 0 12px;font-size:var(--fs-h3)">Service pricing</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Incoming FFL transfer</th><td class="n">$35</td></tr>
+        <tr><th>Each additional on same 4473</th><td class="n">$15</td></tr>
+        <tr><th>Scope mount &amp; bore sight</th><td class="n">$65</td></tr>
+        <tr><th>Muzzle threading, 5/8×24</th><td class="n">$140</td></tr>
+        <tr><th>Chassis bedding</th><td class="n">$325</td></tr>
+        <tr><th>Cerakote, barreled action</th><td class="n">$285</td></tr>
+      </table></div>
+      <h3 style="margin:30px 0 12px;font-size:var(--fs-h3)">Bring to a transfer</h3>
+      <p class="prose" style="font-size:var(--fs-sm)">A state‑issued photo ID with your current address. If your licence address is old, bring a second document showing where you live now. Plan on twenty minutes for the 4473 and the background check.</p>
+    </div>
+    <div>
+      <div class="ph r32" data-shot="Map embed — Google Maps iframe goes here"></div>
+      <h3 style="margin:30px 0 14px;font-size:var(--fs-h3)">Send a message</h3>
+      <form onsubmit="event.preventDefault();mock()">
+        <label><span class="lab">Name</span><input required placeholder="Your name"></label>
+        <label><span class="lab">Email</span><input type="email" required placeholder="you@example.com"></label>
+        <label><span class="lab">What do you need</span>
+          <select><option>A custom build</option><option>An action or chassis</option><option>An incoming transfer</option><option>Gunsmithing work</option><option>Something else</option></select></label>
+        <label><span class="lab">Details</span><textarea rows="5" placeholder="Chambering, action length, what you hunt or shoot with it"></textarea></label>
+        <button class="btn" type="submit" style="align-self:flex-start">Send</button>
+      </form>
+    </div>
+  </div>
+</section></div>
+
+<footer><div class="wrap">
+  <div class="foot">
+    <div>
+      <span class="on-dark"><svg aria-label="KLOVR Precision" role="img" id="vd-root" xmlns="http://www.w3.org/2000/svg" viewBox="41.76 49.2 260.15 228.77"><defs><style>.vdb{fill:#759e77;}.vdc{fill:#d1a75f;}.vdd{fill:#edeced;}</style></defs><polygon class="vdb" points="153.97 110.87 127.99 84.53 115.05 84.36 102.38 97.04 102.37 104.73 108.9 111.17 153.97 110.87"/><polygon class="vdb" points="216.62 84.38 203.84 84.41 177.68 110.89 223.11 111.03 229.44 104.4 229.24 97.02 216.62 84.38"/><path class="vdb" d="M137.86,150.31c-.22,4.45-.22,9.29-.04,13.65l12.08,11.91c8.45.96,8.91-.36,14.31-6.21l-.28-44.95-26.08,25.59Z"/><polygon class="vdb" points="167.73 124.71 167.42 169.67 173.7 175.98 181.9 175.82 193.97 163.72 193.95 150.54 167.73 124.71"/><path class="vdb" d="M164.03,100.43l.22-44.66-6.46-6.41c-2.03-.26-5.56-.16-7.69-.04l-12.42,12.47v12.7s26.36,25.93,26.36,25.93Z"/><polygon class="vdb" points="194.08 74.36 193.95 61.78 181.55 49.31 173.85 49.3 167.4 55.78 167.67 100.6 194.08 74.36"/><polygon class="vdb" points="108.79 114.32 102.36 120.82 102.44 128.51 114.86 140.87 127.82 140.65 153.79 114.44 108.79 114.32"/><polygon class="vdb" points="222.86 114.32 177.88 114.52 204.05 140.79 216.94 140.75 229.31 128.39 229.28 120.82 222.86 114.32"/><path class="vdc" d="M171.02,110.13c-1.26-2.6-4.68-4-7.8-2.51-3.41,1.62-3.99,5.61-2.17,8.14,1.66,2.32,4.81,3.24,7.18,2.02,3.08-1.58,4.16-4.85,2.79-7.65Z"/><path class="vdd" d="M288.49,228.25l2.31-.34c5.05-1.15,8.51-5.9,8.22-11.21.19-5.78-3.43-10.29-9.42-11.52l-33.65.16-4.67,6.47h6.73l.93-.05,29.8.04c1.68,0,3.16,1.6,3.35,3.03.16,1.17.17,2.56.02,3.73-.38,2.99-3.6,3.22-4.58,3.22l-35.34-.09v19.99h6.72v-13.32s20.25.1,20.25.1l13.47,13.29,9.28-.07-13.43-13.42Z"/><path class="vdd" d="M90.87,205.43l-2.76-.16c-2.71-.16-4.92-.14-7.58-.13h-.29s-20.76,14.41-20.76,14.41h-11.08s-.02-14.45-.02-14.45l-6.62.08v36.52l6.62-.02v-15.52s10.45-.03,10.45-.03l21.95,15.57h.72c.92.02,1.82.04,2.73.04,1.47,0,2.99-.03,4.69-.15l2.67-.18-26.09-18.42,25.36-17.55Z"/><polygon class="vdd" points="221.2 234.11 202.18 205.16 194.29 205.14 218.21 241.72 224.2 241.71 248.13 205.21 240.19 205.18 221.2 234.11"/><path class="vdd" d="M136.16,235.15h-33.65s0-29.93,0-29.93l-.92-.03c-1.92-.06-3.42-.05-5,.04l-.9.05v36.45h40.53s.07-.87.07-.87c.16-1.83.15-3.28-.04-4.86l-.1-.84Z"/><path class="vdd" d="M181.32,204.6h-30c-5.07,0-9.19,4.11-9.19,9.19v19.2c0,5.08,4.12,9.19,9.19,9.19h30c5.07,0,9.19-4.11,9.19-9.19v-19.2c0-5.08-4.12-9.19-9.19-9.19ZM183.82,231.39c0,2.46-2.17,4.43-4.84,4.43h-25.33c-2.67,0-4.84-1.97-4.84-4.43v-16c0-2.46,2.17-4.43,4.84-4.43h25.33c2.67,0,4.84,1.97,4.84,4.43v16Z"/><path class="vdd" d="M65.33,277.77c-.12-.13-.18-.3-.18-.51v-12.09c0-.28.07-.5.22-.64.15-.14.35-.21.61-.21h10.93c.69,0,1.29.14,1.82.42.52.28.92.67,1.21,1.18.28.51.42,1.1.42,1.76v1.95c0,1.09-.31,1.94-.93,2.53s-1.51.88-2.66.88h-8.79c-.15,0-.26.04-.35.13s-.13.2-.13.35v3.72c0,.22-.06.4-.18.53-.12.13-.29.19-.5.19h-.96c-.22,0-.39-.06-.52-.19ZM77.57,270.54c.29-.27.44-.62.44-1.05v-1.66c0-.41-.17-.74-.5-1.01-.33-.27-.74-.41-1.22-.41h-8.33c-.15,0-.26.04-.35.13s-.13.2-.13.35v3.59c0,.15.04.26.13.34.09.08.2.12.35.12h8.33c.55,0,.98-.13,1.27-.41Z"/><path class="vdd" d="M92.24,277.78c-.12-.12-.18-.29-.18-.52v-12.09c0-.28.07-.5.22-.64.15-.14.35-.21.61-.21h11.02c.64,0,1.21.14,1.72.42s.92.66,1.22,1.14.45,1.04.45,1.65v1.66c0,.57-.1,1.08-.31,1.55-.21.47-.51.85-.89,1.14-.39.29-.84.49-1.35.57-.12.05-.21.09-.25.14s-.06.11-.06.19c-.01.03,0,.05,0,.08.02.03.03.06.05.08.01.04.02.06.04.07.01.01.02.03.04.05l2.34,4.04s.04.06.04.07c0,.01.02.04.05.07.01.04.03.08.05.12s.03.09.03.14c0,.12-.06.23-.17.31-.11.09-.27.13-.46.13h-1.09c-.17,0-.33-.04-.47-.11-.14-.07-.26-.19-.36-.35l-2.78-4.59c-.06-.11-.14-.19-.24-.24-.1-.05-.21-.07-.33-.07h-6.29c-.15,0-.26.04-.35.12-.09.08-.13.19-.13.34v4.2c0,.22-.06.39-.18.52s-.29.18-.51.18h-.96c-.22,0-.39-.06-.52-.18ZM104.22,270.35c.23-.13.42-.31.54-.54.13-.23.19-.49.19-.78v-1.14c0-.31-.07-.57-.21-.78-.14-.21-.33-.38-.57-.51-.24-.12-.51-.18-.8-.18h-8.5c-.15,0-.26.04-.35.13-.09.09-.13.2-.13.35v3.15c0,.15.04.27.13.36.09.09.2.14.35.14h8.5c.33,0,.62-.06.85-.19Z"/><path class="vdd" d="M119.23,277.74c-.15-.15-.23-.36-.23-.62v-11.94c0-.27.08-.48.23-.63s.35-.22.6-.22h12.51c.22,0,.4.07.53.19s.19.3.19.53v.66c0,.21-.07.38-.19.51s-.3.19-.53.19h-10.5c-.15,0-.27.04-.35.13-.09.09-.13.2-.13.35v2.6c0,.15.04.26.13.35.08.09.2.13.35.13h8.62c.22,0,.39.06.52.17.12.12.19.29.19.53v.66c0,.22-.06.4-.19.53s-.29.19-.52.19h-8.62c-.15,0-.27.04-.35.13-.09.09-.13.2-.13.35v2.89c0,.15.04.26.13.34.08.08.2.12.35.12h10.5c.22,0,.4.06.53.19s.19.3.19.51v.66c0,.22-.07.4-.19.53-.13.13-.3.19-.53.19h-12.51c-.25,0-.45-.08-.6-.23Z"/><path class="vdd" d="M146.33,277.54c-.58-.28-1.03-.69-1.36-1.23-.33-.54-.49-1.16-.49-1.89v-6.45c0-.74.16-1.38.48-1.93.32-.55.76-.98,1.34-1.27.57-.29,1.23-.44,1.98-.44h9.77c.22,0,.39.07.52.19.12.13.18.3.18.53v.66c0,.22-.06.39-.18.52s-.29.18-.52.18h-9.07c-.74,0-1.29.18-1.64.55-.36.37-.54.87-.54,1.49v5.42c0,.64.18,1.13.54,1.48.36.35.87.53,1.52.53h9.18c.22,0,.39.06.52.19.12.13.18.3.18.51v.66c0,.22-.06.4-.18.53-.12.13-.29.19-.52.19h-9.69c-.77,0-1.45-.14-2.03-.42Z"/><path class="vdd" d="M170.7,277.78c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52.12-.12.29-.18.52-.18h.94c.23,0,.41.06.53.18.12.12.17.29.17.52v12.24c0,.22-.06.39-.17.52s-.29.18-.53.18h-.94c-.22,0-.39-.06-.52-.18Z"/><path class="vdd" d="M185.08,277.77c-.13-.13-.19-.3-.19-.51v-.66c0-.22.06-.4.19-.53.13-.13.3-.19.51-.19h10.32c.47,0,.81-.1,1.04-.3.23-.2.34-.49.34-.86v-.85c0-.23-.07-.44-.22-.62-.15-.18-.36-.3-.63-.36l-.15-.06-9.03-1.33c-.06-.01-.12-.02-.18-.04-.8-.13-1.42-.43-1.86-.88s-.66-1.05-.66-1.8v-1.58c0-.61.13-1.14.39-1.57.26-.43.62-.76,1.1-.99s1.03-.34,1.67-.34h10.52c.22,0,.39.07.52.19.12.13.18.3.18.51v.68c0,.21-.06.38-.19.51s-.3.19-.51.19h-9.95c-.43,0-.75.11-.98.32-.22.22-.33.48-.33.8v.88c0,.27.09.51.27.72.18.21.43.34.76.39l9.22,1.35c.79.12,1.4.42,1.83.88.44.47.65,1.08.65,1.83v1.62c0,.57-.13,1.05-.4,1.46-.27.41-.65.73-1.14.96-.49.23-1.05.34-1.68.34h-10.88c-.22,0-.4-.06-.53-.19Z"/><path class="vdd" d="M211.59,277.78c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52s.29-.18.52-.18h.94c.23,0,.41.06.53.18.12.12.18.29.18.52v12.24c0,.22-.06.39-.18.52-.12.12-.29.18-.53.18h-.94c-.22,0-.39-.06-.52-.18Z"/><path class="vdd" d="M227.3,277.53c-.58-.29-1.03-.7-1.36-1.23-.33-.54-.49-1.17-.49-1.91v-6.41c0-.76.16-1.42.47-1.96.31-.55.76-.96,1.33-1.25.57-.29,1.25-.43,2.04-.43h7.52c.77,0,1.45.14,2.02.42.57.28,1.02.7,1.34,1.24.32.55.48,1.21.48,1.98v6.41c0,.74-.16,1.38-.48,1.92-.32.54-.76.95-1.34,1.24-.57.28-1.25.42-2.04.42h-7.48c-.76,0-1.43-.14-2.01-.43ZM237.8,275.4c.33-.34.5-.84.5-1.5v-5.46c0-.66-.17-1.17-.52-1.52-.34-.35-.87-.53-1.58-.53h-6.32c-.72,0-1.26.18-1.59.54-.34.36-.51.86-.51,1.5v5.46c0,.63.18,1.12.55,1.47.37.36.86.53,1.47.53h6.53c.65,0,1.14-.17,1.47-.51Z"/><path class="vdd" d="M252.53,277.78c-.12-.12-.18-.29-.18-.52v-12.24c0-.22.06-.39.18-.52s.29-.18.52-.18h.98c.17,0,.33.03.46.08.13.06.27.14.41.27l9.97,9.31c.13.14.27.18.4.14.13-.04.19-.18.19-.4v-8.7c0-.22.06-.39.17-.52.12-.12.28-.18.49-.18h.9c.22,0,.39.06.52.18.12.12.18.29.18.52v12.24c0,.22-.06.39-.18.52s-.29.18-.52.18h-.9c-.17,0-.33-.03-.47-.08-.14-.06-.27-.14-.4-.27l-10.04-9.38c-.1-.1-.19-.15-.28-.16-.09,0-.16.03-.21.09-.06.07-.08.17-.08.3v8.79c0,.22-.06.39-.17.52-.12.12-.29.18-.53.18h-.88c-.22,0-.39-.06-.52-.18Z"/></svg></span>
+      <p class="lab" style="letter-spacing:.2em">Machined in&#8209;house</p>
+    </div>
+    <div><h4>Products</h4><ul>
+      <li><a href="#" onclick="go('shop');return false">Actions</a></li>
+      <li><a href="#" onclick="go('shop');return false">Chassis systems</a></li>
+      <li><a href="#" onclick="go('shop');return false">Complete rifles</a></li>
+      <li><a href="#" onclick="go('shop');return false">Barrels &amp; bolts</a></li></ul></div>
+    <div><h4>Custom</h4><ul>
+      <li><a href="#" onclick="go('build');return false">Build configurator</a></li>
+      <li><a href="#" onclick="go('gallery');return false">Recent builds</a></li>
+      <li><a href="#" onclick="go('build');return false">Lead times</a></li></ul></div>
+    <div><h4>Support</h4><ul>
+      <li><a href="#" onclick="go('contact');return false">FFL transfers</a></li>
+      <li><a href="#" onclick="go('contact');return false">Contact</a></li>
+      <li><a href="#" onclick="mock();return false">Warranty</a></li>
+      <li><a href="#" onclick="mock();return false">Shipping &amp; returns</a></li></ul></div>
+  </div>
+  <p class="legal">Federal Firearms Licensee. All sales comply with federal, state, and local law. Firearms ship to a licensed dealer for transfer &mdash; never direct to a residence. Must be 18 to purchase a long gun, 21 for a handgun. We reserve the right to refuse any sale.<br>
+  Design mockup. Address, phone, licence number, pricing, and inventory are placeholders. Logo files, brand colours, and all product photography are the supplied KLOVR Precision assets, used unmodified.</p>
+</div></footer>
+
+<script>
+const mock=()=>alert('Design mockup — this control is not wired up yet.');
+function toggleSearch(){
+ const h=document.querySelector('.head'),t=document.querySelector('.searchtog');
+ const on=h.classList.toggle('search-open');
+ t.setAttribute('aria-expanded',on);
+ if(on)h.querySelector('.searchbox input').focus();
+}
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const lbs=w=>{const t=Math.round(w*16);return Math.floor(t/16)+' lb '+(t%16)+' oz';};
+
+/* ---------------- configurator data ---------------- */
+const BASE_PRICE=2950, BASE_WT=6.9;
+const BRONZE='var(--m-bronze)', BLACK='var(--m-black)';
+const D={
+ chamber:[
+  {id:'65cm',code:'65C',nm:'6.5 Creedmoor',dt:'1:8 · short action',p:0,w:0},
+  {id:'308', code:'308',nm:'.308 Winchester',dt:'1:10 · short action',p:0,w:0},
+  {id:'6.5p',code:'65P',nm:'6.5 PRC',dt:'1:8 · magnum bolt face · +$140',p:140,w:.2},
+  {id:'270', code:'270',nm:'.270 Winchester',dt:'1:10 · long action',p:0,w:.2},
+  {id:'3006',code:'306',nm:'.30‑06 Springfield',dt:'1:10 · long action',p:0,w:.2},
+  {id:'300wm',code:'3WM',nm:'.300 Win Magnum',dt:'1:10 · magnum · +$140',p:140,w:.35}],
+ action:[
+  {id:'sa',code:'SA',nm:'KLOVR short action',dt:'Integral 20 MOA rail',p:0,w:0},
+  {id:'la',code:'LA',nm:'KLOVR long action',dt:'+$90',p:90,w:.15},
+  {id:'ma',code:'MA',nm:'KLOVR magnum action',dt:'Magnum bolt face · +$190',p:190,w:.2}],
+ chassis:[
+  {id:'ch', code:'CH',nm:'KLOVR chassis',dt:'Billet, skeletonized · included',p:0,w:0},
+  {id:'cht',code:'CT',nm:'KLOVR chassis, folder',dt:'Folding hinge · +$320',p:320,w:.35},
+  {id:'carb',code:'CF',nm:'Carbon hunter stock',dt:'Saves 1.3 lb · +$980',p:980,w:-1.3}],
+ barrel:[
+  {id:'b20',code:'20',nm:'20″ fluted',dt:'Handy · included',p:0,w:-.3,len:20},
+  {id:'b22',code:'22',nm:'22″ fluted',dt:'+$120',p:120,w:0,len:22},
+  {id:'b24',code:'24',nm:'24″ fluted',dt:'+$180',p:180,w:.4,len:24},
+  {id:'b26',code:'26',nm:'26″ heavy fluted',dt:'+$380',p:380,w:1.1,len:26}],
+ finish:[
+  {id:'bronze',code:'BRZ',nm:'Burnt bronze',dt:'House finish',p:0,c:BRONZE},
+  {id:'graph', code:'GRF',nm:'Graphite black',dt:'+$0',p:0,c:BLACK},
+  {id:'sage',  code:'SGE',nm:'Sage green',dt:'+$180',p:180,c:'var(--clover)'},
+  {id:'tung',  code:'TNG',nm:'Tungsten',dt:'+$180',p:180,c:'#8A9096'}],
+ optic:[
+  {id:'none', code:'NA', nm:'No optic',dt:'Rail is integral — mount later',p:0,w:0,r:0},
+  {id:'s340', code:'340',nm:'3.5–10×40',dt:'Rings incl. · +$829',p:829,w:1.35,r:17},
+  {id:'s244', code:'244',nm:'2.5–10×44 illum.',dt:'Last light · +$1,929',p:1929,w:1.6,r:18},
+  {id:'s450', code:'450',nm:'4–16×50',dt:'Exposed turrets · +$1,379',p:1379,w:1.9,r:20}],
+ muzzle:[
+  {id:'plain',code:'PLN',nm:'Crowned, no threads',dt:'Included',p:0,w:0,add:0},
+  {id:'cap',  code:'CAP',nm:'Threaded 5/8×24',dt:'Capped · +$140',p:140,w:.1,add:.4},
+  {id:'brake',code:'BRK',nm:'Radial brake',dt:'Loud. Bring plugs. · +$240',p:240,w:.35,add:1.7},
+  {id:'can',  code:'SUP',nm:'Suppressor',dt:'NFA, Form 4 · +$1,100',p:1100,w:.95,add:7.2,nfa:1}],
+ bipod:[
+  {id:'none', code:'NB',nm:'No bipod',dt:'—',p:0,w:0},
+  {id:'steel',code:'BP',nm:'Picatinny bipod',dt:'+$189',p:189,w:.85},
+  {id:'carb', code:'CB',nm:'Carbon bipod',dt:'Lighter · +$379',p:379,w:.55}]
+};
+const STEPS=[{k:'chamber',t:'Chambering'},{k:'action',t:'Action'},{k:'chassis',t:'Chassis'},
+ {k:'barrel',t:'Barrel'},{k:'finish',t:'Finish',sw:1},{k:'optic',t:'Optic'},
+ {k:'muzzle',t:'Muzzle'},{k:'bipod',t:'Bipod'}];
+let S={chamber:'65cm',action:'sa',chassis:'ch',barrel:'b22',finish:'bronze',optic:'s340',muzzle:'cap',bipod:'steel'};
+const pick=(k,id)=>D[k].find(o=>o.id===id)||D[k][0];
+
+/* ---------------- configurator render ---------------- */
+function render(){
+ document.getElementById('steps').innerHTML=STEPS.map((s,i)=>{
+  const cur=pick(s.k,S[s.k]);
+  const body=s.sw
+   ? `<div class="swatches">`+D[s.k].map(o=>`<button class="sw" aria-pressed="${o.id===S[s.k]}" onclick="set('${s.k}','${o.id}')"><i style="background:${o.c}"></i>${o.nm}</button>`).join('')+`</div>`
+   : `<div class="opts">`+D[s.k].map(o=>`<button class="opt" aria-pressed="${o.id===S[s.k]}" onclick="set('${s.k}','${o.id}')"><span class="nm">${o.nm}</span><span class="dt">${o.dt}</span></button>`).join('')+`</div>`;
+  return `<div class="step"><div class="step-head"><span class="idx">${String(i+1).padStart(2,'0')}</span><h3>${s.t}</h3><span class="picked">${cur.nm}</span></div>${body}</div>`;
+ }).join('');
+ let price=BASE_PRICE, wt=BASE_WT;
+ STEPS.forEach(s=>{const o=pick(s.k,S[s.k]);price+=o.p||0;wt+=o.w||0;});
+ const B=pick('barrel',S.barrel),M=pick('muzzle',S.muzzle),C=pick('chassis',S.chassis);
+ document.getElementById('sheetLines').innerHTML=
+  `<div class="line"><span class="k">Bench</span><span class="v">Chamber, true, bed, proof</span><span class="p">${money(BASE_PRICE)}</span></div>`
+  +STEPS.map(s=>{const o=pick(s.k,S[s.k]);
+   return `<div class="line"><span class="k">${s.t}</span><span class="v">${o.nm}</span><span class="p">${o.p?'+'+money(o.p):'—'}</span></div>`;}).join('');
+ const f=[`<div class="flagbox"><b>Ships to your FFL</b>Complete rifles go to a licensed dealer near you for the 4473 and background check. Pick yours at checkout. Actions and chassis on their own ship to your door.</div>`];
+ if(M.nfa) f.push(`<div class="flagbox"><b>NFA item</b>The suppressor needs a Form 4, fingerprints, and a $200 stamp. It stays in our safe until approval — the rifle can ship ahead of it.</div>`);
+ if(C.id==='cht') f.push(`<div class="flagbox"><b>Folding stock</b>A folding chassis is a feature restriction in several states. Checkout will block shipment where it applies.</div>`);
+ document.getElementById('flags').innerHTML=f.join('');
+ document.getElementById('tWeight').textContent=lbs(wt);
+ document.getElementById('tLen').textContent=(B.len+27+M.add).toFixed(1)+'″';
+ document.getElementById('tLead').textContent='10–14 wks'+(M.nfa?' + stamp':'');
+ document.getElementById('tPrice').textContent=money(price);
+ const mp=document.getElementById('mobPrice'); if(mp)mp.textContent=money(price);
+ document.getElementById('buildCode').textContent=['KP',pick('chamber',S.chamber).code,pick('action',S.action).code,B.code,pick('finish',S.finish).code].join('‑');
+}
+const set=(k,id)=>{S[k]=id;render();};
+
+/* ---------------- shop ---------------- */
+const SHOP=[
+ {c:'action',n:'KLOVR Short Action — Burnt Bronze',m:'700 footprint · integral 20 MOA rail · fluted bolt',p:'$1,395',t:[['door','Ships to your door'],['stock','In stock: 8']],img:'web/p-action-short.jpg'},
+ {c:'action',n:'KLOVR Magnum Action — Burnt Bronze',m:'Magnum bolt face · 70° throw · M16 extractor',p:'$1,495',t:[['door','Ships to your door'],['stock','In stock: 3']],img:'web/p-action-magnum.jpg'},
+ {c:'chassis',n:'KLOVR Chassis — Burnt Bronze',m:'Billet 7075 · AICS mags · engraved forend',p:'$1,150',t:[['door','Ships to your door'],['stock','In stock: 5']],img:'web/p-chassis-bronze.jpg'},
+ {c:'chassis',n:'KLOVR Chassis — Skeletonized',m:'Adjustable comb and length of pull',p:'$1,150',t:[['door','Ships to your door'],['stock','Built to order']],img:'web/p-chassis-black.jpg'},
+ {c:'rifle',n:'KLOVR Complete Rifle — 6.5 Creedmoor',m:'22″ fluted · bronze chassis · sub‑MOA proofed',p:'$4,850',t:[['ffl','Ships to FFL'],['stock','Built to order']],img:'web/p-rifle-cm.jpg'},
+ {c:'rifle',n:'KLOVR Complete Rifle — .300 Win Magnum',m:'24″ fluted · magnum action · sub‑MOA proofed',p:'$5,290',t:[['ffl','Ships to FFL'],['stock','Built to order']],img:'web/p-rifle-mag.jpg'},
+ {c:'barrel',n:'Pre‑fit barrel — 6.5 CM, 22″ fluted',m:'416R stainless · 1:8 · threaded 5/8×24',p:'$520',t:[['door','Ships to your door'],['stock','In stock: 11']],img:'web/p-barrel.jpg'},
+ {c:'barrel',n:'Spare bolt assembly',m:'Fluted body · M16 extractor · short action',p:'$385',t:[['door','Ships to your door'],['stock','In stock: 6']],img:'web/p-bolt.jpg'},
+ {c:'optic',n:'3.5–10×40 hunting scope',m:'30 mm tube · capped turrets · second focal',p:'$649',t:[['door','Ships to your door'],['stock','In stock: 6']],cat:'Optics'},
+ {c:'optic',n:'4–16×50 long‑range scope',m:'Exposed elevation · 0.1 mil clicks',p:'$1,199',t:[['door','Ships to your door'],['stock','In stock: 2']],cat:'Optics'},
+ {c:'mount',n:'34 mm rings — burnt bronze',m:'Matched pair · 1.1″ height · 4‑screw caps',p:'$189',t:[['door','Ships to your door'],['stock','In stock: 9']],cat:'Mounts'},
+ {c:'ammo',n:'6.5 Creedmoor — 140 gr match',m:'20 rounds · boat tail · brass case',p:'$41.50',t:[['door','Ships to your door'],['stock','In stock: 34']],cat:'Ammunition',s:'No shipment to CA, MA, NY, IL, NJ, or New York City.'},
+ {c:'gear',n:'Carbon bipod, 7–10″',m:'Picatinny mount · cant and pan',p:'$379',t:[['door','Ships to your door'],['stock','In stock: 7']],cat:'Support gear'},
+ {c:'gear',n:'Takedown rifle case, 48″',m:'Foam‑lined · lockable · airline rated',p:'$189',t:[['door','Ships to your door'],['stock','In stock: 4']],cat:'Cases'},
+ {c:'nfa',n:'Titanium suppressor — 6.5 mm',m:'11.4 oz · direct thread 5/8×24',p:'$949',t:[['nfa','NFA · stamp required'],['stock','In stock: 1']],cat:'Suppressors',s:'Form 4 and $200 stamp. Held in our safe until approval. Not transferable to CA, DC, DE, HI, IL, IA, MA, NJ, NY, RI.'}];
+
+let filt='all';
+function shop(){
+ document.getElementById('shopGrid').innerHTML=SHOP.filter(i=>filt==='all'||i.c===filt).map(i=>{
+  const plate=i.img
+    ? `<div class="plate"><img src="${i.img}" srcset="${i.img.replace('.jpg','-sm.jpg')} 520w, ${i.img} 900w" sizes="(max-width:420px) 46vw, (max-width:900px) 30vw, 290px" alt="${i.n}" loading="lazy" decoding="async"></div>`
+    : `<div class="plate empty"><span>${i.cat||'Photography pending'}</span></div>`;
+  return `<article class="card">${plate}<div class="body">
+    <div class="tags">${i.t.map(t=>`<span class="tag ${t[0]}">${t[1]}</span>`).join('')}</div>
+    <h3>${i.n}</h3><p class="meta">${i.m}</p>
+    ${i.s?`<p class="note-state">${i.s}</p>`:''}
+    <p class="price">${i.p}</p>
+    <button class="btn sm add" onclick="mock()">Add to cart</button>
+  </div></article>`;}).join('');
+}
+document.getElementById('filters').addEventListener('click',e=>{
+ const b=e.target.closest('.chip'); if(!b)return; setFilter(b.dataset.f);});
+function setFilter(f){filt=f;
+ [...document.querySelectorAll('#filters .chip')].forEach(c=>c.setAttribute('aria-pressed',c.dataset.f===f));
+ shop();}
+
+/* ---------------- gallery ---------------- */
+const GAL=[
+ ['Bronze action, .300 Win Mag','Magnum bolt face · 26″ fluted · 0.58″ group · Oct 2025','web/gal-1.jpg'],
+ ['Skeletonized chassis','.308 Win · 20″ · adjustable comb · Sep 2025','web/gal-2.jpg'],
+ ['Chassis and barrelled action','6.5 PRC · 24″ fluted · Sep 2025','web/gal-3.jpg'],
+ ['Forend detail','M‑LOK slots cut from billet · Aug 2025','web/gal-4.jpg'],
+ ['Engraved forend','KLOVR roll mark, burnt bronze · Aug 2025','web/gal-5.jpg'],
+ ['Bench proof','Every complete rifle leaves with its target · 2025','web/gal-6.jpg']];
+document.getElementById('galGrid').innerHTML=GAL.map(g=>`
+ <figure><div class="ph r32"><img src="${g[2]}" srcset="${g[2].replace('.jpg','-sm.jpg')} 700w, ${g[2]} 1400w" sizes="(max-width:900px) 94vw, 33vw" alt="${g[0]}" loading="lazy" decoding="async"></div>
+ <figcaption><b>${g[0]}</b><span>${g[1]}</span></figcaption></figure>`).join('');
+
+/* ---------------- nav + dropdowns ---------------- */
+const navEl=document.getElementById('mainnav'),scrim=document.getElementById('scrim'),burger=document.getElementById('burger');
+function drawer(open){
+ navEl.classList.toggle('open',open);
+ scrim.hidden=!open;
+ burger.setAttribute('aria-expanded',open);
+ burger.setAttribute('aria-label',open?'Close menu':'Open menu');
+ document.body.classList.toggle('nav-open',open);
+}
+burger.addEventListener('click',()=>drawer(!navEl.classList.contains('open')));
+scrim.addEventListener('click',()=>drawer(false));
+document.getElementById('drawerX').addEventListener('click',()=>drawer(false));
+
+function go(v,f){
+ drawer(false);
+ document.body.dataset.view=v;
+ document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id===v));
+ document.querySelectorAll('#nav .navitem>button').forEach(b=>{
+  if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+ if(f)setFilter(f);
+ document.querySelectorAll('.navitem.open').forEach(n=>close(n));
+ window.scrollTo({top:0,behavior:'instant'});
+}
+const close=n=>{n.classList.remove('open');n.querySelector('button').setAttribute('aria-expanded','false');};
+document.getElementById('nav').addEventListener('click',e=>{
+ const b=e.target.closest('button'); if(!b)return;
+ const item=b.closest('.navitem');
+ if(b.parentElement===item && item.hasAttribute('data-drop')){
+  const wasOpen=item.classList.contains('open');
+  document.querySelectorAll('.navitem.open').forEach(close);
+  if(!wasOpen){item.classList.add('open');b.setAttribute('aria-expanded','true');}
+  return;}
+ if(b.dataset.v) go(b.dataset.v,b.dataset.f);
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.navitem'))document.querySelectorAll('.navitem.open').forEach(close);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.navitem.open').forEach(close);drawer(false);}});
+document.querySelectorAll('.navitem[data-drop]').forEach(n=>{
+ n.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches){
+  document.querySelectorAll('.navitem.open').forEach(close);
+  n.classList.add('open');n.querySelector('button').setAttribute('aria-expanded','true');}});
+ n.addEventListener('mouseleave',()=>{if(matchMedia('(hover:hover)').matches)close(n);});
+});
+
+/* ---------------- carousel ---------------- */
+let cur=0, timer=null;
+const sl=[...document.querySelectorAll('.slide')];
+document.getElementById('dots').innerHTML=sl.map((_,i)=>`<button aria-label="Slide ${i+1}" aria-current="${i===0}" onclick="slide(${i},1)"></button>`).join('');
+const dots=[...document.querySelectorAll('#dots button')];
+function slide(n,abs){
+ cur=abs?n:(cur+n+sl.length)%sl.length;
+ sl.forEach((s,i)=>s.classList.toggle('on',i===cur));
+ dots.forEach((d,i)=>d.setAttribute('aria-current',i===cur));
+ if(timer){clearInterval(timer);start();}
+}
+(()=>{const el=document.getElementById('slides');let x0=0,y0=0;
+ el.addEventListener('touchstart',e=>{x0=e.changedTouches[0].clientX;y0=e.changedTouches[0].clientY;},{passive:true});
+ el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;
+  if(Math.abs(dx)>46&&Math.abs(dx)>Math.abs(dy)*1.4)slide(dx<0?1:-1);},{passive:true});})();
+function start(){ if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ timer=setInterval(()=>slide(1),7000);}
+
+/* ---------------- init ---------------- */
+document.body.dataset.view='home';
+render(); shop(); start();
+</script>

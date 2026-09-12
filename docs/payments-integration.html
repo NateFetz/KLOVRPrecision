@@ -1,0 +1,436 @@
+<title>Firearms Payment Integration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EDEBE4; --surface:#F6F5F0; --raised:#FCFBF7; --code:#E4E2D9;
+  --ink:#15191C; --ink-2:#3E464C; --muted:#6E777D; --rule:#CDCCC2;
+  --brass:#8A6A15; --brass-2:#C9A227; --brass-soft:rgba(201,162,39,.15);
+  --ok:#3F6B45; --warn:#8A5614; --stop:#8F3A2E; --stop-soft:rgba(143,58,46,.1);
+  --fs-h1:clamp(1.9rem,4vw,2.9rem); --fs-h2:clamp(1.3rem,2.2vw,1.65rem); --fs-h3:1.02rem;
+  --fs-body:1.0625rem; --fs-sm:.875rem; --fs-xs:.75rem; --fs-label:.68rem;
+  --sans:"Saira Condensed","Arial Narrow",Helvetica,sans-serif;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --ground:#101418; --surface:#171D22; --raised:#1E252B; --code:#0B0E11;
+  --ink:#E9E5DC; --ink-2:#BCC2C6; --muted:#848D94; --rule:#2C353C;
+  --brass:#C9A227; --brass-2:#E2C055; --brass-soft:rgba(201,162,39,.13);
+  --ok:#6E9E70; --warn:#C08A35; --stop:#C4705F; --stop-soft:rgba(196,112,95,.12);
+}}
+:root[data-theme="dark"]{
+  --ground:#101418; --surface:#171D22; --raised:#1E252B; --code:#0B0E11;
+  --ink:#E9E5DC; --ink-2:#BCC2C6; --muted:#848D94; --rule:#2C353C;
+  --brass:#C9A227; --brass-2:#E2C055; --brass-soft:rgba(201,162,39,.13);
+  --ok:#6E9E70; --warn:#C08A35; --stop:#C4705F; --stop-soft:rgba(196,112,95,.12);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:var(--fs-body);line-height:1.62;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--sans);text-transform:uppercase;letter-spacing:.04em;font-weight:600;text-wrap:balance;margin:0;line-height:1.08}
+p{margin:0}
+:focus-visible{outline:2px solid var(--brass-2);outline-offset:3px}
+.lab{font-family:var(--mono);font-size:var(--fs-label);text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:500}
+code{font-family:var(--mono);font-size:.85em;background:var(--brass-soft);padding:1px 5px;color:var(--ink)}
+
+.page{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px)}
+.layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start}
+.toc{position:sticky;top:28px;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--rule);padding-left:14px}
+.toc a{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.05em;color:var(--muted);text-decoration:none;padding:4px 0;line-height:1.4}
+.toc a:hover{color:var(--ink)}
+.toc .th{font-family:var(--sans);text-transform:uppercase;letter-spacing:.12em;font-size:.7rem;color:var(--ink);margin-bottom:6px}
+
+header.hd{padding:clamp(38px,6vw,64px) 0 30px}
+header.hd h1{font-size:var(--fs-h1);margin:14px 0 16px}
+header.hd .sub{color:var(--ink-2);max-width:60ch;font-size:1.08rem}
+.meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--rule)}
+.meta div{display:flex;flex-direction:column;gap:3px}
+.meta b{font-family:var(--mono);font-size:var(--fs-sm);font-weight:500}
+
+section{padding:0 0 clamp(34px,5vw,52px)}
+section>h2{font-size:var(--fs-h2);padding-bottom:9px;border-bottom:1px solid var(--rule);margin-bottom:20px;display:flex;align-items:baseline;gap:12px}
+section>h2 .ph{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.14em;color:var(--brass);font-weight:600;flex:0 0 auto}
+h3{font-size:var(--fs-h3);margin:26px 0 9px;letter-spacing:.055em}
+.body{max-width:66ch}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+pre{background:var(--code);border:1px solid var(--rule);padding:15px 17px;overflow-x:auto;margin:0;border-left:2px solid var(--brass-2)}
+pre code{background:none;padding:0;font-size:.79rem;line-height:1.72;display:block;white-space:pre;color:var(--ink-2)}
+pre .k{color:var(--brass)} pre .c{color:var(--muted);font-style:italic} pre .s{color:var(--ok)}
+
+.callout{border-left:2px solid var(--brass-2);background:var(--brass-soft);padding:13px 16px;font-size:var(--fs-sm);line-height:1.6}
+.callout.stop{border-color:var(--stop);background:var(--stop-soft)}
+.callout b{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.13em;text-transform:uppercase;color:var(--brass);display:block;margin-bottom:4px}
+.callout.stop b{color:var(--stop)}
+
+ul.ck{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+ul.ck li{display:grid;grid-template-columns:auto 1fr;gap:11px;font-size:var(--fs-sm);line-height:1.55;align-items:start}
+ul.ck li::before{content:"";width:11px;height:11px;border:1px solid var(--muted);margin-top:5px}
+ul.bl{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:var(--fs-sm);line-height:1.55}
+ul.bl li::marker{color:var(--brass)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule)}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.y{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.04em}
+
+.diagram{border:1px solid var(--rule);background:var(--surface);padding:18px clamp(8px,2vw,18px);overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:660px;height:auto}
+figcaption{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);letter-spacing:.03em;margin-top:9px;line-height:1.6}
+figure{margin:0}
+
+footer{border-top:1px solid var(--rule);padding:26px 0 48px;margin-top:20px}
+footer p{font-family:var(--mono);font-size:.68rem;line-height:1.8;color:var(--muted);max-width:70ch}
+@media (max-width:860px){ .layout{grid-template-columns:1fr} .toc{display:none} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="page">
+<header class="hd">
+  <p class="lab">KLOVR Precision · Implementation guide</p>
+  <h1>Taking money for firearms online</h1>
+  <p class="sub">How to wire payments into the storefront without getting deplatformed, failing PCI, or holding money you are legally required to give back.</p>
+  <div class="meta">
+    <div><span class="lab">Gateway</span><b>NMI or Authorize.Net</b></div>
+    <div><span class="lab">PCI scope</span><b>SAQ A‑EP</b></div>
+    <div><span class="lab">Lead time</span><b>3–5 weeks to first live charge</b></div>
+    <div><span class="lab">Blocks launch</span><b>Yes — start phase 1 now</b></div>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <span class="th">Contents</span>
+  <a href="#p0">00 · The one decision</a>
+  <a href="#p1">01 · Merchant account</a>
+  <a href="#p2">02 · Keeping PCI small</a>
+  <a href="#p3">03 · Order lifecycle</a>
+  <a href="#p4">04 · Provider interface</a>
+  <a href="#p5">05 · Fraud controls</a>
+  <a href="#p6">06 · Deposits &amp; ACH</a>
+  <a href="#p7">07 · Tax</a>
+  <a href="#p8">08 · Go‑live</a>
+</nav>
+<main>
+
+<section id="p0">
+<h2><span class="ph">00</span>The one decision everything else hangs on</h2>
+<div class="body stack">
+<p>The firms that advertise “firearms merchant accounts” — PayKings, SecureGlobalPay, Corepay, Soar, Elite&nbsp;2A — are <b>ISOs, not processors</b>. They underwrite you, place you with an acquiring bank that tolerates the industry, and then hand you a <b>standard payment gateway</b>. Your code talks to that gateway. It never talks to the ISO.</p>
+<p>In practice you will be offered <b>NMI</b>, <b>Authorize.Net</b>, or <b>USAePay</b>. All three are ordinary, well-documented gateways with real client libraries and decades of production use.</p>
+<div class="callout stop"><b>Make this a condition of signing</b>If an ISO wants to put you on a proprietary gateway you have never heard of, walk away. Firearms merchants get dropped — by acquiring banks, after policy changes, sometimes with thirty days’ notice. On a standard gateway that is a credentials change. On a proprietary one it is a rewrite, executed under time pressure, while you cannot take money.</div>
+<h3>Which of the three</h3>
+<div class="tablewrap"><table>
+<tr><th>Gateway</th><th>Pick it when</th><th>Tokenizer</th><th>Card‑on‑file</th></tr>
+<tr><td><b>NMI</b></td><td>You want resilience. One integration can route across several merchant accounts, so a second acquiring bank becomes failover config rather than new code.</td><td class="y">Collect.js</td><td class="y">Customer Vault</td></tr>
+<tr><td><b>Authorize.Net</b></td><td>You want the simplest path. Broadest library and platform support, clearest docs, easiest developer to hire for.</td><td class="y">Accept.js</td><td class="y">CIM</td></tr>
+<tr><td><b>USAePay</b></td><td>Only if your ISO pushes it and the terms are materially better. Workable, thinner ecosystem.</td><td class="y">Hosted fields</td><td class="y">Customer database</td></tr>
+</table></div>
+<p><b>Recommendation:</b> NMI. The multi‑account routing is worth more to a shop in this industry than Authorize.Net’s slightly easier onboarding, and the integration effort is near identical.</p>
+</div>
+</section>
+
+<section id="p1">
+<h2><span class="ph">01</span>The merchant account — start this week</h2>
+<div class="body stack">
+<p>Underwriting runs one to three weeks and can come back with conditions. Nothing in the code matters until this exists, so it is the critical path.</p>
+<h3>Have ready before applying</h3>
+<ul class="ck">
+<li>Copy of the FFL, plus SOT paperwork if suppressors will be sold</li>
+<li>Business formation documents, EIN letter, and state sales tax permit</li>
+<li>Three to six months of business bank statements</li>
+<li>Processing history if any exists — even Square receipts from in‑store sales</li>
+<li>Projected monthly volume and average ticket, stated honestly (understating to look safe causes account freezes when you exceed the cap)</li>
+<li>A staging URL of the storefront with visible terms, refund policy, shipping policy, age gate, and the FFL transfer explanation — underwriters open the site and look for these</li>
+<li>Driver’s license and SSN for the principal, for the personal guarantee</li>
+</ul>
+<h3>Negotiate these four, in writing</h3>
+<ul class="bl">
+<li><b>Rolling reserve.</b> Expect 5–10% held for 180 days. That is working capital you cannot touch — model it before you commit to inventory.</li>
+<li><b>Contract term and early termination fee.</b> Three‑year terms with four‑figure ETFs are common. Push for one year or a waivable ETF.</li>
+<li><b>Rate structure.</b> Ask for interchange‑plus, not a flat blended rate. Expect roughly 3.5–5% plus $0.25–$0.35 per transaction.</li>
+<li><b>Gateway ownership.</b> Confirm the gateway account is in <i>your</i> business name and that you can re‑point it to a different acquirer. This is the portability clause that matters.</li>
+</ul>
+<div class="callout"><b>Billing descriptor</b>Set it to something a customer recognizes on a statement — the shop name and phone number. A vague descriptor generates “I don’t recognize this charge” disputes, and in a high‑risk account your chargeback ratio is what keeps or loses you the merchant agreement.</div>
+</div>
+</section>
+
+<section id="p2">
+<h2><span class="ph">02</span>Keep PCI scope small</h2>
+<div class="body stack">
+<p>The single highest‑leverage technical decision: <b>a raw card number must never reach your server or your logs</b>. Use the gateway’s browser tokenizer, which renders the card inputs inside iframes it controls and hands your page back an opaque token.</p>
+<p>Done this way you validate against <b>SAQ A‑EP</b> — a self‑assessment questionnaire. Post the card fields to your own backend and you fall into <b>SAQ D</b>, which means a formal audit, quarterly scans, and a compliance burden no small shop wants.</p>
+<pre><code><span class="c">// Checkout page — NMI Collect.js. The card never touches your origin.</span>
+&lt;script src="https://secure.nmi.com/token/Collect.js"
+        data-tokenization-key="<span class="s">PUBLIC_TOKENIZATION_KEY</span>"&gt;&lt;/script&gt;
+
+<span class="c">// Collect.js swaps these divs for iframes it owns:</span>
+&lt;div id="ccnumber"&gt;&lt;/div&gt;
+&lt;div id="ccexp"&gt;&lt;/div&gt;
+&lt;div id="cvv"&gt;&lt;/div&gt;
+
+CollectJS.configure({
+  callback: (res) =&gt; {
+    <span class="c">// res.token is a one-time payment token. This is all you post.</span>
+    fetch('/api/checkout', {
+      method: '<span class="s">POST</span>',
+      headers: { '<span class="s">Content-Type</span>': '<span class="s">application/json</span>' },
+      body: JSON.stringify({ orderId, paymentToken: res.token })
+    })
+  }
+})</code></pre>
+<div class="callout stop"><b>Three ways teams accidentally blow their PCI scope</b>Logging the full request body on the checkout endpoint. Capturing card fields in a session‑replay or analytics tool. Letting a support tool accept a card number over chat or email. Redact at the logger, exclude the checkout route from replay, and give staff a gateway‑hosted virtual terminal for phone orders.</div>
+</div>
+</section>
+
+<section id="p3">
+<h2><span class="ph">03</span>The order lifecycle</h2>
+<div class="body stack">
+<p>This is where a firearms site diverges from ordinary ecommerce, and where getting the sequence wrong creates a legal problem rather than a bug.</p>
+<p>On a <b>NICS denial the sale is terminated and the buyer’s money must be returned in full</b> — you may not hold it or apply it to a future purchase. But the road from order to background check runs one to three weeks, and a card authorization typically expires in about seven days. So you cannot simply hold an auth until the transfer clears, and you should not capture at order time and hope.</p>
+<p><b>Authorize at checkout. Capture when the rifle ships to the receiving FFL. Refund if the check comes back denied.</b></p>
+</div>
+<figure style="margin-top:22px">
+<div class="diagram">
+<svg viewBox="0 0 920 292" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Order lifecycle from cart through authorization, capture, the FFL transfer, and settlement, with failure branches for compliance block, card decline, and NICS denial">
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--brass-2)"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--stop)"/></marker>
+</defs>
+<g font-family="IBM Plex Mono, monospace">
+<g>
+<rect x="25" y="46" width="120" height="56" fill="var(--raised)" stroke="var(--ink)" stroke-opacity=".3"/>
+<text x="85" y="70" text-anchor="middle" font-size="12" letter-spacing="1" fill="var(--ink)">CART</text>
+<text x="85" y="87" text-anchor="middle" font-size="8.5" fill="var(--muted)">pick destination FFL</text>
+</g><g>
+<rect x="175" y="46" width="120" height="56" fill="var(--raised)" stroke="var(--ink)" stroke-opacity=".3"/>
+<text x="235" y="70" text-anchor="middle" font-size="12" letter-spacing="1" fill="var(--ink)">COMPLIANCE</text>
+<text x="235" y="87" text-anchor="middle" font-size="8.5" fill="var(--muted)">state rules + age</text>
+</g><g>
+<rect x="325" y="46" width="120" height="56" fill="var(--raised)" stroke="var(--ink)" stroke-opacity=".3"/>
+<text x="385" y="70" text-anchor="middle" font-size="12" letter-spacing="1" fill="var(--ink)">AUTHORIZE</text>
+<text x="385" y="87" text-anchor="middle" font-size="8.5" fill="var(--muted)">hold, do not take</text>
+</g><g>
+<rect x="475" y="46" width="120" height="56" fill="var(--raised)" stroke="var(--ink)" stroke-opacity=".3"/>
+<text x="535" y="70" text-anchor="middle" font-size="12" letter-spacing="1" fill="var(--ink)">CAPTURE</text>
+<text x="535" y="87" text-anchor="middle" font-size="8.5" fill="var(--muted)">when it ships</text>
+</g><g>
+<rect x="625" y="46" width="120" height="56" fill="var(--raised)" stroke="var(--ink)" stroke-opacity=".3"/>
+<text x="685" y="70" text-anchor="middle" font-size="12" letter-spacing="1" fill="var(--ink)">AT THE FFL</text>
+<text x="685" y="87" text-anchor="middle" font-size="8.5" fill="var(--muted)">4473 + NICS</text>
+</g><g>
+<rect x="775" y="46" width="120" height="56" fill="var(--raised)" stroke="var(--brass-2)" stroke-width="1.6"/>
+<text x="835" y="70" text-anchor="middle" font-size="12" letter-spacing="1" fill="var(--ink)">SETTLED</text>
+<text x="835" y="87" text-anchor="middle" font-size="8.5" fill="var(--muted)">funds are yours</text>
+</g>
+<g stroke="var(--brass-2)" stroke-width="1.6" marker-end="url(#ah)">
+<line x1="147" y1="74" x2="171" y2="74"/><line x1="297" y1="74" x2="321" y2="74"/>
+<line x1="447" y1="74" x2="471" y2="74"/><line x1="597" y1="74" x2="621" y2="74"/>
+<line x1="747" y1="74" x2="771" y2="74"/>
+</g>
+<g stroke="var(--stop)" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#ar)" fill="none">
+<path d="M 235,104 L 235,174"/><path d="M 385,104 L 385,174"/><path d="M 685,104 L 685,174"/>
+</g>
+<g>
+<rect x="175" y="176" width="120" height="48" fill="var(--stop-soft)" stroke="var(--stop)" stroke-opacity=".7"/>
+<text x="235" y="197" text-anchor="middle" font-size="11" letter-spacing=".8" fill="var(--stop)">BLOCKED</text>
+<text x="235" y="212" text-anchor="middle" font-size="8.5" fill="var(--muted)">no auth attempted</text>
+</g><g>
+<rect x="325" y="176" width="120" height="48" fill="var(--stop-soft)" stroke="var(--stop)" stroke-opacity=".7"/>
+<text x="385" y="197" text-anchor="middle" font-size="11" letter-spacing=".8" fill="var(--stop)">DECLINED</text>
+<text x="385" y="212" text-anchor="middle" font-size="8.5" fill="var(--muted)">nothing captured</text>
+</g><g>
+<rect x="612" y="176" width="146" height="48" fill="var(--stop-soft)" stroke="var(--stop)" stroke-opacity=".7"/>
+<text x="685" y="197" text-anchor="middle" font-size="11" letter-spacing=".8" fill="var(--stop)">NICS DENIED</text>
+<text x="685" y="212" text-anchor="middle" font-size="8.5" fill="var(--muted)">full refund required</text>
+</g>
+<line x1="25" y1="252" x2="895" y2="252" stroke="var(--rule)" stroke-width="1"/>
+<g stroke="var(--rule)"><line x1="25" y1="247" x2="25" y2="257"/><line x1="460" y1="247" x2="460" y2="257"/><line x1="610" y1="247" x2="610" y2="257"/><line x1="895" y1="247" x2="895" y2="257"/></g>
+<text x="30" y="271" font-size="9" letter-spacing=".08em" fill="var(--muted)">DAY 0 — checkout</text>
+<text x="465" y="271" font-size="9" letter-spacing=".08em" fill="var(--muted)">DAY 1–3 — ships</text>
+<text x="615" y="271" font-size="9" letter-spacing=".08em" fill="var(--muted)">DAY 5–20 — buyer visits the dealer, check runs</text>
+</g>
+</svg>
+</div>
+<figcaption>Compliance runs before the card is ever touched, so a blocked order never becomes a declined one. Capture happens on shipment, inside the authorization window. The only path that captures and then reverses is a NICS denial — which is a refund, not a void, and is legally mandatory.</figcaption>
+</figure>
+<div class="body stack" style="margin-top:22px">
+<h3>Rules the state machine has to enforce</h3>
+<ul class="bl">
+<li><b>Compliance gates authorization.</b> Destination state rules, age, and destination‑FFL validation all run <i>before</i> the auth call. Never take an auth on an order you cannot legally ship.</li>
+<li><b>Capture only what ships.</b> Split shipments mean partial captures — ammunition going to the door and a rifle going to the FFL are two fulfilment events on one order.</li>
+<li><b>Auth expiry is a real deadline.</b> If the auth ages past roughly seven days without shipping, re‑authorize against the vaulted card rather than letting it lapse silently.</li>
+<li><b>NICS denial refunds in full.</b> No restocking fee, no store credit. Buyer’s remorse is different — there you may keep a disclosed restocking fee.</li>
+<li><b>A “delayed” result is not a denial.</b> It can resolve for up to three business days. Hold the order, do not refund.</li>
+<li><b>Keep the chargeback evidence file.</b> Tracking number, the receiving FFL’s acknowledgment of receipt, and the transfer completion record. That packet is what wins a dispute on a shipment the cardholder claims never arrived.</li>
+</ul>
+</div>
+</section>
+
+<section id="p4">
+<h2><span class="ph">04</span>The provider interface</h2>
+<div class="body stack">
+<p>Put the gateway behind a narrow interface on day one. This is not architectural purism — it is the specific insurance policy this industry needs. When the acquiring bank changes its mind about firearms, swapping providers should be a new class and a credentials change, not a checkout rewrite.</p>
+<pre><code><span class="c">// payments/provider.ts — the only shape the rest of the app knows about</span>
+
+<span class="k">export type</span> TxnStatus = <span class="s">'approved'</span> | <span class="s">'declined'</span> | <span class="s">'error'</span>
+
+<span class="k">export interface</span> Txn {
+  id: string            <span class="c">// gateway transaction id — persist this</span>
+  status: TxnStatus
+  authCode?: string
+  avs?: string; cvv?: string
+  raw: unknown          <span class="c">// full response, stored for dispute evidence</span>
+}
+
+<span class="k">export interface</span> PaymentProvider {
+  authorize(i: AuthInput): Promise&lt;Txn&gt;
+  capture(txnId: string, cents: number): Promise&lt;Txn&gt;
+  voidAuth(txnId: string): Promise&lt;Txn&gt;
+  refund(txnId: string, cents: number, reason: RefundReason): Promise&lt;Txn&gt;
+  vault(paymentToken: string, c: Customer): Promise&lt;string&gt;
+  chargeVaulted(vaultId: string, cents: number, o: MitOptions): Promise&lt;Txn&gt;
+}
+
+<span class="k">export type</span> RefundReason =
+  | <span class="s">'nics_denied'</span>      <span class="c">// mandatory, always full amount</span>
+  | <span class="s">'buyer_cancelled'</span>  <span class="c">// restocking fee may apply if disclosed</span>
+  | <span class="s">'shipping_blocked'</span> <span class="c">// destination state rejected post-order</span>
+  | <span class="s">'goodwill'</span></code></pre>
+<h3>The NMI implementation</h3>
+<pre><code><span class="c">// payments/nmi.ts — form-encoded in, url-encoded out</span>
+
+<span class="k">const</span> ENDPOINT = <span class="s">'https://secure.nmi.com/api/transact.php'</span>
+
+<span class="k">async function</span> post(params: Record&lt;string, string&gt;) {
+  <span class="k">const</span> res = <span class="k">await</span> fetch(ENDPOINT, {
+    method: <span class="s">'POST'</span>,
+    headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/x-www-form-urlencoded'</span> },
+    body: <span class="k">new</span> URLSearchParams({ security_key: process.env.NMI_KEY!, ...params })
+  })
+  <span class="k">const</span> r = Object.fromEntries(<span class="k">new</span> URLSearchParams(<span class="k">await</span> res.text()))
+  <span class="c">// response: '1' approved · '2' declined · '3' gateway error</span>
+  <span class="k">return</span> {
+    id: r.transactionid,
+    status: r.response === <span class="s">'1'</span> ? <span class="s">'approved'</span>
+          : r.response === <span class="s">'2'</span> ? <span class="s">'declined'</span> : <span class="s">'error'</span>,
+    authCode: r.authcode, avs: r.avsresponse, cvv: r.cvvresponse, raw: r
+  } <span class="k">as</span> Txn
+}
+
+<span class="k">export const</span> nmi: PaymentProvider = {
+  authorize: (i) =&gt; post({
+    type: <span class="s">'auth'</span>,                   <span class="c">// 'auth', never 'sale' — capture comes later</span>
+    amount: (i.cents / 100).toFixed(2),
+    payment_token: i.paymentToken,   <span class="c">// from Collect.js; no PAN here</span>
+    orderid: i.orderId,
+    first_name: i.billing.firstName, last_name: i.billing.lastName,
+    address1: i.billing.line1, city: i.billing.city,
+    state: i.billing.state, zip: i.billing.zip,
+    <span class="c">// ship-to is the receiving dealer, not the buyer — expected on every</span>
+    <span class="c">// firearm order, and the reason ship-to AVS is meaningless here</span>
+    shipping_address1: i.ffl.line1, shipping_city: i.ffl.city,
+    shipping_state: i.ffl.state,     shipping_zip: i.ffl.zip,
+    shipping_company: i.ffl.businessName
+  }),
+  capture:   (id, c) =&gt; post({ type: <span class="s">'capture'</span>, transactionid: id, amount: (c/100).toFixed(2) }),
+  voidAuth:  (id)    =&gt; post({ type: <span class="s">'void'</span>,    transactionid: id }),
+  refund:    (id, c) =&gt; post({ type: <span class="s">'refund'</span>,  transactionid: id, amount: (c/100).toFixed(2) }),
+  <span class="c">/* vault + chargeVaulted in section 06 */</span>
+}</code></pre>
+<div class="callout stop"><b>Idempotency — this one bites</b>NMI has no idempotency header. A network timeout on <code>authorize</code> that you retry will authorize twice, and the customer sees two holds. Before every gateway call, insert a <code>payment_attempts</code> row keyed on <code>(order_id, operation, attempt_key)</code> with a unique constraint, and let the database reject the duplicate. Reconcile orphaned attempts against the gateway’s query API rather than assuming a timeout meant failure.</div>
+</div>
+</section>
+
+<section id="p5">
+<h2><span class="ph">05</span>Fraud controls, tuned for this industry</h2>
+<div class="body stack">
+<p>Firearms attract card fraud — high resale value, and the goods are anonymous once they leave. But the ordinary fraud playbook actively breaks here, so the rules need rethinking rather than copying.</p>
+<div class="callout"><b>Your best fraud control is the law</b>A stolen card cannot receive a rifle. The rifle goes to a licensed dealer who checks government photo ID and runs a background check against the person standing in front of them. That makes firearm orders <i>structurally</i> hard to defraud — and means the real card fraud on your site will land on optics, ammunition, and gear shipping to a residential door. Weight your rules accordingly: the $4,000 rifle is safer than the $1,200 scope.</div>
+<h3>Rules to configure</h3>
+<div class="tablewrap"><table>
+<tr><th>Control</th><th>Setting</th><th>Why this way</th></tr>
+<tr><td><b>AVS</b></td><td class="y">Require match on billing. Ignore ship‑to entirely.</td><td>Ship‑to is an FFL and will never match the cardholder. A stock rule here declines every good order you take.</td></tr>
+<tr><td><b>CVV</b></td><td class="y">Required. Decline on mismatch, no exceptions.</td><td>Cheapest signal available and the one card‑not‑present fraud most often fails.</td></tr>
+<tr><td><b>3‑D Secure 2</b></td><td class="y">On for door‑shipped orders over $400.</td><td>Shifts chargeback liability to the issuer. Worth the small conversion cost on exactly the orders that get disputed.</td></tr>
+<tr><td><b>Velocity</b></td><td class="y">Cap attempts per card, per IP, and per email hourly.</td><td>Card testing hits firearms sites constantly because the tickets are large.</td></tr>
+<tr><td><b>Manual review</b></td><td class="y">Queue door‑shipped orders over $800 from first‑time buyers.</td><td>Cheap insurance where the structural FFL protection does not apply.</td></tr>
+<tr><td><b>FFL validation</b></td><td class="y">Check the destination against current ATF FFL eZ Check data.</td><td>Compliance requirement and fraud control at once. Never accept a free‑text dealer address.</td></tr>
+</table></div>
+<p>Watch the chargeback ratio like a business metric, not an accounting line. High‑risk acquirers terminate over sustained ratios above roughly 1%, and losing the account means the storefront cannot take money at all.</p>
+</div>
+</section>
+
+<section id="p6">
+<h2><span class="ph">06</span>Deposits, balances, and ACH</h2>
+<div class="body stack">
+<p>A custom build is not a single charge. It is a deposit that schedules the bench, then a balance weeks later — and the configurator is built around exactly that flow.</p>
+<h3>Stored credentials, flagged correctly</h3>
+<p>Charging the balance against a saved card is a <b>merchant‑initiated transaction</b>. Card networks require it be labelled as one and linked to the original. Skip this and issuers decline the balance charge at a much higher rate — the failure shows up weeks later, on your largest tickets, when the rifle is already built.</p>
+<pre><code><span class="c">// Deposit — customer is present. This establishes the stored credential.</span>
+<span class="k">await</span> post({
+  type: <span class="s">'sale'</span>, amount: <span class="s">'2090.00'</span>, payment_token: token,
+  customer_vault: <span class="s">'add_customer'</span>,
+  initiated_by: <span class="s">'customer'</span>,
+  stored_credential_indicator: <span class="s">'stored'</span>   <span class="c">// establishing it</span>
+})
+
+<span class="c">// Balance, 11 weeks later — customer is not present.</span>
+<span class="k">await</span> post({
+  type: <span class="s">'sale'</span>, amount: <span class="s">'2090.00'</span>,
+  customer_vault_id: vaultId,
+  initiated_by: <span class="s">'merchant'</span>,
+  stored_credential_indicator: <span class="s">'used'</span>,    <span class="c">// using it</span>
+  initial_transaction_id: depositTxnId       <span class="c">// links to the original</span>
+})</code></pre>
+<h3>Give large builds a non‑card rail</h3>
+<p>On a $4,180 rifle, a 4.5% card fee is $188 of margin — on a build where the labour is already priced thin. Offer <b>ACH or a wire for the balance</b> and keep the card for the deposit.</p>
+<ul class="bl">
+<li>Ask the ISO for ACH alongside the card account. Some bundle it; some do not, and a few ACH providers restrict firearms independently, so confirm in writing rather than assuming.</li>
+<li>ACH is not instant and can return for insufficient funds days later. Do not ship on an ACH until it settles — typically three to five business days.</li>
+<li>Until volume justifies automating it, handling large balances manually by invoice is entirely reasonable. Do not build a payments feature the shop uses twice a month.</li>
+</ul>
+<p><b>Layaway</b> is common in gun retail and rare online — a genuine differentiator. Mechanically it is the same stored‑credential pattern: a schedule of merchant‑initiated charges, with the firearm staying in the shop’s safe and logged in the bound book until the final payment clears and the transfer happens.</p>
+</div>
+</section>
+
+<section id="p7">
+<h2><span class="ph">07</span>Sales tax</h2>
+<div class="body stack">
+<p>One structural fact engineering needs, and one question for an accountant.</p>
+<p><b>The structural fact:</b> a firearm’s delivery point is the receiving FFL, not the buyer’s home. Tax situs generally follows the delivery address, so your tax engine must be fed the <i>FFL’s</i> address as ship‑to for the rifle, while accessories going to the buyer’s door are calculated against their home address. On a mixed cart those are two different destinations on one order.</p>
+<p>Wire up Avalara or TaxJar rather than hand‑rolling rates — once distributor dropshipping puts you into dozens of states, economic nexus thresholds start triggering on their own.</p>
+<div class="callout"><b>Ask a CPA about excise taxes</b>Several jurisdictions impose firearm‑ and ammunition‑specific excise taxes on top of sales tax — California added an 11% state excise on firearms and ammunition in 2024, and other states have followed or proposed similar. Who owes it in an interstate transfer depends on the state and on which dealer completes the transfer. This is a question for an accountant who works with FFLs, not a thing to infer from the statute.</div>
+</div>
+</section>
+
+<section id="p8">
+<h2><span class="ph">08</span>Before the first live charge</h2>
+<div class="body stack">
+<ul class="ck">
+<li>Merchant account approved, gateway credentials issued in the business’s own name</li>
+<li>Sandbox transactions verified for every path — approve, decline, partial capture, void, full refund</li>
+<li>Card fields confirmed to be gateway iframes; checkout request body redacted in logs; checkout route excluded from session replay</li>
+<li>Compliance gate proven to run before authorization, with a blocked order never reaching the gateway</li>
+<li>Auth expiry job in place, re‑authorizing rather than letting holds lapse</li>
+<li>NICS‑denial refund path tested end to end, including the notification email to the buyer</li>
+<li>Chargeback evidence packet assembling automatically — tracking, FFL receipt acknowledgment, transfer record</li>
+<li>Billing descriptor set and verified on a real statement with a live test charge</li>
+<li>Webhook or polling reconciliation so gateway state and order state cannot silently diverge</li>
+<li>Refund and shipping policies published on the site — underwriters and issuers both look for them</li>
+<li>Rolling reserve modelled into the cash flow, with the release schedule on the calendar</li>
+<li>A written runbook for the day the processor drops the account, naming the backup ISO</li>
+</ul>
+</div>
+</section>
+</main>
+</div>
+
+<footer><div class="page">
+<p>Implementation guidance, not legal, tax, or compliance advice. Firearms retail obligations vary by state and municipality and change frequently — have an attorney who works with FFLs review the checkout flow and the refund policy before launch, and an accountant review the tax treatment. Gateway parameter names and API behaviour should be confirmed against current vendor documentation at build time.</p>
+</div></footer>
+</div>
