@@ -45,8 +45,39 @@ const ROUTES = [
 
 const src   = fs.readFileSync(SRC, 'utf8');
 
-/* Read the catalogue straight out of the page so there is one source of truth. */
-const SHOP = new Function(src.match(/const SHOP=\[[\s\S]*?\n\];/)[0] + '; return SHOP;')();
+/* The catalogue in the page is the fallback. When Supabase is configured we
+   read it from there instead, so a price changed in /admin reaches the
+   storefront on the next build. */
+const SHOP_LITERAL = src.match(/const SHOP=\[[\s\S]*?\n\];/)[0];
+let SHOP = new Function(SHOP_LITERAL + '; return SHOP;')();
+
+/* Only live products are readable with the anon key, which is exactly what a
+   storefront wants — no service key needed at build time. */
+async function catalogueFromSupabase() {
+  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const res = await fetch(
+    `${base}/rest/v1/products?select=*&is_live=eq.true&order=sort_order.asc`,
+    { headers: { apikey: process.env.SUPABASE_ANON_KEY,
+                 Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error(`catalogue fetch failed: ${res.status} ${await res.text()}`);
+  const rows = await res.json();
+  if (!rows.length) throw new Error('catalogue came back empty — refusing to build an empty shop');
+  return rows.map(r => {
+    const o = { id: r.sku, c: r.filter_key || 'gear', n: r.name, m: r.summary || '',
+                price: r.price_cents / 100 };
+    if (r.stock)          o.stock = r.stock;
+    if (r.built_to_order) o.made = 1;
+    if (r.delivery !== 'door') o.ffl = 1;
+    if (r.delivery === 'nfa')  o.nfa = 1;
+    if (r.category)            o.cat = r.category;
+    if (r.images && r.images.length) { o.img = r.images[0]; if (r.images.length > 1) o.gal = r.images; }
+    if (r.description && r.description.length) o.d = r.description;
+    if (r.specs && r.specs.length)             o.specs = r.specs;
+    if (r.no_ship_states && r.no_ship_states.length) o.noShip = r.no_ship_states;
+    if (r.note) o.note = r.note;
+    return o;
+  });
+}
 const usd = n => '$' + n.toLocaleString('en-US',
   { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const CAT = { action:'Actions', chassis:'Chassis', rifle:'Complete rifles', barrel:'Barrels & bolts' };
@@ -89,6 +120,20 @@ const copy = (from, to) => {
                     : fs.copyFileSync(path.join(from, e.name), path.join(to, e.name));
 };
 
+async function main() {
+
+let source = 'site/index.html';
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  SHOP = await catalogueFromSupabase();
+  source = 'Supabase';
+}
+
+/* Whatever the catalogue came from, the page must ship that same catalogue —
+   otherwise the shop grid would render one thing and the product pages another. */
+const bodyBase = source === 'Supabase'
+  ? body.replace(SHOP_LITERAL, 'const SHOP=' + JSON.stringify(SHOP) + ';')
+  : body;
+
 rm(OUT);
 fs.mkdirSync(OUT, { recursive: true });
 copy('site/web', path.join(OUT, 'web'));
@@ -115,7 +160,7 @@ for (const i of SHOP) {
 for (const r of ROUTES) {
   const url = SITE + '/' + r.path;
   // mark this route's view as the visible one in the delivered HTML
-  let b = body.replace('id="home" class="view on"', 'id="home" class="view"');
+  let b = bodyBase.replace('id="home" class="view on"', 'id="home" class="view"');
   // checkout talks to the order function only once Supabase is configured
   b = b.replace("'__ORDERS_API__'", process.env.SUPABASE_URL ? "'1'" : "'0'");
   b = b.replace(`id="${r.view}" class="view"`, `id="${r.view}" class="view on"`);
@@ -170,7 +215,7 @@ ${b}
   const cut  = adminSrc.indexOf('<div class="demobar"');
   if (cut < 0) throw new Error('admin.html: could not find the start of the body content');
   let head   = adminSrc.slice(0, cut).replace(/\/\* %TOKENS%[^\n]*\*\//, tokens);
-  const body = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
+  const adminBody = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
   // Publishable values only. SUPABASE_SERVICE_KEY must never be injected here —
   // it bypasses row level security and belongs to the Netlify Functions alone.
   head = head.replace('__SUPABASE_URL__', process.env.SUPABASE_URL || '__SUPABASE_URL__')
@@ -186,7 +231,7 @@ ${b}
 ${head}
 </head>
 <body>
-${body}
+${adminBody}
 </body>
 </html>`;
   fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
@@ -210,4 +255,9 @@ fs.writeFileSync(path.join(OUT, 'robots.txt'),
   `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nDisallow: /wishlist\nSitemap: ${SITE}/sitemap.xml\n`);
 
 console.log(`built ${ROUTES.length} routes into ${OUT}/ against ${SITE}`);
+console.log(`catalogue: ${SHOP.length} products from ${source}`);
 console.log(ROUTES.map(r => '  /' + r.path).join('\n'));
+
+}
+
+main().catch(err => { console.error('\nBUILD FAILED:', err.message); process.exit(1); });

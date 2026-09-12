@@ -17,8 +17,30 @@ Static site. One HTML source, a small Node build that emits a real page per rout
 
 ```sh
 node build.js && node serve.js     # http://localhost:8787
-node tests/create-order.test.js    # order function, no database needed
+node tests/create-order.test.js        # order function
+node tests/build-from-supabase.test.js # publish loop
+# neither needs a real database
 ```
+
+## Publishing
+
+`build.js` reads the catalogue from Supabase when `SUPABASE_URL` and
+`SUPABASE_ANON_KEY` are set, and from the `SHOP` array in `site/index.html`
+otherwise. Either way the page ships the same catalogue it was built from, so
+the shop grid and the product pages cannot disagree.
+
+Only live products are readable with the anon key, which is exactly what a
+storefront needs — no service key at build time. An empty response fails the
+build rather than publishing an empty shop.
+
+Because the site is static, an edit in `/admin` is in the database at once but
+on the site only after a rebuild. The Products page shows what is waiting and a
+Publish button calls `netlify/functions/rebuild.js`, which checks the caller is
+staff before triggering the Netlify build hook. The hook URL never reaches a
+browser.
+
+`node tests/build-from-supabase.test.js` proves the loop against a fake
+PostgREST — no real project needed.
 
 ## Ordering
 

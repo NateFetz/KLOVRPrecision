@@ -21,6 +21,8 @@ Dashboard → **SQL Editor** → paste and run each file in order:
 2. `supabase/migrations/0002_rls.sql` — **security. Do not skip.**
 3. `supabase/migrations/0003_seed.sql` — the current catalogue
 4. `supabase/migrations/0004_create_order.sql` — order creation
+5. `supabase/migrations/0005_storefront_fields.sql` — fields the shop renders
+6. `supabase/migrations/0006_catalogue_content.sql` — descriptions, specs, images
 
 Or, with the CLI: `supabase db push`.
 
@@ -60,7 +62,32 @@ page, and nothing should ever make it do so.
 
 Redeploy. The build log will say `wired to Supabase` instead of `prototype`.
 
-## 5 · QuickBooks (optional, do it last)
+## 5 · The build hook
+
+The storefront is static, so a price changed in `/admin` is in the database
+immediately but not on the site until the next build. The Publish button closes
+that gap.
+
+Netlify → **Site configuration → Build & deploy → Build hooks → Add build hook**.
+Name it `admin-publish`, branch `main`. Copy the URL and add it as an
+environment variable:
+
+| Variable | Value |
+|---|---|
+| `NETLIFY_BUILD_HOOK` | the hook URL |
+
+**Anyone holding that URL can trigger builds**, so it stays in the environment.
+The browser never sees it — `/admin` calls `netlify/functions/rebuild.js`, which
+checks the caller is staff and then calls the hook on their behalf.
+
+Once set, the Products page shows whether anything is waiting and who published
+last. Editing several prices and publishing once is the intended rhythm; that is
+why it is a button rather than a database trigger.
+
+> If you would rather it were automatic, Supabase **Database Webhooks** can POST
+> the hook on any change to `products`. Expect a build per edit.
+
+## 6 · QuickBooks (optional, do it last)
 
 Create an app at [developer.intuit.com](https://developer.intuit.com), then add:
 
@@ -84,9 +111,7 @@ browser cannot read it even when signed in as staff. Only the functions can.
 
 - **FFL lookup.** Checkout lists three example dealers. Replace with a query
   against ATF FFL eZ Check, cached into `ffl_dealers` with `verified_at`.
-- **Product reads at build time.** `build.js` still uses the catalogue in
-  `site/index.html`. Point it at Supabase and add a Netlify build hook so saving
-  a price in `/admin` rebuilds the storefront.
+That is everything. The remaining item is FFL lookup, above.
 
 ## Rollback
 
