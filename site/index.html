@@ -2077,7 +2077,15 @@ function renderCalendar(){
      <button class="chip" aria-pressed="${shownView()==='month'}" onclick="calView='month';renderCalendar()">Month</button>
      <button class="chip" aria-pressed="${shownView()==='list'}" onclick="calView='list';renderCalendar()">List</button>
    </div></div>`;
- el.innerHTML=chips+toggle+(shownView()==='month'?monthGrid():listView());
+ /* These dates were written to fill the page. Until somebody confirms them
+    they must not read as a schedule — a plausible range day a week out is how
+    a customer ends up driving somewhere for nothing. */
+ const notice=BIZ.calendarConfirmed?'':`<div class="draftbox" data-example style="max-width:none">
+   <b>Example dates &mdash; not a schedule</b>
+   Nothing below is confirmed. These entries show how the calendar works; they are not
+   real classes, matches or opening hours, and turning up to one would be a wasted drive.
+   Ask us what is actually on and we will tell you.</div>`;
+ el.innerHTML=notice+chips+toggle+(shownView()==='month'?monthGrid():listView());
 }
 let calResize;
 addEventListener('resize',()=>{clearTimeout(calResize);calResize=setTimeout(()=>{
@@ -2125,7 +2133,7 @@ function openEvent(id){
  const e=EVENTS.find(x=>x.id===id); if(!e)return;
  const el=document.getElementById('evPanel');
  el.innerHTML=`<div class="evpanel-hd"><div><h3>${e.t}</h3>
-   <p class="lab">${prettyD(e.date)}${e.end?' – '+prettyD(e.end):''} · ${EV_TYPES[e.type]}</p></div>
+   <p class="lab">${prettyD(e.date)}${e.end?' – '+prettyD(e.end):''} · ${EV_TYPES[e.type]}${BIZ.calendarConfirmed?'':' · <span class="tbd">example</span>'}</p></div>
    <button class="evpanel-x" onclick="closeEv()" aria-label="Close">&times;</button></div>
   <div class="evpanel-body">
    ${e.d?`<p style="color:var(--ink-2);line-height:1.65">${e.d}</p>`:''}
@@ -2135,7 +2143,9 @@ function openEvent(id){
     ${e.price?`<dt>Cost</dt><dd>${e.price}</dd>`:''}
    </dl>
    <div class="evpanel-acts">
-    <button class="btn" onclick="addToCalendar('${e.id}')">Add to my calendar</button>
+    ${BIZ.calendarConfirmed
+      ? `<button class="btn" onclick="addToCalendar('${e.id}')">Add to my calendar</button>`
+      : `<p class="fineprint" style="margin:0 12px 0 0">Not a confirmed date, so there is nothing to add to your calendar yet.</p>`}
     <button class="btn ghost" onclick="closeEv();go('contact')">Ask about it</button>
    </div>
   </div>`;
@@ -2154,6 +2164,7 @@ function closeEv(){
 
 /* Downloads a .ics the phone or desktop calendar understands. */
 function addToCalendar(id){
+ if(!BIZ.calendarConfirmed){toast('That date is an example, not a booking. Ask us what is actually on.','warn',ASK);return}
  const e=EVENTS.find(x=>x.id===id); if(!e)return;
  const plain=d=>d.replace(/-/g,'');
  const dayAfter=s=>{const d=parseD(s);d.setDate(d.getDate()+1);return iso(d)};

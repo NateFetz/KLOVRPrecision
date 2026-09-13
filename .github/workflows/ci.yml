@@ -47,6 +47,9 @@ jobs:
       - name: Event collection
         run: node tests/collect.test.js
 
+      - name: Order notifications
+        run: node tests/order-notify.test.js
+
       - name: Guards
         run: node tests/guards.test.js
 

@@ -6,7 +6,15 @@
 process.env.SUPABASE_URL='https://x.supabase.co';
 process.env.SUPABASE_SERVICE_KEY='service-key-never-leaves-here';
 let lastBody=null, nextResponse={ok:true,text:async()=>JSON.stringify({reference:'KP-1059',subtotal_cents:485000,items:1})};
-global.fetch=async(u,i)=>{lastBody=JSON.parse(i.body);return nextResponse};
+/* The function now also reads the order back and records whether anybody was
+   told about it, so the create_order call has to be captured by name rather
+   than by being the most recent one. */
+global.fetch=async(u,i)=>{
+ const url=String(u), body=(i&&i.body)?JSON.parse(i.body):null;
+ if(url.includes('/rpc/create_order')){lastBody=body;return nextResponse}
+ if(url.includes('/rest/v1/orders?reference=')) return {ok:true,json:async()=>[]};
+ return {ok:true,text:async()=>''};
+};
 const {handler}=require('../netlify/functions/create-order.js');
 const call=(body,method='POST',ip='1.1.1.1')=>handler({httpMethod:method,body:JSON.stringify(body),headers:{'x-nf-client-connection-ip':ip}});
 const good={customer_name:'Dale Whitaker',customer_email:'dale@example.com',destination:'ffl',
@@ -39,6 +47,11 @@ const pg=msg=>({ok:false,text:async()=>JSON.stringify({message:msg})});
  console.log('\nprice sent by client was ignored:',
    !JSON.stringify(lastBody).includes('"price"'), '| server receives:',
    JSON.stringify(lastBody.payload.lines));
+
+ /* The order is committed before anybody is emailed, so a notification that
+    cannot be sent must not change what the customer is told. */
+ nextResponse={ok:true,text:async()=>JSON.stringify({reference:'KP-1061',subtotal_cents:485000,items:1})};
+ await r('notification failure is not the order\'s problem', await call(good,'POST','8.8.8.8'), 200);
 
  let last; for(let i=0;i<8;i++) last=await call(good,'POST','7.7.7.7');
  await r('rate limited after 6',    last, 429);

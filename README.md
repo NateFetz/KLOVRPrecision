@@ -19,7 +19,7 @@ Static site. One HTML source, a small Node build that emits a real page per rout
 node tests/all.js
 ```
 
-Seven suites, 149 assertions, about a second. No dependencies, nothing to
+Eight suites, about 230 assertions, under two seconds. No dependencies, nothing to
 install — plain Node, a fake PostgREST where a database is needed, and
 throwaway builds into temp directories where the build itself is under test.
 
@@ -31,6 +31,7 @@ throwaway builds into temp directories where the build itself is under test.
 | `business-schema` | how much the site claims about the shop, and when |
 | `avif` | a rendition for every photo and markup that pairs them |
 | `collect` | what measurement will and will not write down |
+| `order-notify` | what the order emails say, and that a failure to send is recorded |
 | `build-from-supabase` | a price changed in `/admin` reaching the built pages |
 
 `.github/workflows/ci.yml` runs all of it on every push and pull request.
@@ -394,6 +395,47 @@ All three forms are Netlify Forms — no backend. Submissions land under
 
 Both post over `fetch` and show an inline result. Each carries a honeypot field
 for spam.
+
+## Order notifications
+
+An order that lands in a table nobody opened is the same as no order. When one
+is placed, `create-order.js` sends two emails:
+
+- **To the shop** — reference, customer and how to reach them, the dealer or the
+  shipping address, the line items and subtotal, and a link into `/admin`. The
+  reply-to is the customer, so answering it answers them. For a firearm it says
+  to confirm the dealer licence is current.
+- **To the customer** — the same order and reference, where it is going, and the
+  part that matters: nothing has been charged, we will confirm stock and come
+  back about payment. It does not promise tracking, because there is none yet.
+
+Both are sent **after the order is committed**, so email can never lose an
+order. When it fails the order still succeeds and the customer still gets their
+reference — but the row records why nobody was told, and `/admin` marks it
+**not emailed** in red on the order list and in the panel. An invisible failure
+here means a customer waiting on a reply that was never sent, so it is made
+loud instead.
+
+Three environment variables in Netlify:
+
+| | |
+|---|---|
+| `RESEND_API_KEY` | from resend.com |
+| `MAIL_FROM` | `orders@klovrprecision.com` — needs the domain verified with Resend first |
+| `ORDER_NOTIFY_TO` | where the shop's copy goes |
+
+Unset is a valid state: the function logs what it would have sent and marks the
+order accordingly. Swapping providers is the `send` function in
+`netlify/functions/lib/mail.js` and nothing else — everything upstream deals in
+`{to, subject, text, html}`.
+
+**Until Supabase is configured**, checkout posts a Netlify Form instead and no
+function runs. Turn on form notifications in Netlify → Forms → Settings so the
+shop at least hears about those; the customer gets nothing on that path, which
+is one more reason to finish the Supabase setup.
+
+`select * from unnotified_orders;` lists anything nobody has been told about,
+oldest first. If it returns rows, somebody is waiting.
 
 ## Measurement
 

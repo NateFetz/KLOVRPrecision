@@ -100,6 +100,8 @@ td.wrap{white-space:normal;min-width:200px}
 td.r{text-align:right}
 .pill{display:inline-block;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
  padding:3px 7px;border:1px solid currentColor}
+/* An order nobody was told about needs chasing more than anything else here. */
+.pill.unsent{color:var(--stop);border-color:var(--stop)}
 .pill.new{color:var(--gold)} .pill.paid{color:var(--clover-2)} .pill.ffl{color:var(--stop)}
 .pill.ship{color:var(--clover)} .pill.done{color:var(--muted)} .pill.hold{color:var(--warn)}
 .dot{width:7px;height:7px;display:inline-block;background:currentColor;margin-right:7px;vertical-align:middle}
@@ -298,7 +300,8 @@ const fromRow=o=>({
    verified:o.ffl_dealers.verified_at||null, verifiedBy:o.ffl_dealers.verified_by||'',
    expires:o.ffl_dealers.expires_on||null}:null,
  lines:(o.order_lines||[]).map(l=>({sku:l.sku,name:l.name,qty:l.qty,price:fromCents(l.unit_price_cents)})),
- status:({at_dealer:'ffl'}[o.status])||o.status, tracking:o.tracking||'', qb:o.qb_invoice_no||'', note:o.note||''
+ status:({at_dealer:'ffl'}[o.status])||o.status, tracking:o.tracking||'', qb:o.qb_invoice_no||'', note:o.note||'',
+ notified:!!o.notified_at, notifyError:o.notify_error||''
 });
 const toStatus=s=>({ffl:'at_dealer',ship:'shipped'}[s]||s);
 const prodFromRow=r=>({sku:r.sku,name:r.name,cat:r.category||'',price:fromCents(r.price_cents),
@@ -474,7 +477,7 @@ function renderOrders(){
     <th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Status</th><th class="r">Total</th></tr></thead>
    <tbody>${ORDERS.map(o=>`<tr onclick="openOrder('${o.id}')">
      <td class="num">${o.id}</td><td class="num">${o.date}</td>
-     <td class="wrap">${esc(o.cust.name)}</td>
+     <td class="wrap">${esc(o.cust.name)}${o.notified===false?' <span class="pill unsent" title="No email went out for this order">not emailed</span>':''}</td>
      <td class="wrap">${o.lines.map(l=>l.qty+'× '+esc(l.name)).join('<br>')}</td>
      <td>${o.dest==='ffl'?'<span class="pill ffl">To dealer</span>':'<span class="pill ship">To door</span>'}</td>
      <td>${pill(o.status)}</td><td class="r num">${usd(total(o))}</td></tr>`).join('')}</tbody></table></div>`;
@@ -487,7 +490,9 @@ function openOrder(id){
   <div class="panel-hd"><div><h3>${o.id}</h3><p class="lab">${o.date} · ${pill(o.status)}</p></div>
    <button class="panel-x" onclick="closePanel()" aria-label="Close">&times;</button></div>
   <div class="panel-body">
-   ${o.note?`<div class="warnbox"><b>Note</b>${esc(o.note)}</div>`:''}
+   ${o.notified===false?`<div class="warnbox" style="border-color:var(--stop);background:var(--stop-soft)"><b>Nobody was emailed</b>${
+     o.notifyError?esc(o.notifyError):'This order went into the database but no notification was sent. The customer is waiting and does not know it arrived.'}</div>`:''}
+  ${o.note?`<div class="warnbox"><b>Note</b>${esc(o.note)}</div>`:''}
    <div><h4>Customer</h4><dl class="kv">
      <dt>Name</dt><dd>${esc(o.cust.name)}</dd><dt>Email</dt><dd>${esc(o.cust.email)}</dd><dt>Phone</dt><dd class="num">${esc(o.cust.phone)}</dd></dl></div>
    <div><h4>${o.dest==='ffl'?'Receiving dealer':'Delivery address'}</h4>

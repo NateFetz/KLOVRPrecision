@@ -60,9 +60,10 @@ console.log('\npolicy drafts');
   ok('with every blank settled it builds', r.built, r.error);
   if (r.built) {
     const w = r.read('warranty/index.html');
-    /* The element, not the attribute name — a comment in the source explains
-       what [data-draft] is, and matching that counted as a surviving notice. */
-    ok('the draft notice is gone', !/<div class="draftbox"/.test(w));
+    /* Specifically a policy draft notice. The calendar has a box that looks the
+       same and is governed by BIZ.calendarConfirmed instead, so matching the
+       class alone counted that one as a survivor. */
+    ok('the draft notice is gone', !/<div class="draftbox" data-draft>/.test(w));
     ok('the page is no longer noindex', !/name="robots" content="noindex"/.test(w));
     ok('and it reaches the sitemap', /\/warranty</.test(r.read('sitemap.xml')));
     ok('all five policy pages are indexable',

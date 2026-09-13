@@ -9,6 +9,8 @@
  * security and must never reach a browser.
  */
 
+const mail = require('./lib/mail');
+
 const SB  = () => process.env.SUPABASE_URL.replace(/\/$/, '');
 const KEY = () => process.env.SUPABASE_SERVICE_KEY;
 
@@ -48,6 +50,65 @@ function explain(message = '') {
     case 'QTY_TOO_LARGE':       return 'That quantity is too large — call us and we will sort it out.';
     default:                    return null;      // unknown: treat as a server fault
   }
+}
+
+/* create_order returns the totals; the names and prices it used are the
+   catalogue's, not the browser's, so they are read back rather than trusted
+   from the request. */
+async function orderForEmail(reference) {
+  const res = await fetch(
+    `${SB()}/rest/v1/orders?reference=eq.${encodeURIComponent(reference)}` +
+    '&select=reference,customer_name,customer_email,customer_phone,destination,ship_address,' +
+    'subtotal_cents,order_lines(sku,name,qty,unit_price_cents),ffl_dealers(business_name,address1,city,state,zip,licence)',
+    { headers: { apikey: KEY(), Authorization: `Bearer ${KEY()}` } });
+  if (!res.ok) throw new Error(`read back failed: ${res.status}`);
+  const [row] = await res.json();
+  if (!row) throw new Error('order vanished between writing and reading it');
+  const d = row.ffl_dealers;
+  return {
+    reference: row.reference,
+    customer_name: row.customer_name,
+    customer_email: row.customer_email,
+    customer_phone: row.customer_phone,
+    destination: row.destination,
+    ship_address: row.ship_address,
+    ffl: d ? { business_name: d.business_name, address1: d.address1, city: d.city,
+               state: d.state, zip: d.zip, licence: d.licence } : null,
+    subtotal_cents: row.subtotal_cents,
+    lines: row.order_lines || [],
+    items: (row.order_lines || []).reduce((n, l) => n + l.qty, 0)
+  };
+}
+
+async function markNotified(reference, error) {
+  await fetch(`${SB()}/rest/v1/rpc/mark_order_notified`, {
+    method: 'POST',
+    headers: { apikey: KEY(), Authorization: `Bearer ${KEY()}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_reference: reference, p_error: error || null })
+  }).catch(e => console.error('mark_order_notified:', e.message || e));
+}
+
+/* Both emails, and a row that records whether they went. The shop's copy is
+   the one that matters — a customer who gets no confirmation will chase; a
+   shop that never hears about the order will not. */
+async function notify(reference) {
+  const site = (process.env.URL || 'https://klovrprecision.netlify.app').replace(/\/$/, '');
+  const to = process.env.ORDER_NOTIFY_TO || '';
+  let order;
+  try { order = await orderForEmail(reference); }
+  catch (e) { await markNotified(reference, 'could not read the order back: ' + (e.message || e)); return; }
+
+  const problems = [];
+  if (!to) problems.push('ORDER_NOTIFY_TO is not set, so the shop was not told');
+  else {
+    const r = await mail.send({ to, ...mail.shopEmail(order, site) });
+    if (!r.ok) problems.push('shop: ' + r.error);
+  }
+  const c = await mail.send({ to: order.customer_email, ...mail.customerEmail(order, site) });
+  if (!c.ok) problems.push('customer: ' + c.error);
+
+  await markNotified(reference, problems.length ? problems.join('; ') : null);
+  if (problems.length) console.error(`notify ${reference}: ${problems.join('; ')}`);
 }
 
 exports.handler = async (event) => {
@@ -115,6 +176,12 @@ exports.handler = async (event) => {
       return bad('We could not place that order. Nothing has been charged — please call the shop.', 500);
     }
     const result = JSON.parse(text);
+
+    /* The order is committed. Telling people about it is a separate job that is
+       allowed to fail on its own — but not silently, because an order nobody
+       has been told about is the same as no order at all. */
+    await notify(result.reference).catch(e => console.error('notify:', e));
+
     return ok({ reference: result.reference, subtotal_cents: result.subtotal_cents, items: result.items });
   } catch (e) {
     console.error('create-order:', e);

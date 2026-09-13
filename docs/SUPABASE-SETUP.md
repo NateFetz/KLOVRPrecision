@@ -25,6 +25,7 @@ Dashboard → **SQL Editor** → paste and run each file in order:
 6. `supabase/migrations/0006_catalogue_content.sql` — descriptions, specs, images
 7. `supabase/migrations/0007_ffl_directory.sql` — dealer directory and search
 8. `supabase/migrations/0008_site_events.sql` — site measurement and its reports
+9. `supabase/migrations/0009_order_notices.sql` — whether anyone was told an order arrived
 
 Or, with the CLI: `supabase db push`.
 
