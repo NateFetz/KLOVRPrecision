@@ -16,6 +16,7 @@ insert into public.products (sku,name,category,price_cents,stock,built_to_order,
  ('ammo-65','6.5 Creedmoor — 140 gr match','Ammunition',4150,34,false,'door',
    '{CA,MA,NY,IL,NJ}','Ammunition cannot ship to CA, MA, NY, IL, or NJ.',true),
  ('bipod-carb','Carbon bipod, 7–10″','Gear',37900,7,false,'door','{}',null,true),
+ ('bipod-atlas','Atlas BT46-LW17 PSR bipod','Support gear',35495,0,true,'door','{}',null,true),
  ('case-48','Takedown rifle case, 48″','Gear',18900,4,false,'door','{}',null,true),
  ('sup-65','Titanium suppressor — 6.5 mm','Suppressors',94900,1,false,'nfa',
    '{CA,DC,DE,HI,IL,IA,MA,NJ,NY,RI}','Form 4 and $200 stamp. Held in our safe until approval.',true)

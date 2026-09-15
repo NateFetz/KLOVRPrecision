@@ -112,7 +112,10 @@ console.log('\nmeasurement and the privacy page');
 
 console.log('\nthe business facts');
 {
-  const r = build(s => s.replace(' city:null,', " city:'Richfield',"));
+  /* Set one field and blank another, so this makes a partial address whether
+     or not the real one has been filled in yet. */
+  const r = build(s => s.replace(/ street:[^,]*,/, " street:'1 Test St',")
+                        .replace(/ postal:[^,]*,/, ' postal:null,'));
   ok('half an address stops the build', !r.built && /partial address/.test(r.error), r.error);
 }
 {

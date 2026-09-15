@@ -56,7 +56,14 @@ function build(mutate) {
   return { read, ld, slot };
 }
 
-/* ---------- as it stands today: nothing filled in ---------- */
+/* ---------- as it stands today ----------
+   Driven by whatever BIZ actually holds, so filling a fact in does not make
+   this suite wrong — it makes it test the other branch. */
+const LIVE_BIZ = new Function(
+  fs.readFileSync(path.join(ROOT, 'site/index.html'), 'utf8').match(/const BIZ=\{[\s\S]*?\n\};/)[0]
+  + '; return BIZ;')();
+const LIVE_HAS_ADDR = ['street', 'city', 'region', 'postal', 'country'].every(f => LIVE_BIZ[f]);
+
 console.log('\nunknown facts — must not claim a place');
 {
   const b = build(s => s);
@@ -71,8 +78,15 @@ console.log('\nunknown facts — must not claim a place');
       org && org.logo === 'https://klovrprecision.com/web/logo-klovr.png', org && org.logo);
     ok('canonical follows the custom domain',
       b.read('index.html').includes('<link rel="canonical" href="https://klovrprecision.com/">'));
-    ok('address slot shows a marker, not a fake street',
-      (b.slot('contact/index.html', 'address') || '').includes('class="tbd"'));
+    const addrSlot = b.slot('contact/index.html', 'address') || '';
+    ok(LIVE_HAS_ADDR ? 'the real address is on the contact page'
+                     : 'address slot shows a marker, not a fake street',
+      LIVE_HAS_ADDR
+        ? addrSlot.includes(LIVE_BIZ.street) && addrSlot.includes(LIVE_BIZ.postal)
+          && addrSlot.includes(LIVE_BIZ.region)
+        : addrSlot.includes('class="tbd"'), addrSlot);
+    ok('no address in the schema until there is a phone to go with it',
+      org && !org.address);
     /* (000) 000-0000 is fine inside an input's placeholder — that shows the
        format being asked for. It must not appear as the shop's own number. */
     const fakeNumber = p => b.read(p).replace(/placeholder="\(000\)[^"]*"/g, '').includes('(000)');

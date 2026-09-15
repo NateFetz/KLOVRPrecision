@@ -34,7 +34,7 @@ const ROUTES = [
     img  : 'web/gal-1.jpg' },
   { path: 'calendar',      view: 'calendar',
     title: 'Classes, Range Days & Matches — KLOVR Precision',
-    desc : 'Long-range classes, open range days, club matches, and shop hours in central Utah. Add any of it to your own calendar.',
+    desc : 'Long-range classes, open range days, club matches, and shop hours around Cody, Wyoming. Add any of it to your own calendar.',
     img  : 'web/gal-2.jpg' },
   { path: 'search',        view: 'search',
     title: 'Search — KLOVR Precision',

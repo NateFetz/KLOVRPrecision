@@ -37,7 +37,9 @@ const server = http.createServer((req, res) => {
     ['only live rows built',         /catalogue: 2 products/.test(out)],
     // the shop grid is client-rendered, so assert on the catalogue it ships
     ['new price in the catalogue',   /"id":"act-short"[^}]*"price":1499/.test(shop)],
-    ['old price gone',               !shop.includes('1,395')],
+    // the price field, not the string anywhere on the page — a source comment
+    // that quotes a formatted price is not a stale catalogue entry
+    ['old price gone',               !/"id":"act-short"[^}]*"price":1395/.test(shop)],
     // the product page is pre-rendered, so the formatted price is in the HTML
     ['new price on the product page', pdp.includes('$1,499')],
     ['product page pre-rendered',    pdp.includes('From the database.')],
