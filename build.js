@@ -155,7 +155,7 @@ async function catalogueFromSupabase() {
     const o = { id: r.sku, c: r.filter_key || 'gear', n: r.name, m: r.summary || '',
                 price: r.price_cents / 100 };
     if (r.stock)          o.stock = r.stock;
-    if (r.built_to_order) o.made = 1;
+    if (r.built_to_order) { o.made = 1; if (r.made_label) o.madeAs = r.made_label; }
     if (r.delivery !== 'door') o.ffl = 1;
     if (r.delivery === 'nfa')  o.nfa = 1;
     if (r.category)            o.cat = r.category;
@@ -167,6 +167,16 @@ async function catalogueFromSupabase() {
     return o;
   });
 }
+/* Photos uploaded through /admin are served as they were uploaded — Storage has
+   no AVIF encoder and neither does a Linux build box. Worth saying out loud on
+   every build so it does not quietly become the norm. */
+{
+  const hosted = SHOP.flatMap(i => [i.img, ...(i.gal || [])]).filter(u => u && !/^web\//.test(u));
+  if (hosted.length) console.log(
+    `photos: ${hosted.length} served from Storage without an AVIF rendition ` +
+    '(run scripts/make-avif.js on a Mac and commit them to site/web to optimise)');
+}
+
 const usd = n => '$' + n.toLocaleString('en-US',
   { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const CAT = { action:'Actions', chassis:'Chassis', rifle:'Complete rifles', barrel:'Barrels & bolts' };
@@ -480,7 +490,37 @@ for (const r of ROUTES) {
   const cut  = adminSrc.indexOf('<div class="demobar"');
   if (cut < 0) throw new Error('admin.html: could not find the start of the body content');
   let head   = adminSrc.slice(0, cut).replace(/\/\* %TOKENS%[^\n]*\*\//, () => tokens);
-  const adminBody = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
+  let adminBody = adminSrc.slice(cut).split('<!-- %LOGO% -->').join(logo);
+
+  /* One catalogue, two screens. The prototype shows exactly what the shop
+     shows, so the editor can be demonstrated on real products and the seed
+     cannot drift away from the storefront it is meant to represent. */
+  const seed = SHOP.map(i => ({
+    sku: i.id, name: i.n, cat: i.cat || '', filter: i.c || 'gear', summary: i.m || '',
+    price: i.price, stock: i.stock || 0, sort: 100,
+    ffl: !!i.ffl, nfa: !!i.nfa, live: true,
+    made: !!i.made, madeLabel: i.madeAs || '',
+    desc: i.d || [], specs: i.specs || [],
+    images: i.gal && i.gal.length ? i.gal : (i.img ? [i.img] : []),
+    noShip: i.noShip || [], note: i.note || ''
+  }));
+  /* The same chips the shop shows, so the two lists cannot diverge. */
+  const chips = {};
+  for (const m of src.matchAll(/<button class="chip" data-f="([a-z]+)"[^>]*>([^<]+)</g))
+    if (m[1] !== 'all') chips[m[1]] = m[2].replace(/&amp;/g, '&');
+  if (Object.keys(chips).length < 2) throw new Error('admin.html: could not read the shop filter chips');
+  const missing = [...new Set(SHOP.map(i => i.c))].filter(c => c && !(c in chips));
+  if (missing.length) throw new Error(
+    `the catalogue files products under ${missing.join(', ')}, which the shop has no filter chip for`);
+  adminBody = adminBody.replace(/const FILTERS=\{[\s\S]*?\};/,
+    () => 'const FILTERS=' + JSON.stringify(chips) + ';');
+
+  const seedLiteral = 'const SEED_PRODUCTS=' + JSON.stringify(seed, null, 1) + ';';
+  const seedRe = /const SEED_PRODUCTS=\[[\s\S]*?\n\];/;
+  if (!seedRe.test(adminBody)) throw new Error('admin.html: cannot find SEED_PRODUCTS to replace');
+  adminBody = adminBody.replace(seedRe, () => seedLiteral);
+
+
   // Publishable values only. SUPABASE_SERVICE_KEY must never be injected here —
   // it bypasses row level security and belongs to the Netlify Functions alone.
   head = head.replace('__SUPABASE_URL__', process.env.SUPABASE_URL || '__SUPABASE_URL__')

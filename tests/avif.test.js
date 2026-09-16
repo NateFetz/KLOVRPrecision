@@ -97,8 +97,8 @@ ok('no static photo is left outside a picture', !loose.length, loose.join(', '))
 /* ---------- the helper the page uses at runtime ---------- */
 console.log('\npic() helper');
 const pageSrc = fs.readFileSync(path.join(ROOT, 'site', 'index.html'), 'utf8');
-const helper = pageSrc.match(/const avifOf=[\s\S]*?\n\}/)[0];
-const { pic, avifOf } = new Function(helper + '; return { pic, avifOf };')();
+const helper = pageSrc.match(/const inRepo=[\s\S]*?\n\}/)[0];
+const { pic, avifOf, inRepo } = new Function(helper + '; return { pic, avifOf, inRepo };')();
 
 ok('a srcset tag gets a matching avif source',
   pic('<img src="web/a.jpg" srcset="web/a-sm.jpg 700w, web/a.jpg 1800w" sizes="50vw" alt="x">')
@@ -117,6 +117,22 @@ ok('an srcless tag is left alone', pic('<img id="lboxImg" alt="">') === '<img id
 ok('avifOf only touches the extension',
   avifOf('web/p-jpg-thing-sm.jpg 700w, web/p-jpg-thing.jpg 1800w')
   === 'web/p-jpg-thing-sm.avif 700w, web/p-jpg-thing.avif 1800w');
+
+/* A product photograph uploaded through /admin lives in Supabase Storage, where
+   nothing made an AVIF for it. Rewriting the extension would point <source> at
+   a file that is not there — and <picture> picks by format support, not by
+   whether the fetch worked, so an AVIF-capable browser would show nothing. */
+console.log('\nphotos that live outside the repo');
+ok('a Storage URL is not rewritten',
+  avifOf('https://x.supabase.co/storage/v1/object/public/product-photos/a/b.jpg')
+  === 'https://x.supabase.co/storage/v1/object/public/product-photos/a/b.jpg');
+ok('and is left as a plain img, not a picture',
+  pic('<img src="https://x.supabase.co/storage/v1/object/public/product-photos/a/b.jpg" alt="">')
+  === '<img src="https://x.supabase.co/storage/v1/object/public/product-photos/a/b.jpg" alt="">');
+ok('a repo path in the same srcset still converts',
+  avifOf('web/a-sm.jpg 700w, web/a.jpg 1800w') === 'web/a-sm.avif 700w, web/a.avif 1800w');
+ok('inRepo tells them apart',
+  inRepo('web/a.jpg') === true && inRepo('https://x.supabase.co/a.jpg') === false);
 
 /* ---------- the guard ---------- */
 console.log('\nguard');

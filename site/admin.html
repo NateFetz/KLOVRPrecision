@@ -85,6 +85,28 @@ label{display:flex;flex-direction:column;gap:5px}
 .panelbox{border:1px solid var(--rule);padding:18px 18px 20px}
 .panelbox h3{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;margin:0 0 4px;color:var(--ink)}
 .panelbox p.why{font-size:.8rem;line-height:1.55;color:var(--muted);margin:0 0 14px}
+.edsec{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--clover-2);
+ margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--rule)}
+.edsec:first-of-type{margin-top:0;padding-top:0;border-top:0}
+.reprow{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
+.reprow input,.reprow textarea{flex:1;min-width:0}
+.reprow textarea{resize:vertical;font-family:inherit}
+.rowx{flex:none;background:none;border:1px solid var(--rule);color:var(--muted);
+ width:32px;height:32px;cursor:pointer;line-height:1}
+.rowx:hover:not(:disabled){color:var(--ink);border-color:var(--line)}
+.rowx:disabled{opacity:.3;cursor:default}
+.edstates summary{cursor:pointer;font-size:.8rem;color:var(--ink-2);padding:8px 0}
+.stategrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:4px;margin-top:8px}
+.stbox{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.68rem;color:var(--ink-2);cursor:pointer}
+.stbox input{margin:0}
+.imgrows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.imgrow{display:flex;align-items:center;gap:8px}
+.imgrow img{width:46px;height:46px;object-fit:cover;background:var(--raised);flex:none}
+.imgpath{flex:1;min-width:0;font-family:var(--mono);font-size:.7rem;color:var(--muted);
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imgpath b{color:var(--clover-2)}
+.imgadd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.imgadd input{flex:1;min-width:180px}
 .rangepick{display:flex;gap:6px}
 .rangepick button{background:none;border:1px solid var(--rule);color:var(--ink-2);
  font-family:var(--mono);font-size:.7rem;padding:7px 11px;cursor:pointer}
@@ -268,22 +290,16 @@ const SEED_ORDERS=[
   dest:'door',addr:'88 Sourdough Road, Bozeman, MT 59715',
   lines:[{sku:'bipod-carb',name:'Carbon bipod, 7–10″',qty:1,price:379}],status:'complete',tracking:'1Z999AA10123456677',qb:'INV-2033'}
 ];
+/* %CATALOGUE% — the storefront's own catalogue, injected by build.js so the
+   prototype is an exact mirror rather than a second copy that drifts. Opened
+   straight off disk without a build, this falls back to a single row so the
+   screen still renders. */
 const SEED_PRODUCTS=[
- {sku:'act-short',name:'KLOVR Short Action — Burnt Bronze',cat:'Actions',price:1395,stock:8,ffl:false,nfa:false,live:true},
- {sku:'act-magnum',name:'KLOVR Magnum Action — Burnt Bronze',cat:'Actions',price:1495,stock:3,ffl:false,nfa:false,live:true},
- {sku:'chs-bronze',name:'KLOVR Chassis — Burnt Bronze',cat:'Chassis',price:1150,stock:5,ffl:false,nfa:false,live:true},
- {sku:'chs-skel',name:'KLOVR Chassis — Skeletonized',cat:'Chassis',price:1150,stock:0,ffl:false,nfa:false,live:true},
- {sku:'rifle-cm',name:'KLOVR Complete Rifle — 6.5 Creedmoor',cat:'Rifles',price:4850,stock:0,ffl:true,nfa:false,live:true},
- {sku:'rifle-wm',name:'KLOVR Complete Rifle — .300 Win Magnum',cat:'Rifles',price:5290,stock:0,ffl:true,nfa:false,live:true},
- {sku:'bbl-65',name:'Pre-fit barrel — 6.5 CM, 22″ fluted',cat:'Barrels',price:520,stock:11,ffl:false,nfa:false,live:true},
- {sku:'bolt-sa',name:'Spare bolt assembly',cat:'Barrels',price:385,stock:6,ffl:false,nfa:false,live:true},
- {sku:'opt-3510',name:'3.5–10×40 hunting scope',cat:'Optics',price:649,stock:6,ffl:false,nfa:false,live:true},
- {sku:'opt-41650',name:'4–16×50 long-range scope',cat:'Optics',price:1199,stock:2,ffl:false,nfa:false,live:true},
- {sku:'rings-34',name:'34 mm rings — burnt bronze',cat:'Mounts',price:189,stock:9,ffl:false,nfa:false,live:true},
- {sku:'ammo-65',name:'6.5 Creedmoor — 140 gr match',cat:'Ammunition',price:41.5,stock:34,ffl:false,nfa:false,live:true},
- {sku:'bipod-carb',name:'Carbon bipod, 7–10″',cat:'Gear',price:379,stock:7,ffl:false,nfa:false,live:true},
- {sku:'case-48',name:'Takedown rifle case, 48″',cat:'Gear',price:189,stock:4,ffl:false,nfa:false,live:true},
- {sku:'sup-65',name:'Titanium suppressor — 6.5 mm',cat:'Suppressors',price:949,stock:1,ffl:true,nfa:true,live:true}
+ {sku:'act-short',name:'KLOVR Short Action — Burnt Bronze',cat:'Actions',filter:'action',
+  summary:'Integral 20 MOA rail · 60° bolt throw',price:1395,stock:8,sort:10,
+  ffl:false,nfa:false,live:true,made:false,madeLabel:'',
+  desc:['Run the build to see the real catalogue here.'],specs:[['Footprint','Remington 700']],
+  images:[],noShip:[],note:''}
 ];
 let ORDERS=[], PRODUCTS=[], QB={connected:false,realm:'',lastSync:'',log:[]}, SITE={published:null,by:''};
 
@@ -305,7 +321,15 @@ const fromRow=o=>({
 });
 const toStatus=s=>({ffl:'at_dealer',ship:'shipped'}[s]||s);
 const prodFromRow=r=>({sku:r.sku,name:r.name,cat:r.category||'',price:fromCents(r.price_cents),
- stock:r.stock,ffl:r.delivery!=='door',nfa:r.delivery==='nfa',live:r.is_live,updated:r.updated_at});
+ stock:r.stock,ffl:r.delivery!=='door',nfa:r.delivery==='nfa',live:r.is_live,updated:r.updated_at,
+ /* everything the storefront renders, not just what the list shows */
+ summary:r.summary||'', filter:r.filter_key||'', sort:r.sort_order??100,
+ made:!!r.built_to_order, madeLabel:r.made_label||'',
+ desc:Array.isArray(r.description)?r.description:[],
+ specs:Array.isArray(r.specs)?r.specs:[],
+ images:Array.isArray(r.images)?r.images:[],
+ noShip:Array.isArray(r.no_ship_states)?r.no_ship_states:[],
+ note:r.note||''});
 
 /* The staff tool renders text that visitors typed — names, notes, addresses,
    and now search queries. Without this, a customer who puts a script tag in
@@ -343,10 +367,31 @@ const DB={
   if(!LIVE){const i=PRODUCTS.findIndex(x=>x.sku===(originalSku||rec.sku));
    i>-1?PRODUCTS[i]=rec:PRODUCTS.push(rec); saveP(); return}
   const row={sku:rec.sku,name:rec.name,category:rec.cat,price_cents:cents(rec.price),
-   stock:rec.stock,delivery:rec.nfa?'nfa':rec.ffl?'ffl':'door',is_live:rec.live};
+   stock:rec.stock,delivery:rec.nfa?'nfa':rec.ffl?'ffl':'door',is_live:rec.live,
+   summary:rec.summary||null, filter_key:rec.filter||null, sort_order:rec.sort,
+   built_to_order:rec.made, made_label:rec.made?(rec.madeLabel||null):null,
+   description:rec.desc, specs:rec.specs, images:rec.images,
+   no_ship_states:rec.noShip, note:rec.note||null};
   const {error}=await sbc.from('products').upsert(row,{onConflict:'sku'});
   if(error)throw error;
+  /* A renamed SKU upserts as a new row, so the old one has to go or the
+     catalogue quietly gains a duplicate under the previous code. */
+  if(originalSku&&originalSku!==rec.sku){
+   const {error:e2}=await sbc.from('products').delete().eq('sku',originalSku);
+   if(e2)throw e2;
+  }
   await DB.load();
+ },
+ /* Photos live in Storage, not the repo — the point of this editor is that
+    adding a product needs no commit. */
+ async uploadPhoto(file,sku){
+  if(!LIVE)throw new Error('Connect Supabase to upload photographs.');
+  const ext=(file.name.match(/\.[a-z0-9]+$/i)||['.jpg'])[0].toLowerCase();
+  const path=`${sku||'unfiled'}/${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}${ext}`;
+  const {error}=await sbc.storage.from('product-photos')
+    .upload(path,file,{cacheControl:'31536000',upsert:false});
+  if(error)throw error;
+  return sbc.storage.from('product-photos').getPublicUrl(path).data.publicUrl;
  },
  async deleteProduct(sku){
   if(!LIVE){PRODUCTS=PRODUCTS.filter(x=>x.sku!==sku);saveP();return}
@@ -633,53 +678,247 @@ function renderProducts(){
     <td>${p.nfa?'<span class="pill hold">NFA</span>':p.ffl?'<span class="pill ffl">Dealer</span>':'<span class="pill ship">Door</span>'}</td>
     <td>${p.live?'<span class="pill paid">Live</span>':'<span class="pill done">Hidden</span>'}</td></tr>`).join('')}</tbody></table></div>`;
 }
+/* ---------------- the product editor ----------------
+   Everything the storefront renders about a product is editable here, because
+   the alternative is that adding one means a code change and a deploy, and a
+   catalogue somebody has to ask for is not a catalogue they own.
+
+   The working copy lives in DRAFT while the panel is open, so a repeating row
+   can be added or dropped without a round trip and nothing is written until
+   Save. */
+let DRAFT=null, DRAFT_SKU=null;
+
+/* %FILTERS% — the storefront's own filter chips, injected by build.js. Hand
+   maintaining a second copy meant the editor offered seven of the nine keys the
+   catalogue actually used, and picking a product filed under a missing one
+   silently refiled it on save. */
+const FILTERS={action:'Actions',chassis:'Chassis',rifle:'Rifles',barrel:'Barrels & bolts',
+               optic:'Optics',mount:'Mounts',ammo:'Ammo',gear:'Gear',nfa:'NFA'};
+const US_STATES='AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
+
 function editProduct(sku){
- const p=sku?PRODUCTS.find(x=>x.sku===sku):{sku:'',name:'',cat:'',price:0,stock:0,ffl:false,nfa:false,live:false};
- const isNew=!sku;
+ const p=sku?PRODUCTS.find(x=>x.sku===sku):null;
+ DRAFT_SKU=sku||null;
+ /* Normalise whatever we were handed. prodFromRow fills every field, but the
+    prototype's seed rows predate half of them and a product saved by an older
+    build may be missing others — the editor must not assume a shape it did not
+    create, or opening an old record throws and the panel never renders. */
+ const D={sku:'',name:'',cat:'',summary:'',filter:'gear',price:0,stock:0,sort:100,
+          ffl:false,nfa:false,live:false,made:false,madeLabel:'',
+          desc:[],specs:[],images:[],noShip:[],note:''};
+ DRAFT=Object.assign(D,p?JSON.parse(JSON.stringify(p)):{});
+ const arr=v=>Array.isArray(v)?v:[];
+ DRAFT.desc=arr(DRAFT.desc); DRAFT.specs=arr(DRAFT.specs);
+ DRAFT.images=arr(DRAFT.images); DRAFT.noShip=arr(DRAFT.noShip);
+ DRAFT.sort=Number.isFinite(DRAFT.sort)?DRAFT.sort:100;
+ DRAFT.filter=DRAFT.filter||'gear';
+ /* Always offer one empty row of each so there is somewhere to start typing. */
+ if(!DRAFT.desc.length)DRAFT.desc=[''];
+ if(!DRAFT.specs.length)DRAFT.specs=[['','']];
+ renderEditor();
+}
+
+/* Read the panel back into DRAFT before any re-render, or typing is lost the
+   moment somebody adds a spec row. */
+function harvest(){
+ if(!DRAFT)return;
+ const v=id=>{const el=document.getElementById(id);return el?el.value:''};
+ DRAFT.sku=v('pSku').trim(); DRAFT.name=v('pName'); DRAFT.cat=v('pCat');
+ DRAFT.summary=v('pSummary'); DRAFT.filter=v('pFilter'); DRAFT.note=v('pNote');
+ DRAFT.price=parseFloat(v('pPrice'))||0;
+ DRAFT.stock=parseInt(v('pStock'),10)||0;
+ DRAFT.sort=parseInt(v('pSort'),10)||100;
+ DRAFT.live=v('pLive')==='1';
+ DRAFT.made=v('pMade')==='1'; DRAFT.madeLabel=v('pMadeLabel');
+ const del=v('pDel'); DRAFT.ffl=del!=='door'; DRAFT.nfa=del==='nfa';
+ DRAFT.desc=[...document.querySelectorAll('[data-desc]')].map(t=>t.value);
+ DRAFT.specs=[...document.querySelectorAll('[data-spec-row]')]
+   .map(r=>[r.querySelector('[data-spec-k]').value,r.querySelector('[data-spec-v]').value]);
+ DRAFT.noShip=[...document.querySelectorAll('[data-state]:checked')].map(c=>c.value);
+}
+const edit=(fn)=>{harvest();fn();renderEditor()};
+const addDesc   =()=>edit(()=>DRAFT.desc.push(''));
+const dropDesc  =i=>edit(()=>{DRAFT.desc.splice(i,1); if(!DRAFT.desc.length)DRAFT.desc=['']});
+const addSpec   =()=>edit(()=>DRAFT.specs.push(['','']));
+const dropSpec  =i=>edit(()=>{DRAFT.specs.splice(i,1); if(!DRAFT.specs.length)DRAFT.specs=[['','']]});
+const moveImage =(i,d)=>edit(()=>{const j=i+d; if(j<0||j>=DRAFT.images.length)return;
+                                  const[a]=DRAFT.images.splice(i,1); DRAFT.images.splice(j,0,a)});
+const dropImage =i=>edit(()=>DRAFT.images.splice(i,1));
+/* The stored value is what the storefront needs — "web/p-action-short.jpg",
+   resolved against its <base href="/">. This page has no base tag and lives at
+   /admin/, so the same string would resolve to /admin/web/… and the thumbnail
+   would be a broken square. Display only: never write this back. */
+const thumbSrc=u=>/^(https?:)?\/\//.test(u)?u:'/'+String(u).replace(/^\/+/,'');
+
+const addImageUrl=()=>edit(()=>{
+ const u=(document.getElementById('pImgUrl').value||'').trim();
+ if(u)DRAFT.images.push(u);
+ const el=document.getElementById('pImgUrl'); if(el)el.value='';
+});
+
+async function pickPhoto(input){
+ const files=[...input.files||[]]; if(!files.length)return;
+ harvest();
+ const btn=document.getElementById('pUploadLab');
+ if(btn)btn.textContent='Uploading…';
+ try{
+  for(const f of files){
+   if(f.size>10*1024*1024){note(`${f.name} is over 10 MB — resize it first.`);continue}
+   DRAFT.images.push(await DB.uploadPhoto(f,DRAFT.sku));
+  }
+ }catch(e){ note('Could not upload: '+(e.message||e)); }
+ input.value='';
+ renderEditor();
+}
+
+function renderEditor(){
+ const isNew=!DRAFT_SKU, p=DRAFT;
+ const opt=(v,l,on)=>`<option value="${esc(v)}" ${on?'selected':''}>${esc(l)}</option>`;
  openPanel(`
-  <div class="panel-hd"><div><h3>${isNew?'New product':p.name}</h3>
-   <p class="lab">${isNew?'Adds to the catalogue':'SKU '+p.sku}</p></div>
-   <button class="panel-x" onclick="closePanel()" aria-label="Close">&times;</button></div>
+  <div class="panel-hd"><div><h3>${isNew?'New product':esc(p.name||p.sku)}</h3>
+   <p class="lab">${isNew?'Adds to the catalogue':'SKU '+esc(DRAFT_SKU)}</p></div>
+   <button class="panel-x" onclick="closeEditor()" aria-label="Close">&times;</button></div>
   <div class="panel-body">
+
+   <h4 class="edsec">The basics</h4>
    <div class="fields">
-    <label><span class="lab">Name</span><input id="pName" value="${esc(p.name)}"></label>
+    <label><span class="lab">Name</span><input id="pName" value="${esc(p.name)}" placeholder="KLOVR Short Action — Burnt Bronze"></label>
+    <label><span class="lab">One line under the name</span>
+     <input id="pSummary" value="${esc(p.summary)}" placeholder="Integral 20 MOA rail · 60° bolt throw">
+     <span class="hint">Shows on the shop card and under the title. Keep it to a few facts.</span></label>
     <div class="fieldrow">
-     <label><span class="lab">SKU</span><input id="pSku" value="${esc(p.sku)}" ${isNew?'':'readonly'}></label>
-     <label><span class="lab">Category</span><input id="pCat" value="${esc(p.cat)}"></label>
+     <label><span class="lab">SKU</span><input id="pSku" value="${esc(p.sku)}" placeholder="act-short"></label>
+     <label><span class="lab">Category</span><input id="pCat" value="${esc(p.cat)}" placeholder="Actions"></label>
     </div>
+    <div class="fieldrow">
+     <label><span class="lab">Filters under</span>
+      <select id="pFilter">${Object.entries(FILTERS).map(([k,l])=>opt(k,l,p.filter===k)).join('')}${
+        /* A key the storefront no longer offers still belongs to this product;
+           dropping it from the list would quietly refile it on the next save. */
+        p.filter&&!(p.filter in FILTERS)?opt(p.filter,p.filter+' (not a current filter)',true):''
+      }</select></label>
+     <label><span class="lab">Sort order</span><input id="pSort" class="num" inputmode="numeric" value="${p.sort}">
+      <span class="hint">Low numbers first.</span></label>
+    </div>
+   </div>
+
+   <h4 class="edsec">Price and availability</h4>
+   <div class="fields">
     <div class="fieldrow">
      <label><span class="lab">Price, USD</span><input id="pPrice" class="num" inputmode="decimal" value="${p.price}"></label>
-     <label><span class="lab">Stock on hand</span><input id="pStock" class="num" inputmode="numeric" value="${p.stock}"></label>
+     <label><span class="lab">Stock on hand</span><input id="pStock" class="num" inputmode="numeric" value="${p.stock}" ${p.made?'disabled':''}></label>
     </div>
+    <div class="fieldrow">
+     <label><span class="lab">Kept in stock?</span>
+      <select id="pMade" onchange="edit(()=>{})">
+       ${opt('0','Yes — sell from the shelf',!p.made)}
+       ${opt('1','No — made or ordered to order',p.made)}
+      </select></label>
+     <label><span class="lab">How that reads</span>
+      <input id="pMadeLabel" value="${esc(p.madeLabel)}" placeholder="Built to order" ${p.made?'':'disabled'}>
+      <span class="hint">"Built to order" for ours, "Ordered in" for a brand we stock.</span></label>
+    </div>
+    <label><span class="lab">Visibility</span>
+     <select id="pLive">${opt('1','Live on the site',p.live)}${opt('0','Hidden',!p.live)}</select></label>
+   </div>
+
+   <h4 class="edsec">How it reaches the buyer</h4>
+   <div class="fields">
     <label><span class="lab">Delivery</span>
      <select id="pDel">
-      <option value="door" ${!p.ffl?'selected':''}>Ships to the customer</option>
-      <option value="ffl" ${p.ffl&&!p.nfa?'selected':''}>Must go to a licensed dealer</option>
-      <option value="nfa" ${p.nfa?'selected':''}>NFA — dealer plus stamp</option>
+      ${opt('door','Ships to the customer',!p.ffl)}
+      ${opt('ffl','Must go to a licensed dealer',p.ffl&&!p.nfa)}
+      ${opt('nfa','NFA — dealer plus stamp',p.nfa)}
      </select></label>
-    <label><span class="lab">Visibility</span>
-     <select id="pLive"><option value="1" ${p.live?'selected':''}>Live on the site</option>
-      <option value="0" ${!p.live?'selected':''}>Hidden</option></select></label>
    </div>
-   <p class="hint">Delivery is not a label — it drives checkout. Anything marked for a dealer cannot be sent to a home address, and the cart enforces it.</p>
+   <p class="hint">Delivery is not a label. Anything marked for a dealer cannot be sent to a home address, and both the cart and the database refuse to.</p>
+   <details class="edstates" ${p.noShip.length?'open':''}>
+    <summary>States we cannot send this to${p.noShip.length?` — ${p.noShip.length} selected`:''}</summary>
+    <p class="hint">Leave empty unless the item is actually restricted. Checkout blocks on the shipping state for direct items and on the dealer's state for firearms.</p>
+    <div class="stategrid">${US_STATES.map(st=>
+      `<label class="stbox"><input type="checkbox" data-state value="${st}" ${p.noShip.includes(st)?'checked':''}><span>${st}</span></label>`).join('')}</div>
+   </details>
+   <div class="fields" style="margin-top:14px">
+    <label><span class="lab">Note shown on the product page</span>
+     <input id="pNote" value="${esc(p.note)}" placeholder="Form 4 and $200 stamp. Held in our safe until approval."></label>
+   </div>
+
+   <h4 class="edsec">Description</h4>
+   <p class="hint">One box per paragraph. This is the part that sells it — write how you would say it across the counter.</p>
+   ${p.desc.map((t,i)=>`<div class="reprow">
+     <textarea data-desc rows="3" placeholder="What it is, and why it is built that way.">${esc(t)}</textarea>
+     <button class="rowx" onclick="dropDesc(${i})" aria-label="Remove paragraph">&times;</button></div>`).join('')}
+   <button class="btn ghost sm" onclick="addDesc()">Add a paragraph</button>
+
+   <h4 class="edsec">Specifications</h4>
+   <p class="hint">Label on the left, value on the right. These become the table on the product page.</p>
+   ${p.specs.map(([k,v],i)=>`<div class="reprow" data-spec-row>
+     <input data-spec-k value="${esc(k)}" placeholder="Weight">
+     <input data-spec-v value="${esc(v)}" placeholder="13.6 oz">
+     <button class="rowx" onclick="dropSpec(${i})" aria-label="Remove row">&times;</button></div>`).join('')}
+   <button class="btn ghost sm" onclick="addSpec()">Add a row</button>
+
+   <h4 class="edsec">Photographs</h4>
+   <p class="hint">The first one is the main image on the shop card. Drag order with the arrows.</p>
+   ${p.images.length?`<div class="imgrows">${p.images.map((u,i)=>`
+     <div class="imgrow">
+      <img src="${esc(thumbSrc(u))}" alt="" loading="lazy">
+      <span class="imgpath">${i===0?'<b>Main</b> · ':''}${esc(u.replace(/^.*\//,''))}</span>
+      <button class="rowx" onclick="moveImage(${i},-1)" aria-label="Move up" ${i===0?'disabled':''}>&uarr;</button>
+      <button class="rowx" onclick="moveImage(${i},1)" aria-label="Move down" ${i===p.images.length-1?'disabled':''}>&darr;</button>
+      <button class="rowx" onclick="dropImage(${i})" aria-label="Remove">&times;</button>
+     </div>`).join('')}</div>`
+    :'<p class="hint">No photograph yet. The card falls back to the category name.</p>'}
+   <div class="imgadd">
+    <label class="btn ghost sm" id="pUploadLab">Upload
+     <input type="file" accept="image/*" multiple hidden onchange="pickPhoto(this)"></label>
+    <input id="pImgUrl" placeholder="or a path already in the repo: web/p-action-short.jpg">
+    <button class="btn ghost sm" onclick="addImageUrl()">Add</button>
+   </div>
+   ${LIVE?'':'<p class="hint">Uploading needs the Supabase connection. Repo paths work either way.</p>'}
+
    <div class="panel-acts">
-    <button class="btn" onclick="saveProduct('${sku||''}')">${isNew?'Add product':'Save changes'}</button>
-    ${isNew?'':`<button class="btn danger sm" onclick="deleteProduct('${esc(p.sku)}')">Delete</button>`}
+    <button class="btn" onclick="saveProduct('${esc(DRAFT_SKU||'')}')">${isNew?'Add product':'Save changes'}</button>
+    <button class="btn ghost" onclick="closeEditor()">Cancel</button>
+    ${isNew?'':`<button class="btn danger sm" onclick="deleteProduct('${esc(DRAFT_SKU)}')">Delete</button>`}
    </div>
+   <p class="hint">Saving changes the catalogue. The storefront shows it after the next publish.</p>
    <p class="savedmsg" id="pSaved" hidden>Saved</p>
   </div>`);
 }
+function closeEditor(){DRAFT=null;DRAFT_SKU=null;closePanel()}
+
 async function saveProduct(sku){
- const g=id=>document.getElementById(id).value.trim();
- const del=g('pDel');
- const rec={sku:g('pSku'),name:g('pName'),cat:g('pCat'),price:parseFloat(g('pPrice'))||0,
-   stock:parseInt(g('pStock'),10)||0,ffl:del!=='door',nfa:del==='nfa',live:g('pLive')==='1'};
- if(!rec.sku||!rec.name){note('A product needs both a SKU and a name before it can be saved.');return}
- try{ await DB.saveProduct(rec,sku); }catch(e){ note('Could not save: '+(e.message||e)); return; }
- renderProducts();
+ harvest();
+ const rec=DRAFT;
+ /* Drop the empty rows somebody left behind rather than storing blanks that
+    render as gaps on the product page. */
+ rec.desc  = rec.desc.map(t=>t.trim()).filter(Boolean);
+ rec.specs = rec.specs.map(([k,v])=>[String(k).trim(),String(v).trim()]).filter(([k,v])=>k&&v);
+ rec.images= rec.images.map(u=>String(u).trim()).filter(Boolean);
+ rec.noShip= rec.noShip.map(x=>x.toUpperCase());
+ if(rec.made)rec.stock=0;
+
+ const problems=[];
+ if(!rec.sku)  problems.push('a SKU');
+ if(!rec.name) problems.push('a name');
+ if(rec.live&&!(rec.price>0)) problems.push('a price before it can go live');
+ if(rec.live&&!rec.desc.length) problems.push('at least one paragraph of description before it can go live');
+ if(problems.length){note('This needs '+problems.join(', ')+'.');return}
+ if(!/^[a-z0-9][a-z0-9-]*$/.test(rec.sku)){
+  note('A SKU should be lower case letters, numbers and hyphens — it becomes the web address.');return}
+ if(rec.sku!==DRAFT_SKU&&PRODUCTS.some(x=>x.sku===rec.sku)){
+  note(`${rec.sku} is already in the catalogue.`);return}
+ /* The one mistake with a consequence beyond a scruffy page. */
+ if(!rec.ffl&&rec.nfa){note('An NFA item has to go to a dealer.');return}
+
+ try{ await DB.saveProduct(rec,DRAFT_SKU); }catch(e){ note('Could not save: '+(e.message||e)); return; }
  clearNote();
+ DRAFT_SKU=rec.sku;
+ renderProducts();
  const m=document.getElementById('pSaved'); if(m){m.hidden=false;setTimeout(()=>m.hidden=true,1600)}
 }
+
 async function deleteProduct(sku){
  if(!confirm('Remove '+sku+' from the catalogue?'))return;
  try{ await DB.deleteProduct(sku); }catch(e){ note('Could not delete: '+(e.message||e)); return; }

@@ -1626,12 +1626,19 @@ function toggleSearch(){
    anything that cannot decode it fall back to the <img>, which is unchanged —
    so this wraps a tag rather than changing how images are written.
    build.js applies the identical rule to the static markup. */
-const avifOf=list=>list.replace(/\.jpg\b/g,'.avif');
+/* Only photos that live in the repository have an AVIF beside them. A product
+   photograph uploaded through /admin sits in Supabase Storage, where there is
+   no encoder to make one — rewriting its extension would point <source> at a
+   file that does not exist, and a browser that supports AVIF would then show
+   nothing at all rather than falling back. */
+const inRepo=u=>/^web\//.test(u.trim());
+const avifOf=list=>list.replace(/([^\s,]+)\.jpg\b/g,(m,base)=>inRepo(m)?base+'.avif':m);
 function pic(tag){
  const ss=tag.match(/srcset="([^"]*)"/), sz=tag.match(/sizes="([^"]*)"/);
  const src=tag.match(/src="([^"]*)"/);
  const list=ss?ss[1]:(src?src[1]:'');
  if(!/\.jpg\b/.test(list))return tag;
+ if(avifOf(list)===list)return tag;        /* nothing in it we can offer as AVIF */
  return `<picture><source type="image/avif" srcset="${avifOf(list)}"`
   +(sz?` sizes="${sz[1]}"`:'')+`>${tag}</picture>`;
 }

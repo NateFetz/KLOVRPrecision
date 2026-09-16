@@ -19,7 +19,7 @@ Static site. One HTML source, a small Node build that emits a real page per rout
 node tests/all.js
 ```
 
-Eight suites, about 230 assertions, under two seconds. No dependencies, nothing to
+Nine suites, about 300 assertions, under two seconds. No dependencies, nothing to
 install — plain Node, a fake PostgREST where a database is needed, and
 throwaway builds into temp directories where the build itself is under test.
 
@@ -31,6 +31,7 @@ throwaway builds into temp directories where the build itself is under test.
 | `business-schema` | how much the site claims about the shop, and when |
 | `avif` | a rendition for every photo and markup that pairs them |
 | `collect` | what measurement will and will not write down |
+| `product-editor` | form → row → storefront, and that the two mappers agree |
 | `order-notify` | what the order emails say, and that a failure to send is recorded |
 | `build-from-supabase` | a price changed in `/admin` reaching the built pages |
 
@@ -395,6 +396,39 @@ All three forms are Netlify Forms — no backend. Submissions land under
 
 Both post over `fetch` and show an inline result. Each carries a honeypot field
 for spam.
+
+## Adding a product
+
+`/admin` → Products → **Add product**, or click one to edit it. The editor
+covers everything the storefront renders: name, the line under it, SKU,
+category, which filter tab it sits in, sort order, price, stock or
+made-to-order with its own wording, visibility, delivery route, restricted
+states, a note, the description paragraphs, the specification table, and the
+photographs. Save, then **Publish to storefront** to rebuild the site.
+
+Photographs upload to Supabase Storage, so adding a product needs no commit.
+The trade is that they are served as uploaded: photos in `site/web/` ship with
+an AVIF rendition beside them and these cannot, because there is no AVIF
+encoder on a Linux build box. The build prints how many are in that state. To
+optimise them later, drop the originals into `site/web/`, run
+`node scripts/make-avif.js` on a Mac, commit, and point the product at the repo
+path instead.
+
+Three things the editor refuses, because each one reaches a customer as a
+broken page: a product with no SKU or name, a *live* product with no price or
+no description, and a SKU that is not lower-case letters, numbers and hyphens —
+it becomes the web address. The database refuses more: state codes that are not
+real states, specs that are not pairs of strings, and a live product missing a
+name or SKU. Delivery is the one field with consequences beyond a scruffy page,
+so it is a select, not a checkbox: anything marked for a dealer cannot be sent
+to a home address, and both the cart and `create_order` enforce it.
+
+**One catalogue, one list.** The prototype's seed products and the editor's
+filter menu are both injected from `site/index.html` at build time. They used
+to be hand-maintained copies and both had drifted — the filter menu offered
+seven of the nine keys in use, so opening a product filed under a missing one
+showed the wrong filter and silently refiled it on save. The build now fails if
+the catalogue uses a filter the shop has no chip for.
 
 ## Order notifications
 

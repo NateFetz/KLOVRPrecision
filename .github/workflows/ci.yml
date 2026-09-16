@@ -50,6 +50,9 @@ jobs:
       - name: Order notifications
         run: node tests/order-notify.test.js
 
+      - name: Product editor
+        run: node tests/product-editor.test.js
+
       - name: Guards
         run: node tests/guards.test.js
 
