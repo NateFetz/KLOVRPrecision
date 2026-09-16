@@ -579,6 +579,13 @@ update public.products set
   note = 'Form 4 and $200 stamp. Held in our safe until approval.'
 where sku = 'sup-65';
 
+-- The Atlas PSR bipod, added after the original catalogue content. Copy supplied
+-- by the manufacturer; the photograph is their studio shot, padded to 3:2 so the
+-- legs are not cropped by the card.
+update public.products set
+  images = array['web/p-bipod-atlas.jpg']
+where sku = 'bipod-atlas';
+
 -- ==========================================================================
 -- 0007_ffl_directory.sql
 -- ==========================================================================
