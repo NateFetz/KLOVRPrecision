@@ -3,3 +3,10 @@
 .netlify/
 node_modules/
 dist/
+
+# Secrets. This repository is public — anything committed here is readable by
+# anyone, for ever, and rotating a leaked key is the only fix. .env.example is
+# the one that is meant to be tracked: it holds names, never values.
+.env
+.env.*
+!.env.example

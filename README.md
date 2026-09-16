@@ -2,6 +2,23 @@
 
 Static site. One HTML source, a small Node build that emits a real page per route.
 
+## Setting up a second person
+
+[`docs/ONBOARDING.md`](docs/ONBOARDING.md) — accounts, machine, and building the
+Supabase backend as a first job. Written for somebody who machines rifle actions
+rather than somebody who writes software.
+
+Local configuration goes in a `.env`, loaded with Node's own flag and no
+dependency:
+
+```bash
+cp .env.example .env
+node --env-file=.env build.js
+```
+
+**This repository is public.** `.env` is gitignored; `.env.example` holds names
+and never values. A key committed here is a key that has to be rotated.
+
 ## Layout
 
 | Path | What it is |
