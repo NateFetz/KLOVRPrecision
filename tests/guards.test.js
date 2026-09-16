@@ -12,7 +12,7 @@
  * Run: node tests/guards.test.js
  */
 const fs = require('fs'), path = require('path'), os = require('os');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 let pass = 0, fail = 0;
@@ -150,6 +150,29 @@ console.log('\nthe build itself');
   ok('and reports how much it is willing to claim about the shop',
     r.built && /local search: Organization only/.test(r.stdout), r.stdout);
   ok('and that measurement is off', r.built && /measurement: off/.test(r.stdout));
+}
+
+console.log('\nthe pasteable schema');
+{
+  /* supabase/schema.sql is what gets pasted into a fresh project. If it lags
+     behind the migrations, the database that comes out is not the one the code
+     expects — and nobody would find out until a query failed. */
+  const r = spawnSync('node', [path.join(ROOT, 'scripts/build-schema.js'), '--check'],
+    { encoding: 'utf8' });
+  ok('schema.sql matches the migrations', r.status === 0,
+    (r.stdout || '') + (r.stderr || ''));
+
+  const sql = fs.readFileSync(path.join(ROOT, 'supabase/schema.sql'), 'utf8');
+  const migrations = fs.readdirSync(path.join(ROOT, 'supabase/migrations'))
+    .filter(f => f.endsWith('.sql')).sort();
+  ok('every migration is in it', migrations.every(f => sql.includes('-- ' + f)), migrations);
+  ok('it runs as one transaction', /^begin;/m.test(sql) && /^commit;/m.test(sql));
+  ok('the security migration is not somehow missing', /enable row level security/.test(sql));
+  /* The mistake that would matter most: pasting a schema whose CHECK constraint
+     Postgres refuses, halfway through a first setup. */
+  ok('no CHECK constraint contains a subquery',
+    !/check \(\s*[^;]*?\bselect\b/is.test(sql.replace(/^--.*$/gm, '')),
+    'a subquery inside CHECK parses but fails at execution');
 }
 
 console.log(`\n${fail ? fail + ' failed, ' : ''}${pass} passed\n`);

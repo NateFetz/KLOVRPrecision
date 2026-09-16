@@ -53,6 +53,9 @@ jobs:
       - name: Product editor
         run: node tests/product-editor.test.js
 
+      - name: Pasteable schema is current
+        run: node scripts/build-schema.js --check
+
       - name: Guards
         run: node tests/guards.test.js
 

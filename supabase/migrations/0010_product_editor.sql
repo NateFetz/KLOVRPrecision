@@ -37,17 +37,17 @@ create policy product_photos_public_read on storage.objects
 drop policy if exists product_photos_staff_write on storage.objects;
 create policy product_photos_staff_write on storage.objects
   for insert to authenticated
-  with check (bucket_id = 'product-photos' and is_staff());
+  with check (bucket_id = 'product-photos' and public.is_staff());
 
 drop policy if exists product_photos_staff_update on storage.objects;
 create policy product_photos_staff_update on storage.objects
   for update to authenticated
-  using (bucket_id = 'product-photos' and is_staff());
+  using (bucket_id = 'product-photos' and public.is_staff());
 
 drop policy if exists product_photos_staff_delete on storage.objects;
 create policy product_photos_staff_delete on storage.objects
   for delete to authenticated
-  using (bucket_id = 'product-photos' and is_staff());
+  using (bucket_id = 'product-photos' and public.is_staff());
 
 -- ---------------------------------------------------------------- guard rails
 -- The editor is a form, and a form can be filled in wrongly. These are the
@@ -65,18 +65,28 @@ alter table public.products add constraint products_no_ship_states_are_codes
 
 -- specs is [["Label","Value"], …]. Anything else and the product page renders
 -- empty cells rather than a table.
+--
+-- The obvious way to write this is a NOT EXISTS over jsonb_array_elements, and
+-- it parses — but Postgres refuses a subquery inside a CHECK constraint at
+-- execution time. An immutable function holds the same test and is allowed.
+create or replace function public.specs_are_pairs(p jsonb)
+returns boolean
+language sql
+immutable
+as $$
+  select jsonb_typeof(p) = 'array'
+     and not exists (
+       select 1 from jsonb_array_elements(p) e
+       where jsonb_typeof(e) <> 'array'
+          or jsonb_array_length(e) <> 2
+          or jsonb_typeof(e->0) <> 'string'
+          or jsonb_typeof(e->1) <> 'string'
+     )
+$$;
+
 alter table public.products drop constraint if exists products_specs_are_pairs;
 alter table public.products add constraint products_specs_are_pairs
-  check (
-    jsonb_typeof(specs) = 'array'
-    and not exists (
-      select 1 from jsonb_array_elements(specs) e
-      where jsonb_typeof(e) <> 'array'
-         or jsonb_array_length(e) <> 2
-         or jsonb_typeof(e->0) <> 'string'
-         or jsonb_typeof(e->1) <> 'string'
-    )
-  );
+  check (public.specs_are_pairs(specs));
 
 -- A live product with no name, no price or no SKU is a broken card in the shop.
 alter table public.products drop constraint if exists products_live_ones_are_complete;

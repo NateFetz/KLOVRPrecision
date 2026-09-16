@@ -15,23 +15,33 @@ Pick a region near you. Save the database password somewhere safe.
 
 ## 2 · Run the migrations
 
-Dashboard → **SQL Editor** → paste and run each file in order:
+**The short way.** Dashboard → **SQL Editor** → **New query** → paste the whole
+of [`supabase/schema.sql`](../supabase/schema.sql) → **Run**. That is all ten
+migrations in order, wrapped in a transaction: if anything fails, nothing is
+applied and you can paste it again after fixing it.
 
-1. `supabase/migrations/0001_schema.sql` — tables
-2. `supabase/migrations/0002_rls.sql` — **security. Do not skip.**
-3. `supabase/migrations/0003_seed.sql` — the current catalogue
-4. `supabase/migrations/0004_create_order.sql` — order creation
-5. `supabase/migrations/0005_storefront_fields.sql` — fields the shop renders
-6. `supabase/migrations/0006_catalogue_content.sql` — descriptions, specs, images
-7. `supabase/migrations/0007_ffl_directory.sql` — dealer directory and search
-8. `supabase/migrations/0008_site_events.sql` — site measurement and its reports
-9. `supabase/migrations/0009_order_notices.sql` — whether anyone was told an order arrived
-10. `supabase/migrations/0010_product_editor.sql` — the product photo bucket and the catalogue's guard rails
+That file is generated. If you change a migration, regenerate it:
 
-Or, with the CLI: `supabase db push`.
+```bash
+node scripts/build-schema.js
+```
+
+CI fails if the two disagree, so they cannot drift apart.
+
+**The long way**, if you prefer to see each step land, is to run the files in
+`supabase/migrations/` in order — `0001_schema.sql` first, `0010_product_editor.sql`
+last. `0002_rls.sql` is the security one; do not skip it. With the CLI it is
+`supabase db push`.
+
+**Before you run it**, know that the SQL has been checked against the real
+Postgres grammar but has never executed against a live database — this is its
+first run. Two things were already found and fixed that way: a CHECK constraint
+containing a subquery, which parses fine and which Postgres refuses at execution
+time, and three policy calls that were not schema-qualified. If something else
+surfaces, the transaction means you have lost nothing.
 
 To confirm the security took, go to **Table Editor** and check every table shows
-“RLS enabled”. If `orders` ever shows RLS *disabled*, customer names and
+"RLS enabled". If `orders` ever shows RLS *disabled*, customer names and
 addresses are readable by anyone with the anon key — which is in the page source.
 
 ## 3 · Create staff accounts
